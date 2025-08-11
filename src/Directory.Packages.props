@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <!-- Enable central package management, https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+	<PackageVersion Include="System.Management" Version="9.0.8" />
+	<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+	<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+	<PackageVersion Include="MSTest.TestAdapter" Version="3.10.1" />
+	<PackageVersion Include="MSTest.TestFramework" Version="3.10.1" />
+	<PackageVersion Include="coverlet.collector" Version="6.0.4" />
+  </ItemGroup>
+</Project>
