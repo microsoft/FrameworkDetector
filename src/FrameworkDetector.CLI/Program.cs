@@ -23,27 +23,28 @@ internal static class Program
         RootCommand rootCommand = new("Framework Detector");
         rootCommand.Options.Add(pidOption);
 
-        ParseResult? parseResult = null;
-        try
+        rootCommand.SetAction(parseResult =>
         {
-            parseResult = rootCommand.Parse(args);
             if (parseResult.GetValue(pidOption) is int processId)
             {
                 InspectProcess(processId);
+
+                return 0;
             }
-        } 
-        catch (InvalidOperationException)
-        {
-            // Display any command argument errors
-            foreach (ParseError parseError in parseResult?.Errors ?? Array.Empty<ParseError>())
+            else
             {
-                Console.Error.WriteLine(parseError.Message);
+                // Display any command argument errors
+                foreach (ParseError parseError in parseResult?.Errors ?? Array.Empty<ParseError>())
+                {
+                    Console.Error.WriteLine(parseError.Message);
+                }
+
+                return 1;
             }
+        });
 
-            return 1;
-        }
-
-        return 0;
+        ParseResult parseResult = rootCommand.Parse(args);
+        return parseResult.Invoke();
     }
 
     private static void InspectProcess(int processId)
