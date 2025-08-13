@@ -15,11 +15,11 @@ public abstract class ProcessDetectorCheck : IDetectorCheck
 
     public abstract string Description { get; }
 
-    public bool IsRequired { get; protected set; }
+    public bool IsRequired { get; private set; }
 
-    public DetectorCheckResult Result { get; protected set; }
+    public DetectorCheckResult Result { get; private set; }
 
-    public Process? Process { get; protected set; } = null;
+    public Process? Process { get; private set; } = null;
 
     protected ProcessDetectorCheck(bool isRequired)
     {

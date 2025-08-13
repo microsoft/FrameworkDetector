@@ -13,11 +13,11 @@ public abstract class PathDetectorCheck : IDetectorCheck
 
     public abstract string Description { get; }
 
-    public bool IsRequired { get; protected set; }
+    public bool IsRequired { get; private set; }
 
-    public DetectorCheckResult Result { get; protected set; } = null;
+    public DetectorCheckResult Result { get; private set; }
 
-    public string? Path { get; protected set; } = null;
+    public string? Path { get; private set; } = null;
 
     protected PathDetectorCheck(bool isRequired)
     {
