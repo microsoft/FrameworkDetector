@@ -15,9 +15,4 @@ public class DetectorCheckList
     {
         throw new NotImplementedException();
     }
-
-    internal DetectorCheckList ContainsModule(string v)
-    {
-        throw new NotImplementedException();
-    }
 }

@@ -25,7 +25,7 @@ public class Detector : IConfigDetectorRequirements
     public IReadOnlyList<PathDetectorCheck> PathChecks => _pathChecks;
     protected readonly List<PathDetectorCheck> _pathChecks = new List<PathDetectorCheck>();
 
-    protected Detector(IDetector detectorInfo)
+    internal Detector(IDetector detectorInfo)
     {
         Info = detectorInfo ?? throw new ArgumentNullException(nameof(detectorInfo));
 
@@ -35,11 +35,6 @@ public class Detector : IConfigDetectorRequirements
             DetectorVersion = AssemblyInfo.LibraryVersion,
             FrameworkId = Info.FrameworkId,
         };
-    }
-
-    public static IConfigDetectorRequirements Create(IDetector detectorInfo)
-    {
-        return new Detector(detectorInfo);
     }
 
     public virtual async Task<DetectorStatus> DetectByProcessAsync(Process process, CancellationToken cancellationToken)

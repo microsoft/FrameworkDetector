@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace FrameworkDetector.Engine;
 
-public class DetectorDefinition
+public class DetectorDefinition : IConfigDetectorRequirements
 {
-    public IDetector Detector { get; init; }
+    public IDetector Info { get; init; }
 
     public List<IDetectorCheck> RequiredChecks { get; init; } = new();
 
@@ -15,11 +15,25 @@ public class DetectorDefinition
 
     public DetectorDefinition(IDetector detector)
     {
-        Detector = detector;
+        Info = detector;
     }
 
-    public async Task<DetectorStatus> DetectAsync(DataSources.IDataSource source)
+    public IConfigDetectorRequirements Required(Func<DetectorCheckList, DetectorCheckList> checks)
     {
-        throw new NotImplementedException();
-    }   
+        RequiredChecks.Add();
+
+        return this;
+    }
+
+    public IConfigDetectorRequirements Optional(string subtitle, Func<DetectorCheckList, DetectorCheckList> checks)
+    {
+        OptionalChecks.Add();
+
+        return this;
+    }
+
+    public DetectorDefinition BuildDefinition()
+    {
+        return this;
+    }
 }
