@@ -1,13 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using FrameworkDetector.DetectorChecks;
+using FrameworkDetector.Checks;
 using FrameworkDetector.Engine;
-using FrameworkDetector.Models;
-using System;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace FrameworkDetector.Detectors;
 

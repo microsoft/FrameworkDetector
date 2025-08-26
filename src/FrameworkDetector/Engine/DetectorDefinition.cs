@@ -1,4 +1,5 @@
-﻿using FrameworkDetector.Models;
+﻿using FrameworkDetector.Checks;
+using FrameworkDetector.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,9 +10,9 @@ public class DetectorDefinition : IConfigDetectorRequirements
 {
     public IDetector Info { get; init; }
 
-    public List<IDetectorCheck> RequiredChecks { get; init; } = new();
+    public List<ICheckDefinition> RequiredChecks { get; init; } = new();
 
-    public List<IDetectorCheck> OptionalChecks { get; init; } = new();
+    public List<ICheckDefinition> OptionalChecks { get; init; } = new();
 
     public DetectorDefinition(IDetector detector)
     {
@@ -20,14 +21,24 @@ public class DetectorDefinition : IConfigDetectorRequirements
 
     public IConfigDetectorRequirements Required(Func<DetectorCheckList, DetectorCheckList> checks)
     {
-        RequiredChecks.Add();
+        DetectorCheckList checkList = checks(new());
+
+        foreach (var check in checkList.Checks)
+        {
+            RequiredChecks.Add(check);
+        }
 
         return this;
     }
 
     public IConfigDetectorRequirements Optional(string subtitle, Func<DetectorCheckList, DetectorCheckList> checks)
     {
-        OptionalChecks.Add();
+        DetectorCheckList checkList = checks(new());
+
+        foreach (var check in checkList.Checks)
+        {
+            OptionalChecks.Add(check);
+        }
 
         return this;
     }

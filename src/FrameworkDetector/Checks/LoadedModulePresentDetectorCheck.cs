@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,19 +27,21 @@ public static class LoadedModulePresentDetectorCheck
         public string ModuleName { get; } = ModuleName;
     }
 
-    extension(DetectorDefinition @this)
+    extension(DetectorCheckList @this)
     {
         public DetectorCheckList ContainsModule(string moduleName)
         {
-            var cd = new CheckDefinition<LoadedModulePresentInfo>(CheckInfo, new LoadedModulePresentInfo(moduleName));
+            @this.AddCheck(new CheckDefinition<LoadedModulePresentInfo>(CheckInfo, new LoadedModulePresentInfo(moduleName)));
 
-            // TODO: How to store these and return them to the same DetectorDefinition...
+            return @this;
         }
     }
 
     public static Task<DetectorCheckResult> PerformCheckAsync(LoadedModulePresentInfo info, Dictionary<Guid, IDataSource> dataSources, CancellationToken ct)
     {
-        var result = new DetectorCheckResult();
+        throw new NotImplementedException();
+
+        /*var result = new DetectorCheckResult();
 
         // TODO: DetectorCheckResult extraData
         if (Process is null)
@@ -72,6 +73,6 @@ public static class LoadedModulePresentDetectorCheck
             result.Status = DetectorCheckStatus.CompletedFailed;
         }
 
-        return result.Status;
+        return result.Status;*/
     }
 }
