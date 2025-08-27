@@ -1,19 +1,25 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using FrameworkDetector.DataSources;
 using FrameworkDetector.Detectors;
 using FrameworkDetector.Engine;
+using FrameworkDetector.Models;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.CommandLine;
 using System.CommandLine.Parsing;
-using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace FrameworkDetector.CLI;
 
 internal static class Program
 {
+    private static IServiceProvider Services = ConfigureServices();
+
+    //// Handles main command line parsing through System.CommandLine lib
+    //// TODO: Use Spectre.Console throughout for pretty output. See ReportProgress method stub below for more.
     [STAThread]
     public static int Main(string[] args)
     {
@@ -28,13 +34,20 @@ internal static class Program
         RootCommand rootCommand = new("Framework Detector");
         rootCommand.Options.Add(pidOption);
 
-        rootCommand.SetAction(parseResult =>
+        // TODO: Not familiar enough with System.CommandLine lib yet to understand if we have multiple data sources how to chain them together.
+        // Basically each parameter should create it's datasource to add to the list passed into the DetectionEngine.
+        //// https://learn.microsoft.com/dotnet/standard/commandline/how-to-parse-and-invoke#asynchronous-actions
+        rootCommand.SetAction(async (ParseResult parseResult, CancellationToken cancellationToken) =>
         {
             if (parseResult.GetValue(pidOption) is int processId)
             {
-                InspectProcess(processId);
+                if (await InspectProcess(processId, cancellationToken))
+                {
+                    return 0;
+                }
 
-                return 0;
+                // TODO: Define an error code enum somewhere for various error conditions
+                return 2;
             }
             else
             {
@@ -52,30 +65,30 @@ internal static class Program
         return parseResult.Invoke();
     }
 
-    private static void InspectProcess(int processId)
+    //// Encapsulation of initializing datasource and grabbing engine reference to kick-off a detection against all registered detectors (see ConfigureServices)
+    private static async Task<bool> InspectProcess(int processId, CancellationToken cancellationToken)
     {
         // TODO: Probably have this elsewhere to be called
         Console.WriteLine($"Inspecting process with ID: {processId}");
 
-        var cts = new CancellationTokenSource();
+        DataSourceCollection sources = new([new ProcessDataSource(processId)]);
 
-        // TODO: Put into a class that can orchestrate multiple of these detectors in parallel and contruct the combined result
+        var progressIndicator = new Progress<int>(ReportProgress);
 
-        var process = Process.GetProcessById(processId);
+        DetectionEngine engine = Services.GetRequiredService<DetectionEngine>();
 
-        var metadata = WindowsBinaryMetadata.GetMetadata(process);
-
-        var wpfDetector = new Detectors.WpfDetector();
-        var task = wpfDetector.DetectByProcessAsync(process, cts.Token);
-        task.Wait();
-
-        var result = new ToolRunResult(AssemblyInfo.ToolName, AssemblyInfo.ToolVersion)
-        {
-            ProcessMetadata = metadata, 
-            Frameworks = task.IsCompletedSuccessfully ? [wpfDetector.Result] : []
-        };
+        ToolRunResult result = await engine.DetectAgainstSourcesWithProgressAsync(sources, progressIndicator, cancellationToken);
 
         Console.WriteLine(result.ToString());
+
+        // TODO: Return false on failure
+        return true;
+    }
+
+    private static void ReportProgress(int obj)
+    {
+        // TODO: Use SpectreConsole Progress here to be fancy
+        Console.WriteLine($"Progress: %{obj}");
     }
 
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -90,6 +103,21 @@ internal static class Program
         // Add Detectors here.
         services.AddSingleton<IDetector, WpfDetector>();
         services.AddSingleton<IDetector, UWPXAMLDetector>();
+
+        // Note: An alternate setup we could have would be to setup each check as a class as well to inject here.
+        // Then we could theoretically have datasources be keyed to request in their constructors: https://learn.microsoft.com/dotnet/core/extensions/dependency-injection#keyed-services
+        // However, the lifetime of the datasources doesn't work too well for this,
+        // unless we made a parent datasource container that basically represented the type/info of the data source.
+        // (which could be interesting to encapsulate some of the handling/setup to delegate from parsing.)
+        // Then those are pulled by the CLI/App to inject and populate the actual data source instances to passthru to the checks at runtime.
+        // That may be better long term, and I don't think too hard to modify from current approach.
+        // I think the biggest question in this is how we handle multiple apps if we want to run across the
+        // running processes. I'm missing how we handle that in the current design and associate all the
+        // like data sources to associate with the same app/process.
+
+        // I think in the current setup, we could just spawn off multiple calls to InspectProcess above, as even though the DetectionEngine is shared and the static definitions (as we want), we'd be encapsulating
+        // each app's actual detection of data sources with the calls to DetectAgainstSourcesWithProgressAsync...
+        // So maybe it does work as-is.
 
         services.AddSingleton<DetectionEngine>();
 

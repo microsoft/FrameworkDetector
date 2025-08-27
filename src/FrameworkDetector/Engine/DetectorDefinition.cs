@@ -33,6 +33,7 @@ public class DetectorDefinition : IConfigDetectorRequirements
 
     public IConfigDetectorRequirements Optional(string subtitle, Func<DetectorCheckList, DetectorCheckList> checks)
     {
+        // TODO: Need to weave in subtitle to ICheckDefinition data here...
         DetectorCheckList checkList = checks(new());
 
         foreach (var check in checkList.Checks)
