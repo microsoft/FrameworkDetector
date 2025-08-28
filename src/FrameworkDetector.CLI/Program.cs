@@ -102,9 +102,13 @@ internal static class Program
 
         // TODO: Add a Logger here that we can use to report issues or record debug info, etc...
 
-        // Add Detectors here.
-        services.AddSingleton<IDetector, WpfDetector>();
+        // TODO: Would be nice if the SG could do this for us, there's a request open: https://github.com/CommunityToolkit/Labs-Windows/discussions/463#discussioncomment-11720493
+
+        // ---- ADD DETECTORS HERE ----
+        services.AddSingleton<IDetector, MVVMToolkitDetector>();
         services.AddSingleton<IDetector, UWPXAMLDetector>();
+        services.AddSingleton<IDetector, WebView2Detector>();
+        services.AddSingleton<IDetector, WpfDetector>();
 
         // Note: An alternate setup we could have would be to setup each check as a class as well to inject here.
         // Then we could theoretically have datasources be keyed to request in their constructors: https://learn.microsoft.com/dotnet/core/extensions/dependency-injection#keyed-services
