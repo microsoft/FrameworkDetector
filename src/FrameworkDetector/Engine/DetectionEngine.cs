@@ -32,14 +32,15 @@ public class DetectionEngine
         int processedDetectors = 0;
         ConcurrentBag<DetectorResult> allDetectorResults = new();
 
-        var result = new ToolRunResult(AssemblyInfo.ToolName, AssemblyInfo.ToolVersion, sources);
-
         // TODO: Do we want to have this be 1-step of progress?
         // Step 1. Initialize all the data sources.
         await Parallel.ForEachAsync(sources.Values.SelectMany(inner => inner), cancellationToken, async static (source, ct) =>
         {
             await source.LoadAndCacheDataAsync(ct);
         });
+
+        // NOTE: We need to create the run result AFTER the data sources are loaded in case we output data source info in the results...
+        var result = new ToolRunResult(AssemblyInfo.ToolName, AssemblyInfo.ToolVersion, sources);
 
         // Step 2. Run all the detectors against the data sources.
         await Parallel.ForEachAsync(_detectors, cancellationToken, async (detector, cancellationToken) =>
