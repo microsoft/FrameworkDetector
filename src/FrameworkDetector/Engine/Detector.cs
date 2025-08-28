@@ -13,7 +13,9 @@ using System.Threading.Tasks;
 
 namespace FrameworkDetector.Engine;
 
-public class Detector : IConfigDetectorRequirements
+//// Moving to DetectionEngine
+
+public class Detector
 {
     // TODO: Maybe this is just passed through via putting the interface directly on the detector...
     public IDetector Info { get; init; }
@@ -111,20 +113,5 @@ public class Detector : IConfigDetectorRequirements
         {
             Result.Status = DetectorStatus.Canceled;
         }
-    }
-
-    public IConfigDetectorRequirements Required(Func<DetectorCheckList, DetectorCheckList> checks)
-    {
-        throw new NotImplementedException();
-    }
-
-    public IConfigDetectorRequirements Optional(string subtitle, Func<DetectorCheckList, DetectorCheckList> checks)
-    {
-        throw new NotImplementedException();
-    }
-
-    public DetectorDefinition BuildDefinition()
-    {
-        throw new NotImplementedException();
     }
 }

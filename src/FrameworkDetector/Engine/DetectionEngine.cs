@@ -8,6 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace FrameworkDetector.Engine;
+
+/// <summary>
+/// Core handler of logic for running various <see cref="IDetector"/> defined detectors (as registered in service collection of parent runner detector application) against <see cref="IDataSource"/> sources provided by said app's configuration (e.g. processId to get Process info).
+/// Will use defined <see cref="ICheckDefinition"/> provided by <see cref="IDetector"/> implementation to calculate <see cref="DetectorCheckResult"/> value and provide results in aggregate in <see cref="ToolRunResult"/>.
+/// </summary>
 public class DetectionEngine
 {
     private List<DetectorDefinition> _detectors { get; init; } = new();
@@ -47,8 +52,10 @@ public class DetectionEngine
         Parallel.ForEach(_detectors, options, async detector =>
         {
             // TODO: Probably parallelizing on the detectors is enough vs. each check
-            // Required checks need to all pass for the framework to be detected and reported as such.
-            foreach (var requiredCheck in detector.RequiredChecks)
+
+            // Required checks ALL need to pass for the framework to be detected and reported as such.
+            // A detector must have 1 required check block (as otherwise it would always 'fail' to detect its framework)
+            foreach (var requiredCheck in detector.RequiredChecks ?? [])
             {
                 await Task.Yield();
 
@@ -61,7 +68,8 @@ public class DetectionEngine
             }
 
             // Optional checks won't fail the detection of the framework and are used to provide stronger confidence or additional metadata about the framework.
-            foreach (var optionalCheck in detector.OptionalChecks)
+            // Each is its own set of additional checks under an extra tagged string metadata piece.
+            foreach (var optionalCheckBlock in detector.OptionalChecks)
             {
                 await Task.Yield();
 
@@ -70,7 +78,10 @@ public class DetectionEngine
                     break;
                 }
 
-                var innerResult = await optionalCheck.PerformCheckAsync(sources, cancellationToken);
+                foreach (var optionalCheck in optionalCheckBlock.Value)
+                {
+                    var innerResult = await optionalCheck.PerformCheckAsync(sources, cancellationToken);
+                }
             }
         });
 

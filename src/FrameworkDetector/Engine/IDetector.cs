@@ -9,10 +9,13 @@ public interface IDetector
 
     string Description { get; }
 
+    // TODO: Make this just a general Id?
     string FrameworkId { get; }
 
+    // TODO: We should have an enum for detector type here like Framework, Language, Library
+
     /// <summary>
-    /// 
+    /// Main method to implement a detector's definition of requirements.
     /// </summary>
     /// <returns></returns>
     /// <seealso cref="IDetectorExtensions.Create(IDetector)"/>
@@ -26,7 +29,7 @@ public static class IDetectorExtensions
         /// <summary>
         /// Static extension method for <see cref="IDetector"/>.
         /// </summary>
-        /// <returns><see cref="IConfigDetectorRequirements"/></returns>
+        /// <returns><see cref="IConfigSetupDetectorRequirements"/></returns>
         /// <example>
         /// <code>
         ///     public DetectorDefinition CreateDefinition()
@@ -40,7 +43,7 @@ public static class IDetectorExtensions
         ///     }
         /// </code>
         /// </example>
-        public IConfigDetectorRequirements Create()
+        public IConfigSetupDetectorRequirements Create()
         {
             return new DetectorDefinition(@this);
         }
