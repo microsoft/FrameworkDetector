@@ -33,7 +33,7 @@ public record CheckRegistrationInfo<T>(
 
 /// <summary>
 /// The main execution source for a check extension. Called by the <see cref="DetectionEngine"/>.
-/// <see cref="CheckDefinition{T}.Metadata"/> can be retrieved for context provided by extension method on <see cref="DetectorCheckList"/> for definition within an <see cref="IDetector"/>.
+/// <see cref="CheckDefinition{T}.Metadata"/> can be retrieved for context provided by extension method on <see cref="DetectorCheckGroup"/> for definition within an <see cref="IDetector"/>.
 /// Lookup the required data in <see cref="DataSourceCollection"/> to match against the metadata.
 /// Update the <see cref="DetectorCheckResult{T}"/> with the status pass/fail/error (metadata is automatically attached).
 /// </summary>

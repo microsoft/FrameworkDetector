@@ -25,7 +25,7 @@ public class WebView2Detector : IDetector
         // WebView2 (Partial)
         // https://learn.microsoft.com/microsoft-edge/webview2/concepts/distribution?tabs=dotnetcsharp#files-to-ship-with-the-app
         return this.Create()
-            .Required(checks => checks
+            .Required("WebView2Loader", checks => checks
                 .ContainsModule("WebView2Loader.dll"))
             .Optional(".NET Managed Core", checks => checks
                 .ContainsModule("Microsoft.Web.WebView2.Core.dll"))

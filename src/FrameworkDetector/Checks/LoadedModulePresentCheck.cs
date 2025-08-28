@@ -36,14 +36,14 @@ public static class LoadedModulePresentCheck
         public override string ToString() => ModuleName;
     }
 
-    extension(DetectorCheckList @this)
+    extension(DetectorCheckGroup @this)
     {
         /// <summary>
-        /// <see cref="DetectorCheckList"/> extension to provide access to this check.
+        /// <see cref="DetectorCheckGroup"/> extension to provide access to this check.
         /// </summary>
         /// <param name="moduleName"></param>
         /// <returns></returns>
-        public DetectorCheckList ContainsModule(string moduleName)
+        public DetectorCheckGroup ContainsModule(string moduleName)
         {
             // This copies over an entry pointing to this specific check's registration with the metadata requested by the detector.
             // The metadata along with the live data sources (as indicated by the registration)

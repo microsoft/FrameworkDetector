@@ -56,9 +56,9 @@ public class DetectionEngine
                 Status = DetectorStatus.InProgress
             };
 
-            // Required checks ALL need to pass for the framework to be detected and reported as such.
-            // A detector must have 1 required check block (as otherwise it would always 'fail' to detect its framework)
-            foreach (var requiredCheck in detector.RequiredChecks ?? [])
+            // Required checks ALL need to pass for the framework to be detected and reported as such, from any single required group.
+            // A detector must have 1 required check group (as otherwise it would always 'fail' to detect its framework)
+            foreach (var requiredCheckGroup in detector.RequiredChecks ?? [])
             {
                 await Task.Yield();
 
@@ -67,22 +67,37 @@ public class DetectionEngine
                     break;
                 }
 
-                var innerResult = await requiredCheck.PerformCheckAsync(detector.Info, sources, cancellationToken);
+                // Sanity Check
+                if (requiredCheckGroup.Value.Count == 0)
+                {
+                    throw new ArgumentException($"Detector \"{detector.Info.Name}\"'s Required {requiredCheckGroup.Key} group does not have any required checks!");
+                }
 
-                detectorResult.CheckResults.Add(innerResult);
+                bool found = true;
+
+                foreach (var requiredCheck in requiredCheckGroup.Value)
+                {
+                    var innerResult = await requiredCheck.PerformCheckAsync(detector.Info, sources, cancellationToken);
+
+                    // If any check fails then we fail to find the framework.
+                    if (innerResult.Status != DetectorCheckStatus.CompletedPassed)
+                    {
+                        found = false;
+                    }
+
+                    detectorResult.CheckResults.Add(innerResult);
+                }
+
+                // If any of these required groups pass, then we've found the framework
+                if (found)
+                {
+                    detectorResult.FrameworkFound = true;
+                }
             }
-
-            if (detectorResult.CheckResults.Count == 0)
-            {
-                throw new ArgumentException($"Detector \"{detector.Info.Name}\" does not have any required checks!");
-            }
-
-            // Only required checks at this point, did all pass? If so we found the framework
-            detectorResult.FrameworkFound = detectorResult.CheckResults.All(check => check.Status == DetectorCheckStatus.CompletedPassed);
 
             // Optional checks won't fail the detection of the framework and are used to provide stronger confidence or additional metadata about the framework.
             // Each is its own set of additional checks under an extra tagged string metadata piece.
-            foreach (var optionalCheckBlock in detector.OptionalChecks)
+            foreach (var optionalCheckGroup in detector.OptionalChecks)
             {
                 await Task.Yield();
 
@@ -91,7 +106,7 @@ public class DetectionEngine
                     break;
                 }
 
-                foreach (var optionalCheck in optionalCheckBlock.Value)
+                foreach (var optionalCheck in optionalCheckGroup.Value)
                 {
                     var innerResult = await optionalCheck.PerformCheckAsync(detector.Info, sources, cancellationToken);
 

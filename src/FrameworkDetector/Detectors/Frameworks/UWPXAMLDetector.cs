@@ -24,7 +24,7 @@ public class UWPXAMLDetector : IDetector
     {
         // UWP
         return this.Create()
-            .Required(checks => checks
+            .Required("Windows UI XAML", checks => checks
                 .ContainsModule("windows.ui.xaml.dll"))
             .Optional("w/ CoreWindow", checks => checks
                 .ContainsClass("Windows.UI.Core.CoreWindow"))

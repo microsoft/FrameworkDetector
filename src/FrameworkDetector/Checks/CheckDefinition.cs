@@ -37,13 +37,13 @@ public interface ICheckDefinition
     /// <summary>
     /// Gets or sets a flag indicating if this was a required check. Set automatically by <see cref="DetectorDefinition"/>.
     /// </summary>
-    bool IsRequired { get; set; }
+    public bool IsRequired { get; set; }
 
     //// TODO: This is defined by the detector (not the check) as extra info about what it's looking for as an optional package. We could make this a more complex type, but not sure what other info we want at the moment. This would then change the signature to the DetectorDefinition.Optional method referenced below.
     /// <summary>
-    /// Gets or sets extra metadata about the nature of an optional check. See <see cref="DetectorDefinition.Optional(string, Func{DetectorCheckList, DetectorCheckList})"/>. Set automatically.
+    /// Gets or sets the name of the group this check is defined within by the detector. Set automatically.
     /// </summary>
-    string? OptionalMetadata { get; set; }
+    public string? GroupName { get; set; }
 
     /// <summary>
     /// Performs the defined check against the provided <see cref="DataSourceCollection"/>.
@@ -81,7 +81,7 @@ public record CheckDefinition<T>(
     public bool IsRequired { get; set; }
 
     /// <inheritdoc/>
-    public string? OptionalMetadata { get; set; }
+    public string? GroupName { get; set; }
 
     //// Used to translate between the strongly-typed definition written by check extension author passed in as a delegate and the concreate generalized version the engine will call on the check.
     /// <inheritdoc/>
@@ -102,6 +102,6 @@ public record CheckDefinition<T>(
 
     public override string ToString()
     {
-        return string.Format((OptionalMetadata ?? $"Required ({IsRequired})") + ": " + Description, Metadata.ToString());
+        return string.Format((GroupName + $" - Required ({IsRequired})") + ": " + Description, Metadata.ToString());
     }
 }

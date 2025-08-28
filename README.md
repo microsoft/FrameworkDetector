@@ -29,12 +29,16 @@ A Fluent API surface is used to construct detectors. For instance, a basic `IDet
     public DetectorDefinition CreateDefinition()
     {
         return this.Create()
-            .Required(checks => checks
+            .Required("Presentation Framework", checks => checks
                 .ContainsModule("PresentationFramework.dll")
                 .ContainsModule("PresentationCore.dll"))
             .BuildDefinition();
     }
 ```
+
+A Detector requires _at least_ one Required check group, but can have many. Any required check group that passes will indicate detection. All checks within a group must pass for that group to pass.
+
+Optional groups can also be defined, they have no impact on detection. They are not aggregated, just tagged with the group name.
 
 ### FrameworkDetector.CLI
 

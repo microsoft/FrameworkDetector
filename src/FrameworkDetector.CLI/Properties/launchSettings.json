@@ -2,7 +2,7 @@
   "profiles": {
     "FrameworkDetector.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "--pid 24052"
+      "commandLineArgs": "--pid 1124"
     }
   }
 }

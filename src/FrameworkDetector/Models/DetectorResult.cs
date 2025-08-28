@@ -30,5 +30,6 @@ public class DetectorResult
 
     public DetectorStatus Status { get; set; } = DetectorStatus.None;
 
+    // TODO: Q: Do we want these effectively grouped by groups, i.e. the DetectorCheckGroup Name?
     public List<IDetectorCheckResult> CheckResults { get; } = [];
 }

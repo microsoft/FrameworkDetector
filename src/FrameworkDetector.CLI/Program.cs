@@ -85,6 +85,7 @@ internal static class Program
         return true;
     }
 
+    // TODO: Note this is getting called out of order for some reason, but pretty sure I was using IProgress properly in the threaded context, but needs further investigation...
     private static void ReportProgress(int obj)
     {
         // TODO: Use SpectreConsole Progress here to be fancy

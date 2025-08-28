@@ -24,7 +24,7 @@ public class WpfDetector : IDetector
     {
         // WPF
         return this.Create()
-            .Required(checks => checks
+            .Required("Presentation Framework", checks => checks
                 .ContainsModule("PresentationFramework.dll")
                 .ContainsModule("PresentationCore.dll"))
             .BuildDefinition();

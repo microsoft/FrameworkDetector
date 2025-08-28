@@ -8,37 +8,38 @@ public class DetectorDefinition : IConfigSetupDetectorRequirements, IConfigAddit
 {
     public IDetector Info { get; init; }
 
-    public DetectorCheckList? RequiredChecks { get; private set; }
+    public Dictionary<string, DetectorCheckGroup> RequiredChecks { get; init; } = new();
 
-    public Dictionary<string, DetectorCheckList> OptionalChecks { get; init; } = new();
+    public Dictionary<string, DetectorCheckGroup> OptionalChecks { get; init; } = new();
 
     public DetectorDefinition(IDetector detector)
     {
         Info = detector;
     }
 
-    public IConfigAdditionalDetectorRequirements Required(Func<DetectorCheckList, DetectorCheckList> checks)
+    public IConfigAdditionalDetectorRequirements Required(string groupName, Func<DetectorCheckGroup, DetectorCheckGroup> checks)
     {
-        RequiredChecks = checks(new());
+        RequiredChecks.Add(groupName, checks(new(groupName)));
 
         // Mark all required
-        foreach (var check in RequiredChecks)
+        foreach (var check in RequiredChecks[groupName])
         {
             check.IsRequired = true;
+            check.GroupName = groupName;
         }
 
         return this;
     }
 
     // TODO: We could define a record here of metadata about the optional check beyond just a simple string... (for now though not sure what we want here beyond a string... as I think languages and other libraries and features would just be their own dedicated detectors)
-    public IConfigAdditionalDetectorRequirements Optional(string subtitle, Func<DetectorCheckList, DetectorCheckList> checks)
+    public IConfigAdditionalDetectorRequirements Optional(string groupName, Func<DetectorCheckGroup, DetectorCheckGroup> checks)
     {
-        OptionalChecks.Add(subtitle, checks(new()));
+        OptionalChecks.Add(groupName, checks(new(groupName)));
 
         // Tag all metadata to the check
-        foreach (var check in OptionalChecks[subtitle])
+        foreach (var check in OptionalChecks[groupName])
         {
-            check.OptionalMetadata = subtitle;
+            check.GroupName = groupName;
         }
         
         return this;
