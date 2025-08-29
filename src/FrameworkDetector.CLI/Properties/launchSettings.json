@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "FrameworkDetector.CLI": {
-      "commandName": "Project",
-      "commandLineArgs": "--pid 1124"
-    }
-  }
-}
