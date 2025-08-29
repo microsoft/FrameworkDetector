@@ -63,17 +63,17 @@ internal static class Program
 
                 if (processes.Length == 0)
                 {
-                    Console.Error.WriteLine($"Unable to find processes with name \"{processName}\".");
+                    PrintError("Unable to find processes with name \"{0}\".", processName);
                 }
                 else if (processes.Length > 1)
                 {
                     //TODO: figure out how if want to handle inspecting multiple processes and how to output the results.
-                    Console.Error.WriteLine($"More than one process with name \"{processName}\":");
+                    PrintError("More than one process with name \"{0}\":", processName);
                     foreach (var process in processes)
                     {
-                        Console.Error.WriteLine($"  {process.ProcessName}({process.Id})");
+                        PrintError("  {0}({1})", process.ProcessName, process.Id);
                     }
-                    Console.Error.WriteLine($"Please run again with the PID of the specific process you wish to inspect.");
+                    PrintError("Please run again with the PID of the specific process you wish to inspect.");
                 }
                 else if (await InspectProcess(processes[0], cancellationToken))
                 {
@@ -88,7 +88,7 @@ internal static class Program
                 // Display any command argument errors
                 foreach (ParseError parseError in parseResult?.Errors ?? Array.Empty<ParseError>())
                 {
-                    Console.Error.WriteLine(parseError.Message);
+                    PrintError(parseError.Message);
                 }
 
                 return 1;
@@ -126,9 +126,41 @@ internal static class Program
         Console.WriteLine($"Progress: %{obj}");
     }
 
+    private static void PrintException(Exception ex, string messageFormat = "Error: {0}", bool showStackTrace = true)
+    {
+        Console.WriteLine();
+        PrintError(messageFormat, ex.Message);
+        if (showStackTrace && ex.StackTrace is not null)
+        {
+            PrintError(ex.StackTrace);
+        }
+
+        if (ex.InnerException is not null)
+        {
+            PrintException(ex.InnerException);
+        }
+    }
+
+    private static void PrintError(string format, params object[] args)
+    {
+        ConsoleColor oldColor = Console.ForegroundColor;
+        Console.ForegroundColor = ConsoleColor.Red;
+
+        Console.Error.WriteLine(format, args);
+
+        Console.ForegroundColor = oldColor;
+    }
+
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
-        Console.Error.WriteLine($"Unhandled exception: {e.ExceptionObject}");
+        if (e.ExceptionObject is Exception ex)
+        {
+            PrintException(ex, "Unhandled exception: {0}");
+        }
+        else
+        {
+            PrintError("Unhandled exception {0}", e.ExceptionObject);
+        }
     }
 
     internal static IServiceProvider ConfigureServices()
