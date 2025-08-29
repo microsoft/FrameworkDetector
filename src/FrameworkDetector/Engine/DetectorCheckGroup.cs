@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using FrameworkDetector.Checks;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+
+using FrameworkDetector.Checks;
 
 namespace FrameworkDetector.Engine;
 

@@ -1,12 +1,16 @@
-﻿using FrameworkDetector.Checks;
-using FrameworkDetector.DataSources;
-using FrameworkDetector.Models;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using FrameworkDetector.Checks;
+using FrameworkDetector.DataSources;
+using FrameworkDetector.Models;
 
 namespace FrameworkDetector.Engine;
 

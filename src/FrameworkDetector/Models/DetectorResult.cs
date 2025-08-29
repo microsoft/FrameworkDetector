@@ -1,8 +1,9 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using FrameworkDetector.Engine;
 using System.Collections.Generic;
+
+using FrameworkDetector.Engine;
 
 namespace FrameworkDetector.Models;
 
