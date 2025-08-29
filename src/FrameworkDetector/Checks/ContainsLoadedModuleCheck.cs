@@ -30,12 +30,13 @@ public static class ContainsLoadedModuleCheck
     /// <summary>
     /// Structure for custom metadata provided by a detector (in this case the module name) required to perform the check.
     /// </summary>
-    /// <param name="moduleName"></param>
-    public readonly struct ContainsLoadedModuleInfo(string moduleName, bool checkForNGenModule)
+    /// <param name="moduleName">The name of the module to look for.</param>
+    /// <param name="checkForNgenModule">Whether or not to look for an Ngened version of the module.</param>
+    public readonly struct ContainsLoadedModuleInfo(string moduleName, bool checkForNgenModule)
     {
         public string ModuleName { get; } = moduleName;
 
-        public bool CheckForNGenModule { get; } = checkForNGenModule;
+        public bool CheckForNgenModule { get; } = checkForNgenModule;
 
         public override string ToString() => ModuleName;
     }
@@ -45,14 +46,15 @@ public static class ContainsLoadedModuleCheck
         /// <summary>
         /// <see cref="DetectorCheckGroup"/> extension to provide access to this check.
         /// </summary>
-        /// <param name="moduleName"></param>
+        /// <param name="moduleName">The name of the module to look for.</param>
+        /// <param name="checkForNgenModule">Whether or not to look for an Ngened version of the module.</param>
         /// <returns></returns>
-        public DetectorCheckGroup ContainsLoadedModule(string moduleName, bool checkForNGenModule = false)
+        public DetectorCheckGroup ContainsLoadedModule(string moduleName, bool checkForNgenModule = false)
         {
             // This copies over an entry pointing to this specific check's registration with the metadata requested by the detector.
             // The metadata along with the live data sources (as indicated by the registration)
             // will be passed into the PerformCheckAsync method below to do the actual check.
-            @this.AddCheck(new CheckDefinition<ContainsLoadedModuleInfo>(CheckRegistrationInfo, new ContainsLoadedModuleInfo(moduleName, checkForNGenModule)));
+            @this.AddCheck(new CheckDefinition<ContainsLoadedModuleInfo>(CheckRegistrationInfo, new ContainsLoadedModuleInfo(moduleName, checkForNgenModule)));
 
             return @this;
         }
@@ -67,7 +69,7 @@ public static class ContainsLoadedModuleCheck
             result.Status = DetectorCheckStatus.InProgress;
 
             string? nGenModuleName = null;
-            if (info.Metadata.CheckForNGenModule)
+            if (info.Metadata.CheckForNgenModule)
             {
                 nGenModuleName = Path.ChangeExtension(info.Metadata.ModuleName, ".ni" + Path.GetExtension(info.Metadata.ModuleName));
             }
@@ -90,7 +92,7 @@ public static class ContainsLoadedModuleCheck
                         result.Status = DetectorCheckStatus.CompletedPassed;
                         break;
                     }
-                    else if (info.Metadata.CheckForNGenModule && module.ModuleName.Equals(nGenModuleName, StringComparison.InvariantCultureIgnoreCase))
+                    else if (info.Metadata.CheckForNgenModule && module.ModuleName.Equals(nGenModuleName, StringComparison.InvariantCultureIgnoreCase))
                     {
                         result.Status = DetectorCheckStatus.CompletedPassed;
                         break;

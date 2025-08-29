@@ -40,11 +40,18 @@ WPF is resolution-independent and uses a vector-based rendering engine, built to
 
 ### Runtime Detection
 
-Either of the modules `PresentationFramework.dll` or `PresentationCore.dll` should be loaded by the running process. The version of WPF can be gotten by checking the FileVersion of either of these modules.
+Either of the following modules should be loaded by the running process:
+
+1. `PresentationCore.dll` (or the Ngened[^1] `PresentationCore.ni.dll`)
+2. `PresentationFramework.dll` (or the Ngened[^1] `PresentationFramework.ni.dll`)
+
+The version of WPF can be gotten by checking the FileVersion of any of these modules.
+
+[^1]: [Ngen on Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/framework/tools/ngen-exe-native-image-generator)
 
 ### Static Detection
 
-For self-contained .NET apps, either of the `PresentationFramework.dll` or `PresentationCore.dll` modules should be present with the app's binaries. The version of WPF can be gotten by checking the FileVersion of either of these modules.
+For self-contained .NET apps, any of the aforementioned runtime modules should be present with the app's binaries. The version of WPF can be gotten by checking the FileVersion of any these modules.
 
 However, since both framework-dependent .NET apps, and standard .NET Framework apps rely on system-installed versions of .NET, the absence of those modules with the app's binaries is not definitely proof that the app does not use WPF.
 
