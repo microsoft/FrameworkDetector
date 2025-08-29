@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Diagnostics;
-
+using FrameworkDetector.DetectorChecks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace FrameworkDetector.Test;
