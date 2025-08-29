@@ -31,7 +31,7 @@ public class DataSourceCollection : ReadOnlyDictionary<Guid, IDataSource[]>, IRe
     {
         if (TryGetValue(sourceIdType, out IDataSource[]? innerSources))
         {
-            if (innerSources == null)
+            if (innerSources is null)
             {
                 sources = [];
 

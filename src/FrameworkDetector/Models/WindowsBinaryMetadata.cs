@@ -17,7 +17,7 @@ public record WindowsBinaryMetadata(string Filename,
 
     public static WindowsBinaryMetadata GetMetadata(string? filename)
     {
-        if (filename == null)
+        if (filename is null)
         {
             throw new ArgumentNullException(nameof(filename));
         }
