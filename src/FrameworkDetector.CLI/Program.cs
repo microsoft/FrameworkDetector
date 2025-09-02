@@ -22,6 +22,13 @@ internal static class Program
 {
     private static IServiceProvider Services = ConfigureServices();
 
+    public enum ExitCode
+    {
+        Success = 0,
+        ArgumentParsingError = 1,
+        InspectFailed = 2,
+    }
+
     //// Handles main command line parsing through System.CommandLine lib
     //// TODO: Use Spectre.Console throughout for pretty output. See ReportProgress method stub below for more.
     [STAThread]
@@ -44,10 +51,13 @@ internal static class Program
             Description = "Save the inspection report as JSON to the given filename.",
         };
 
-        RootCommand rootCommand = new("Framework Detector");
-        rootCommand.Options.Add(pidOption);
-        rootCommand.Options.Add(processNameOption);
-        rootCommand.Options.Add(outputFileOption);
+        RootCommand rootCommand = new("Framework Detector")
+        {
+            pidOption,
+            processNameOption,
+            outputFileOption,
+        };
+        rootCommand.TreatUnmatchedTokensAsErrors = true;
 
         // TODO: Not familiar enough with System.CommandLine lib yet to understand if we have multiple data sources how to chain them together.
         // Basically each parameter should create it' datasource to add to the list passed into the DetectionEngine.
@@ -62,7 +72,7 @@ internal static class Program
                     PrintError(parseError.Message);
                 }
 
-                return 1;
+                return (int)ExitCode.ArgumentParsingError;
             }
 
             var processId = parseResult.GetValue(pidOption);
@@ -73,11 +83,10 @@ internal static class Program
             {
                 if (await InspectProcess(Process.GetProcessById(processId.Value), outputFilename, cancellationToken))
                 {
-                    return 0;
+                    return (int)ExitCode.Success;
                 }
 
-                // TODO: Define an error code enum somewhere for various error conditions
-                return 2;
+                return (int)ExitCode.InspectFailed;
             }
             else if (!string.IsNullOrWhiteSpace(processName))
             {
@@ -99,18 +108,21 @@ internal static class Program
                 }
                 else if (await InspectProcess(processes[0], outputFilename, cancellationToken))
                 {
-                    return 0;
+                    return (int)ExitCode.Success;
                 }
 
-                // TODO: Define an error code enum somewhere for various error conditions
-                return 2;
+                return (int)ExitCode.InspectFailed;
             }
 
-            return 1;
+            return (int)ExitCode.ArgumentParsingError;
         });
 
-        ParseResult parseResult = rootCommand.Parse(args);
-        return parseResult.Invoke();
+        var exitCode = rootCommand.Parse(args).Invoke();
+        if (exitCode == (int)ExitCode.ArgumentParsingError)
+        {
+            rootCommand.Parse("-h").Invoke();
+        }
+        return exitCode;
     }
 
     //// Encapsulation of initializing datasource and grabbing engine reference to kick-off a detection against all registered detectors (see ConfigureServices)
