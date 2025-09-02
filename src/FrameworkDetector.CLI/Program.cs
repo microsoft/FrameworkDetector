@@ -5,6 +5,7 @@ using System;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,18 +39,39 @@ internal static class Program
             Description = "The name of the process to inspect.",
         };
 
+        Option<string?> outputFileOption = new("--outputFile")
+        {
+            Description = "Save the inspection report as JSON to the given filename.",
+        };
+
         RootCommand rootCommand = new("Framework Detector");
         rootCommand.Options.Add(pidOption);
         rootCommand.Options.Add(processNameOption);
+        rootCommand.Options.Add(outputFileOption);
 
         // TODO: Not familiar enough with System.CommandLine lib yet to understand if we have multiple data sources how to chain them together.
-        // Basically each parameter should create it's datasource to add to the list passed into the DetectionEngine.
+        // Basically each parameter should create it' datasource to add to the list passed into the DetectionEngine.
         //// https://learn.microsoft.com/dotnet/standard/commandline/how-to-parse-and-invoke#asynchronous-actions
         rootCommand.SetAction(async (ParseResult parseResult, CancellationToken cancellationToken) =>
         {
-            if (parseResult.GetValue(pidOption) is int processId)
+            if (parseResult.Errors.Count > 0)
             {
-                if (await InspectProcess(Process.GetProcessById(processId), cancellationToken))
+                // Display any command argument errors
+                foreach (ParseError parseError in parseResult?.Errors ?? Array.Empty<ParseError>())
+                {
+                    PrintError(parseError.Message);
+                }
+
+                return 1;
+            }
+
+            var processId = parseResult.GetValue(pidOption);
+            var processName = parseResult.GetValue(processNameOption);
+            var outputFilename = parseResult.GetValue(outputFileOption);
+
+            if (processId is not null)
+            {
+                if (await InspectProcess(Process.GetProcessById(processId.Value), outputFilename, cancellationToken))
                 {
                     return 0;
                 }
@@ -57,7 +79,7 @@ internal static class Program
                 // TODO: Define an error code enum somewhere for various error conditions
                 return 2;
             }
-            else if (parseResult.GetValue(processNameOption) is string processName)
+            else if (!string.IsNullOrWhiteSpace(processName))
             {
                 var processes = Process.GetProcessesByName(processName);
 
@@ -75,7 +97,7 @@ internal static class Program
                     }
                     PrintError("Please run again with the PID of the specific process you wish to inspect.");
                 }
-                else if (await InspectProcess(processes[0], cancellationToken))
+                else if (await InspectProcess(processes[0], outputFilename, cancellationToken))
                 {
                     return 0;
                 }
@@ -83,16 +105,8 @@ internal static class Program
                 // TODO: Define an error code enum somewhere for various error conditions
                 return 2;
             }
-            else
-            {
-                // Display any command argument errors
-                foreach (ParseError parseError in parseResult?.Errors ?? Array.Empty<ParseError>())
-                {
-                    PrintError(parseError.Message);
-                }
 
-                return 1;
-            }
+            return 1;
         });
 
         ParseResult parseResult = rootCommand.Parse(args);
@@ -100,7 +114,7 @@ internal static class Program
     }
 
     //// Encapsulation of initializing datasource and grabbing engine reference to kick-off a detection against all registered detectors (see ConfigureServices)
-    private static async Task<bool> InspectProcess(Process process, CancellationToken cancellationToken)
+    private static async Task<bool> InspectProcess(Process process, string? outputFilename, CancellationToken cancellationToken)
     {
         // TODO: Probably have this elsewhere to be called
         Console.WriteLine($"Inspecting process {process.ProcessName}({process.Id})");
@@ -113,7 +127,13 @@ internal static class Program
 
         ToolRunResult result = await engine.DetectAgainstSourcesWithProgressAsync(sources, progressIndicator, cancellationToken);
 
-        Console.WriteLine(result.ToString());
+        if (!string.IsNullOrWhiteSpace(outputFilename))
+        {
+            Console.WriteLine($"Saving output to: \"{outputFilename}\".");
+
+            using var outputWriter = new StreamWriter(outputFilename);
+            outputWriter.WriteLine(result.ToString());
+        }
 
         // TODO: Return false on failure
         return true;
