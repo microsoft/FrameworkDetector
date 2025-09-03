@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,12 +15,21 @@ using FrameworkDetector.Models;
 
 namespace FrameworkDetector.Engine;
 
+public delegate void DetectionProgressChangedEventHandler(object sender, DetectionProgressChangedEventArgs e);
+
+public class DetectionProgressChangedEventArgs(double progress) : EventArgs
+{
+    public readonly double Progress = progress;
+}
+
 /// <summary>
 /// Core handler of logic for running various <see cref="IDetector"/> defined detectors (as registered in service collection of parent runner detector application) against <see cref="IDataSource"/> sources provided by said app's configuration (e.g. processId to get Process info).
 /// Will use defined <see cref="ICheckDefinition"/> provided by <see cref="IDetector"/> implementation to calculate <see cref="DetectorCheckResult"/> value and provide results in aggregate in <see cref="ToolRunResult"/>.
 /// </summary>
 public class DetectionEngine
 {
+    public event DetectionProgressChangedEventHandler? DetectionProgressChanged;
+
     private List<DetectorDefinition> _detectors { get; init; } = new();
 
     public DetectionEngine(IEnumerable<IDetector> detectors)
@@ -30,7 +40,7 @@ public class DetectionEngine
         }
     }
 
-    public async Task<ToolRunResult> DetectAgainstSourcesWithProgressAsync(DataSourceCollection sources, IProgress<int> progress, CancellationToken cancellationToken)
+    public async Task<ToolRunResult> DetectAgainstSourcesAsync(DataSourceCollection sources, CancellationToken cancellationToken)
     {
         int totalDetectors = _detectors.Count;
         int processedDetectors = 0;
@@ -121,14 +131,17 @@ public class DetectionEngine
                 // then says if that particular bucket was fully satisfied? This needs a bit more definition about what we want to use these for... (though I think even if we change this up this new API setup is pretty flexible to reconfigure to whatever our needs are).
             }
 
-            // Update progress after each detector finishes
-            progress.Report((Interlocked.Increment(ref processedDetectors) * 100) / totalDetectors);
-
             // TODO: We need to mark cancelled status somewhere?
             detectorResult.Status = DetectorStatus.Completed;
 
             // Add to main collection of results.
             allDetectorResults.Add(detectorResult);
+
+            // Update progress after each detector finishes
+            lock (this)
+            {
+                DetectionProgressChanged?.Invoke(this, new DetectionProgressChangedEventArgs(100.0 * Interlocked.Increment(ref processedDetectors) / totalDetectors));
+            }
         });
 
         // Step 3. Aggregate/Finalize all the results?

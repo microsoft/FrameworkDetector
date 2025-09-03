@@ -129,15 +129,20 @@ internal static class Program
     private static async Task<bool> InspectProcess(Process process, string? outputFilename, CancellationToken cancellationToken)
     {
         // TODO: Probably have this elsewhere to be called
-        Console.WriteLine($"Inspecting process {process.ProcessName}({process.Id})");
+        var message = $"Inspecting process {process.ProcessName}({process.Id})";
+        Console.Write($"{message}:");
 
         DataSourceCollection sources = new([new ProcessDataSource(process)]);
 
-        var progressIndicator = new Progress<int>(ReportProgress);
-
         DetectionEngine engine = Services.GetRequiredService<DetectionEngine>();
+        engine.DetectionProgressChanged += (s, e) =>
+        {
+            Console.Write($"\r{message}: {e.Progress:000.0}%");
+        };
 
-        ToolRunResult result = await engine.DetectAgainstSourcesWithProgressAsync(sources, progressIndicator, cancellationToken);
+        ToolRunResult result = await engine.DetectAgainstSourcesAsync(sources, cancellationToken);
+
+        Console.WriteLine();
 
         if (!string.IsNullOrWhiteSpace(outputFilename))
         {
@@ -149,12 +154,6 @@ internal static class Program
 
         // TODO: Return false on failure
         return true;
-    }
-
-    private static void ReportProgress(int obj)
-    {
-        // TODO: Use SpectreConsole Progress here to be fancy
-        Console.WriteLine($"Progress: {obj}%");
     }
 
     private static void PrintException(Exception ex, string messageFormat = "Error: {0}", bool showStackTrace = true)
