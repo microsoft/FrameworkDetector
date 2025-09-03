@@ -122,8 +122,7 @@ public class DetectionEngine
             }
 
             // Update progress after each detector finishes
-            Interlocked.Increment(ref processedDetectors);
-            progress.Report((processedDetectors * 100) / totalDetectors);
+            progress.Report((Interlocked.Increment(ref processedDetectors) * 100) / totalDetectors);
 
             // TODO: We need to mark cancelled status somewhere?
             detectorResult.Status = DetectorStatus.Completed;
