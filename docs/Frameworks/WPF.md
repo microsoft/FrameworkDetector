@@ -22,17 +22,22 @@ WPF is resolution-independent and uses a vector-based rendering engine, built to
 
 ### Dependencies
 
-- [.NET](https://dotnet.microsoft.com/en-us/download/dotnet) or [.NET Framework](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
+WPF depends on either:
+
+- [.NET](https://dotnet.microsoft.com/en-us/download/dotnet) or
+- [.NET Framework](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
+
+For more information on the differences, see [NET implementations](https://learn.microsoft.com/en-us/dotnet/fundamentals/implementations).
 
 ### Canonical Apps
 
 **.NET:**
 
-* [WPF Gallery Preview](https://apps.microsoft.com/detail/9ndlx60wx4kq)
+- [WPF Gallery Preview](https://apps.microsoft.com/detail/9ndlx60wx4kq)
 
 **.NET Framework:**
 
-* *TODO*
+- *TODO*
 
 ## How to Detect
 

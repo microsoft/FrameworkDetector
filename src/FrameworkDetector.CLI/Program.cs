@@ -235,6 +235,7 @@ internal static class Program
 
         // ---- ADD DETECTORS HERE ----
         services.AddSingleton<IDetector, MVVMToolkitDetector>();
+        services.AddSingleton<IDetector, RNWDetector>();
         services.AddSingleton<IDetector, UWPXAMLDetector>();
         services.AddSingleton<IDetector, WebView2Detector>();
         services.AddSingleton<IDetector, WinFormsDetector>();
