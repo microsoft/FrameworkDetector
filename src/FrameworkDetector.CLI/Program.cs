@@ -237,6 +237,7 @@ internal static class Program
         services.AddSingleton<IDetector, MVVMToolkitDetector>();
         services.AddSingleton<IDetector, UWPXAMLDetector>();
         services.AddSingleton<IDetector, WebView2Detector>();
+        services.AddSingleton<IDetector, WinFormsDetector>();
         services.AddSingleton<IDetector, WPFDetector>();
 
         // Note: An alternate setup we could have would be to setup each check as a class as well to inject here.
