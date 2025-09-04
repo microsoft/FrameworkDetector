@@ -14,19 +14,21 @@ namespace FrameworkDetector.Checks;
 //// This is extension/registration information about a check for its definition.
 
 /// <summary>
-/// Record of static registration of a Check extension. Provides all the details the engine needs to provide in terms of identify within the check results, as well as the required data sources this check needs to operate. Finally, points to the check function the engine will call to perform the check.
+/// Record of static registration of a CheckDefinition extension. Provides all the details the engine needs to provide in terms of identify within the check results, as well as the required data sources this check needs to operate. Finally, points to the check function the engine will call to perform the check.
 /// </summary>
-/// <typeparam name="T"></typeparam>
-/// <param name="Name"></param>
-/// <param name="Description"></param>
+/// <typeparam name="TInput">Type of input arguments struct used by the check when running, e.g. the specific module to search for.</typeparam>
+/// <typeparam name="TOutput">Type of output data struct for storing anyout output data from a check.</typeparam>
+/// <param name="Name">The name of the check.</param>
+/// <param name="Description">A short description of what the check does.</param>
 /// <param name="DataSourceIds"><see cref="IDataSource.Id"/> static ids to identify the required data source info needed to perform this check (TODO: this probably should be a source generated registry in the future maybe?)</param>
-/// <param name="PerformCheckAsync"><see cref="CheckFunction{T}"/> delegate for signature of function called by the detector engine(tbd?) to perform the check against the provided data source.</param>
-public record CheckRegistrationInfo<T>(
+/// <param name="PerformCheckAsync"><see cref="CheckFunction{TInput,TOutput}"/> delegate for signature of function called by the detector engine(tbd?) to perform the check against the provided data source.</param>
+public record CheckRegistrationInfo<TInput,TOutput>(
     string Name,
     string Description,
     Guid[] DataSourceIds,
-    CheckFunction<T> PerformCheckAsync
-) where T : struct
+    CheckFunction<TInput,TOutput> PerformCheckAsync
+) where TInput : struct
+  where TOutput : struct
 {
 }
 
@@ -34,14 +36,15 @@ public record CheckRegistrationInfo<T>(
 
 /// <summary>
 /// The main execution source for a check extension. Called by the <see cref="DetectionEngine"/>.
-/// <see cref="CheckDefinition{T}.Metadata"/> can be retrieved for context provided by extension method on <see cref="DetectorCheckGroup"/> for definition within an <see cref="IDetector"/>.
+/// <see cref="CheckDefinition{TInput,TOutput}.CheckArguments"/> can be retrieved for context provided by extension method on <see cref="DetectorCheckGroup"/> for definition within an <see cref="IDetector"/>.
 /// Lookup the required data in <see cref="DataSourceCollection"/> to match against the metadata.
-/// Update the <see cref="DetectorCheckResult{T}"/> with the status pass/fail/error (metadata is automatically attached).
+/// Update the <see cref="DetectorCheckResult{TInput,TOutput}"/> with the status pass/fail/error (metadata is automatically attached).
 /// </summary>
-/// <typeparam name="T"><see cref="CheckDefinition{T}.Metadata"/></typeparam>
-/// <param name="definition"></param>
-/// <param name="dataSources"></param>
-/// <param name="result"></param>
-/// <param name="cancellationToken"></param>
+/// <typeparam name="TInput">Type of input arguments struct used by the check when running, e.g. the specific module to search for.</typeparam>
+/// <typeparam name="TOutput">Type of output data struct for storing anyout output data from a check.</typeparam>
+/// <param name="definition">The definition of the executing check.</param>
+/// <param name="dataSources">The data sources the check has access to during execution.</param>
+/// <param name="result">The check result to be set during execution.</param>
+/// <param name="cancellationToken">Cancellation token.</param>
 /// <returns></returns>
-public delegate Task CheckFunction<T>(CheckDefinition<T> definition, DataSourceCollection dataSources, DetectorCheckResult<T> result, CancellationToken cancellationToken) where T : struct;
+public delegate Task CheckFunction<TInput,TOutput>(CheckDefinition<TInput,TOutput> definition, DataSourceCollection dataSources, DetectorCheckResult<TInput,TOutput> result, CancellationToken cancellationToken) where TInput : struct where TOutput : struct;

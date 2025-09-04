@@ -13,14 +13,14 @@ using FrameworkDetector.Models;
 namespace FrameworkDetector.Checks;
 
 /// <summary>
-/// Check extension for looking for a specific loaded module, present within a process.
+/// CheckDefinition extension for looking for a specific loaded module, present within a process.
 /// </summary>
 public static class ContainsLoadedModuleCheck
 {
     /// <summary>
-    /// Static registration information defining the ContainsLoadedModule Check
+    /// Static registration information defining <see cref="ContainsLoadedModuleCheck"/>.
     /// </summary>
-    private static CheckRegistrationInfo<ContainsLoadedModuleInfo> CheckRegistrationInfo = new(
+    private static CheckRegistrationInfo<ContainsLoadedModuleArgs, ContainsLoadedModuleData> CheckRegistrationInfo = new(
         Name: nameof(ContainsLoadedModuleCheck),
         Description: "Checks for module by name in Process.LoadedModules",
         DataSourceIds: [ProcessDataSource.Id],
@@ -28,11 +28,11 @@ public static class ContainsLoadedModuleCheck
     );
 
     /// <summary>
-    /// Structure for custom metadata provided by a detector (in this case the module name) required to perform the check.
+    /// Input arguments for <see cref="ContainsLoadedModuleCheck"/>.
     /// </summary>
     /// <param name="moduleName">The name of the module to look for.</param>
     /// <param name="checkForNgenModule">Whether or not to look for an Ngened version of the module.</param>
-    public readonly struct ContainsLoadedModuleInfo(string moduleName, bool checkForNgenModule)
+    public readonly struct ContainsLoadedModuleArgs(string moduleName, bool checkForNgenModule)
     {
         public string ModuleName { get; } = moduleName;
 
@@ -41,10 +41,21 @@ public static class ContainsLoadedModuleCheck
         public override string ToString() => ModuleName;
     }
 
+    /// <summary>
+    /// Output data for <see cref="ContainsLoadedModuleCheck"/>.
+    /// </summary>
+    /// <param name="moduleFound">The module found.</param>
+    public readonly struct ContainsLoadedModuleData(WindowsBinaryMetadata moduleFound)
+    {
+        public WindowsBinaryMetadata ModuleFound { get; } = moduleFound;
+
+        public override string ToString() => ModuleFound.ToString();
+    }
+
     extension(DetectorCheckGroup @this)
     {
         /// <summary>
-        /// <see cref="DetectorCheckGroup"/> extension to provide access to this check.
+        /// Checks for module by name in Process.LoadedModules.
         /// </summary>
         /// <param name="moduleName">The name of the module to look for.</param>
         /// <param name="checkForNgenModule">Whether or not to look for an Ngened version of the module.</param>
@@ -54,24 +65,24 @@ public static class ContainsLoadedModuleCheck
             // This copies over an entry pointing to this specific check's registration with the metadata requested by the detector.
             // The metadata along with the live data sources (as indicated by the registration)
             // will be passed into the PerformCheckAsync method below to do the actual check.
-            @this.AddCheck(new CheckDefinition<ContainsLoadedModuleInfo>(CheckRegistrationInfo, new ContainsLoadedModuleInfo(moduleName, checkForNgenModule)));
+            @this.AddCheck(new CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData>(CheckRegistrationInfo, new ContainsLoadedModuleArgs(moduleName, checkForNgenModule)));
 
             return @this;
         }
     }
 
     //// Actual check code run by engine
-
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsLoadedModuleInfo> info, DataSourceCollection dataSources, DetectorCheckResult<ContainsLoadedModuleInfo> result, CancellationToken cancellationToken)
+    
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData> definition, DataSourceCollection dataSources, DetectorCheckResult<ContainsLoadedModuleArgs, ContainsLoadedModuleData> result, CancellationToken cancellationToken)
     {
         if (dataSources.TryGetSources(ProcessDataSource.Id, out ProcessDataSource[] processes))
         {
-            result.Status = DetectorCheckStatus.InProgress;
+            result.CheckStatus = DetectorCheckStatus.InProgress;
 
             string? nGenModuleName = null;
-            if (info.Metadata.CheckForNgenModule)
+            if (definition.CheckArguments.CheckForNgenModule)
             {
-                nGenModuleName = Path.ChangeExtension(info.Metadata.ModuleName, ".ni" + Path.GetExtension(info.Metadata.ModuleName));
+                nGenModuleName = Path.ChangeExtension(definition.CheckArguments.ModuleName, ".ni" + Path.GetExtension(definition.CheckArguments.ModuleName));
             }
 
             // TODO: Think about child processes and what that means here for a check...
@@ -86,33 +97,30 @@ public static class ContainsLoadedModuleCheck
 
                         if (cancellationToken.IsCancellationRequested)
                         {
-                            result.Status = DetectorCheckStatus.Canceled;
+                            result.CheckStatus = DetectorCheckStatus.Canceled;
                             break;
                         }
 
-                        if (module.Filename.Equals(info.Metadata.ModuleName, StringComparison.InvariantCultureIgnoreCase))
+                        if (module.Filename.Equals(definition.CheckArguments.ModuleName, StringComparison.InvariantCultureIgnoreCase) ||
+                            (definition.CheckArguments.CheckForNgenModule && module.Filename.Equals(nGenModuleName, StringComparison.InvariantCultureIgnoreCase)))
                         {
-                            result.Status = DetectorCheckStatus.CompletedPassed;
-                            break;
-                        }
-                        else if (info.Metadata.CheckForNgenModule && module.Filename.Equals(nGenModuleName, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            result.Status = DetectorCheckStatus.CompletedPassed;
+                            result.OutputData = new ContainsLoadedModuleData(module);
+                            result.CheckStatus = DetectorCheckStatus.CompletedPassed;
                             break;
                         }
                     }
                 }
             }
 
-            if (result.Status == DetectorCheckStatus.InProgress)
+            if (result.CheckStatus == DetectorCheckStatus.InProgress)
             {
-                result.Status = DetectorCheckStatus.CompletedFailed;
+                result.CheckStatus = DetectorCheckStatus.CompletedFailed;
             }
         }
         else
         {
-            // No Data = Error
-            result.Status = DetectorCheckStatus.Error;
+            // No CheckInput = Error
+            result.CheckStatus = DetectorCheckStatus.Error;
         }
     }
 }

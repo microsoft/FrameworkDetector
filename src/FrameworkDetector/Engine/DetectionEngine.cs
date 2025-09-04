@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +23,7 @@ public class DetectionProgressChangedEventArgs(double progress) : EventArgs
 
 /// <summary>
 /// Core handler of logic for running various <see cref="IDetector"/> defined detectors (as registered in service collection of parent runner detector application) against <see cref="IDataSource"/> sources provided by said app's configuration (e.g. processId to get Process info).
-/// Will use defined <see cref="ICheckDefinition"/> provided by <see cref="IDetector"/> implementation to calculate <see cref="DetectorCheckResult"/> value and provide results in aggregate in <see cref="ToolRunResult"/>.
+/// Will use defined <see cref="ICheckDefinition"/> provided by <see cref="IDetector"/> implementation to calculate <see cref="IDetectorCheckResult"/> value and provide results in aggregate in <see cref="ToolRunResult"/>.
 /// </summary>
 public class DetectionEngine
 {
@@ -81,7 +80,7 @@ public class DetectionEngine
                     break;
                 }
 
-                // Sanity Check
+                // Sanity CheckDefinition
                 if (requiredCheckGroup.Value.Count == 0)
                 {
                     throw new ArgumentException($"Detector \"{detector.Info.Name}\"'s Required {requiredCheckGroup.Key} group does not have any required checks!");
@@ -94,7 +93,7 @@ public class DetectionEngine
                     var innerResult = await requiredCheck.PerformCheckAsync(detector.Info, sources, cancellationToken);
 
                     // If any check fails then we fail to find the framework.
-                    if (innerResult.Status != DetectorCheckStatus.CompletedPassed)
+                    if (innerResult.CheckStatus != DetectorCheckStatus.CompletedPassed)
                     {
                         found = false;
                     }

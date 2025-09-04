@@ -43,4 +43,6 @@ public class DetectorCheckGroup(string Name) : IReadOnlyCollection<ICheckDefinit
     {
         return GetEnumerator();
     }
+
+    public override string ToString() => Name;
 }

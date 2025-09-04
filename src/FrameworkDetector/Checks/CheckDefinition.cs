@@ -15,7 +15,7 @@ namespace FrameworkDetector.Checks;
 //// This is runtime/definition information about checks to be performed for a detector.
 
 /// <summary>
-/// Base interface for <see cref="CheckDefinition{T}"/> for common information about a performed check.
+/// Base interface for <see cref="CheckDefinition{TInput,TOutput}"/> for common information about a performed check.
 /// </summary>
 public interface ICheckDefinition
 {
@@ -49,23 +49,26 @@ public interface ICheckDefinition
     /// <summary>
     /// Performs the defined check against the provided <see cref="DataSourceCollection"/>.
     /// </summary>
+    /// <param name="detector">The detector requesting the check.</param>
     /// <param name="dataSources">Complete <see cref="DataSourceCollection"/> for an application.</param>
-    /// <param name="cancellationToken"></param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns></returns>
     public Task<IDetectorCheckResult> PerformCheckAsync(IDetector detector, DataSourceCollection dataSources, CancellationToken cancellationToken);
 }
 
 /// <summary>
-/// Runtime record created by a detector which links the specific check extension info (through its extension method to DetectorCheckList) with the specific metadata to be checked against by a particular detector.
+/// Runtime record created by a detector which links the specific check extension info (through its extension method to DetectorCheckList) with the specific arguments to be checked against by a particular detector.
 /// e.g. WPF needs to look for a specific dll.
 /// </summary>
-/// <typeparam name="T">Type of additional information struct for storing information provided within the detector and needed to know which data in the datasource to look for. e.g. the specific module to search for.</typeparam>
+/// <typeparam name="TInput">Type of input arguments struct used by the check when running, e.g. the specific module to search for.</typeparam>
+/// <typeparam name="TOutput">Type of output data struct for storing anyout output data from a check.</typeparam>
 /// <param name="CheckRegistration">Reference to the specific registration of the check creating this entry.</param>
-/// <param name="Metadata">Additional metadata provided by a detector for this check to be passed in when executed. Included automatically within the <see cref="DetectorCheckResult{T}"/></param>
-public record CheckDefinition<T>(
-    CheckRegistrationInfo<T> CheckRegistration,
-    T Metadata
-) : ICheckDefinition where T : struct
+/// <param name="CheckArguments">Input arguments provided by a detector for this check to be passed in when executed. Included automatically within the <see cref="DetectorCheckResult{TInput,TOutput}"/>.</param>
+public record CheckDefinition<TInput,TOutput>(
+    CheckRegistrationInfo<TInput,TOutput> CheckRegistration,
+    TInput CheckArguments
+) : ICheckDefinition where TInput : struct
+                     where TOutput : struct
 {
     /// <inheritdoc/>
     public string Name => CheckRegistration.Name;
@@ -76,7 +79,7 @@ public record CheckDefinition<T>(
     /// <inheritdoc/>
     public Guid[] DataSourceIds => CheckRegistration.DataSourceIds;
 
-    private CheckFunction<T> PerformCheckAsync => CheckRegistration.PerformCheckAsync;
+    private CheckFunction<TInput,TOutput> PerformCheckAsync => CheckRegistration.PerformCheckAsync;
 
     /// <inheritdoc/>
     public bool IsRequired { get; set; }
@@ -89,10 +92,10 @@ public record CheckDefinition<T>(
     async Task<IDetectorCheckResult> ICheckDefinition.PerformCheckAsync(IDetector detector, DataSourceCollection dataSources, CancellationToken cancellationToken)
     {
         // Create initial result holder linking the detector to this check being performed.
-        // Auto includes the additional metadata required by the check defined by the detector (and used by the check).
-        DetectorCheckResult<T> result = new(detector, this)
+        // Auto includes the additional arguments required by the check defined by the detector (and used by the check).
+        DetectorCheckResult<TInput,TOutput> result = new(detector, this)
         {
-            ExtraMetadata = Metadata
+            InputArgs = CheckArguments
         };
 
         // Call the check extension to perform calculation and update result.
@@ -103,6 +106,6 @@ public record CheckDefinition<T>(
 
     public override string ToString()
     {
-        return string.Format((GroupName + $" - Required ({IsRequired})") + ": " + Description, Metadata.ToString());
+        return string.Format((GroupName + $" - Required ({IsRequired})") + ": " + Description, CheckArguments.ToString());
     }
 }
