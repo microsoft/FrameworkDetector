@@ -7,14 +7,14 @@ using FrameworkDetector.Engine;
 namespace FrameworkDetector.Detectors;
 
 /// <summary>
-/// Detector for the Windows Presentation Framework (WPF).
-/// Built according to docs/WPF.md.
+/// Detector for the Windows Presentation Foundation (WPF).
+/// Built according to docs/Frameworks/WPF.md.
 /// </summary>
 public class WPFDetector : IDetector 
 {
     public string Name => nameof(WPFDetector);
 
-    public string Description => "Windows Presentation Framework";
+    public string Description => "Windows Presentation Foundation";
 
     public string FrameworkId => "WPF";
 

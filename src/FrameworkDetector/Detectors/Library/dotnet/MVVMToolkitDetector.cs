@@ -6,6 +6,10 @@ using FrameworkDetector.Engine;
 
 namespace FrameworkDetector.Detectors;
 
+/// <summary>
+/// Detector for the MVVM Toolkit (MVVMToolkit).
+/// Built according to docs/Library/dotnet/MVVMToolkit.md.
+/// </summary>
 public class MVVMToolkitDetector : IDetector
 {
     public string Name => nameof(MVVMToolkitDetector);
@@ -25,10 +29,10 @@ public class MVVMToolkitDetector : IDetector
         // MVVM Toolkit
         return this.Create()
             .Required("New Version", checks => checks
-                .ContainsLoadedModule("CommunityToolkit.MVVM.dll"))
+                .ContainsLoadedModule("CommunityToolkit.MVVM.dll", true))
             // OR
             .Required("Old Version", checks => checks
-                .ContainsLoadedModule("Microsoft.Toolkit.MVVM.dll"))
+                .ContainsLoadedModule("Microsoft.Toolkit.MVVM.dll", true))
             .BuildDefinition();
     }
 }
