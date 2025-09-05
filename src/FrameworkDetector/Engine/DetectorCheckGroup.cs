@@ -19,14 +19,6 @@ public class DetectorCheckGroup(string Name) : IReadOnlyCollection<ICheckDefinit
     internal List<ICheckDefinition> Checks { get; init; } = new();
 
     public int Count => Checks.Count;
-
-    // TODO: Move to it's own extension method file like ContainsLoadedModuleCheck once we have an implementation for this. Just dummy for now to help shape/show how API works for another check type.
-    internal DetectorCheckGroup ContainsClass(string v)
-    {
-        Debug.WriteLine("ContainsClass NOT IMPLEMENTED YET");
-
-        return this;
-    }
     
     // TODO: nit: How to make this accessible to extension author but not detector author?
     public void AddCheck(ICheckDefinition definition)

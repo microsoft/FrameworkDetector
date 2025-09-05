@@ -27,9 +27,9 @@ public class UWPXAMLDetector : IDetector
             .Required("Windows UI XAML", checks => checks
                 .ContainsLoadedModule("windows.ui.xaml.dll"))
             .Optional("w/ CoreWindow", checks => checks
-                .ContainsClass("Windows.UI.Core.CoreWindow"))
+                .ContainsWindowClass("Windows.UI.Core.CoreWindow"))
             .Optional("w/ ApplicationFrameInputSinkWindow", checks => checks
-                .ContainsClass("ApplicationFrameInputSinkWindow"))
+                .ContainsWindowClass("ApplicationFrameInputSinkWindow"))
             .BuildDefinition();
 
         // TODO: Do we want an optional check for UWP for .NET here or as a separate detector? (Not sure if overlap or would be different... needs investigation)
