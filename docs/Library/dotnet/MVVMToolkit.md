@@ -56,7 +56,7 @@ The specific version of the MVVM Toolkit can be gotten by checking the FileVersi
 
 ### Static Detection
 
-For both self-contained and framework-dependent .NET apps, either of the aforementioned runtime modules should be present with the app's binaries. The specific version of the MVVM Toolkit can be gotten by checking the FileVersion of either of these modules.
+It is not possible to definitively determine the use of the MVVM Toolkit by an app by detecting the presence or absence of the aforementioned module file(s) within the app's binaries. In the simplest case, any of the aforementioned module(s) could have been included mistakenly.
 
 ## Resources
 

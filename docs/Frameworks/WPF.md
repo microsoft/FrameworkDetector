@@ -56,9 +56,11 @@ The specific version of WPF can be gotten by checking the FileVersion of any of 
 
 ### Static Detection
 
-For self-contained .NET apps, any of the aforementioned runtime modules should be present with the app's binaries. The specific version of WPF can be gotten by checking the FileVersion of any these modules.
+It is not possible to definitively determine the use of WPF by an app by detecting the presence or absence of the aforementioned module file(s) within the app's binaries. In the simplest case, any of the aforementioned module(s) could have been included mistakenly.
 
-However, since both framework-dependent .NET apps, and standard .NET Framework apps rely on system-installed versions of .NET, the absence of those modules with the app's binaries is not definitely proof that the app does not use WPF.
+For self-contained .NET apps, the presence of any of the aforementioned module(s) is not definitive proof that the app uses WPF. Without module trimming, self-contained WinForms apps, for example, will also contain the WPF binaries by default.
+
+For both (framework-dependent) .NET apps and standard .NET Framework apps, which rely on system-installed versions of .NET, the absence of the aforementioned module(s) with the app's binaries is also not definitive proof that the app does not use WPF.
 
 ## Resources
 

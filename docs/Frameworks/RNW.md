@@ -61,7 +61,7 @@ Other optional modules that may be loaded by the running process include:
 
 ### Static Detection
 
-Either of the aforementioned required runtime modules should be present with the app's binaries. The specific version of RNW can be gotten by checking the FileVersion of any these modules.
+It is not possible to definitively determine the use of RNW by an app by detecting the presence or absence of the aforementioned module file(s) within the app's binaries. In the simplest case, any of the aforementioned module(s) could have been included mistakenly.
 
 ## Resources
 
