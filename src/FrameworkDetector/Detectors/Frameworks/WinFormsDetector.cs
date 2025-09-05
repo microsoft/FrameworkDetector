@@ -7,8 +7,8 @@ using FrameworkDetector.Engine;
 namespace FrameworkDetector.Detectors;
 
 /// <summary>
-/// Detector for Windows Forms.
-/// Built according to docs/WinForms.md.
+/// Detector for Windows Forms (WinForms).
+/// Built according to docs/Frameworks/WinForms.md.
 /// </summary>
 public class WinFormsDetector : IDetector 
 {
