@@ -10,7 +10,7 @@ The MVVM Toolkit is a modern, fast, and modular MVVM library. It is part of the 
 
 **Framework Languages:** C#
 
-**App Languages:** C#
+**App Languages:** C# and other .NET languages
 
 ### OS Support
 

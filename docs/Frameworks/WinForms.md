@@ -10,9 +10,9 @@ Windows Forms provides access to native Windows User Interface Common Controls b
 
 ### Languages
 
-**Framework Languages:** C, C++, and C#
+**Framework Languages:** C# and Visual Basic
 
-**App Languages:** C#
+**App Languages:** C#, Visual Basic and other .NET languages
 
 ### OS Support
 

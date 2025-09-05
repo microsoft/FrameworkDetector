@@ -12,7 +12,7 @@ WPF is resolution-independent and uses a vector-based rendering engine, built to
 
 **Framework Languages:** C, C++, C#, and XAML
 
-**App Languages:** C# and XAML
+**App Languages:** C#, Visual Basic, XAML and other .NET languages
 
 ### OS Support
 
