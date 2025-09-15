@@ -28,7 +28,7 @@ public record ProcessMetadata(string Filename,
 
         var fileVersionInfo = process.MainModule?.FileVersionInfo ?? throw new ArgumentNullException(nameof(process.MainModule));
 
-        var loadedModules = new List<WindowsBinaryMetadata>();
+        var loadedModules = new HashSet<WindowsBinaryMetadata>();
         foreach (var module in process.Modules.Cast<ProcessModule>())
         {
             if (cancellationToken.IsCancellationRequested)

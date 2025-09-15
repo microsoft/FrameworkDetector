@@ -27,11 +27,11 @@ public static class ProcessExtensions
 
     public static IEnumerable<ProcessWindowMetadata> GetActiveWindowMetadata(this Process process)
     {
-        var windows = new List<ProcessWindowMetadata>();
+        var windows = new HashSet<ProcessWindowMetadata>();
 
         var applicationFrameHosts = Process.GetProcessesByName("ApplicationFrameHost");
 
-        var addWindow = (HWND hwnd) =>
+        bool addWindow(HWND hwnd)
         {
             try
             {
@@ -48,7 +48,7 @@ public static class ProcessExtensions
             catch { }
 
             return true;
-        };
+        }
 
         HWND.EnumWindows((HWND hwnd) =>
         {
