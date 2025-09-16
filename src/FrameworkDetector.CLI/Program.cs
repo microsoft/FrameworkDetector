@@ -237,6 +237,7 @@ internal static class Program
         // TODO: Would be nice if the SG could do this for us, there's a request open: https://github.com/CommunityToolkit/Labs-Windows/discussions/463#discussioncomment-11720493
 
         // ---- ADD DETECTORS HERE ----
+        services.AddSingleton<IDetector, AvaloniaDetector>();
         services.AddSingleton<IDetector, DotNetCoreDetector>();
         services.AddSingleton<IDetector, DotNetFrameworkDetector>();
         services.AddSingleton<IDetector, MVVMToolkitDetector>();
