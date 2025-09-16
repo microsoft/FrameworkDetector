@@ -51,7 +51,7 @@ public record ProcessMetadata(string Filename,
                                    fileVersionInfo.ProductName,
                                    fileVersionInfo.ProductVersion,
                                    process.Id,
-                                   loadedModules.ToArray(),
-                                   activeWindows.ToArray());
+                                   loadedModules.OrderBy(pm => pm.Filename).ToArray(),
+                                   activeWindows.OrderBy(aw => aw.ClassName ?? "").ToArray());
     }
 }
