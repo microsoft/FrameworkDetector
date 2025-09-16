@@ -76,14 +76,18 @@ public static class ContainsLoadedModuleCheck
     
     public static async Task PerformCheckAsync(CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData> definition, DataSourceCollection dataSources, DetectorCheckResult<ContainsLoadedModuleArgs, ContainsLoadedModuleData> result, CancellationToken cancellationToken)
     {
+        Regex? filenameRegex = null;
+        Regex? fileVersionRegex = null;
+
         if (dataSources.TryGetSources(ProcessDataSource.Id, out ProcessDataSource[] processes))
         {
             result.CheckStatus = DetectorCheckStatus.InProgress;
 
-            Regex filenameRegex = new Regex(definition.CheckArguments.FilenameRegex, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+            await Task.Yield();
 
-            Regex? fileVersionRegex = null;
-            if (definition.CheckArguments.FileVersionRegex is not null)
+            filenameRegex ??= new Regex(definition.CheckArguments.FilenameRegex, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
+            if (fileVersionRegex is null && definition.CheckArguments.FileVersionRegex is not null)
             {
                 fileVersionRegex = new Regex(definition.CheckArguments.FileVersionRegex, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
             }

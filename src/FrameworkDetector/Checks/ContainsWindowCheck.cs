@@ -1,49 +1,49 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-
 using FrameworkDetector.DataSources;
 using FrameworkDetector.DetectorChecks;
 using FrameworkDetector.Engine;
 using FrameworkDetector.Models;
+using System;
+using System.IO;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FrameworkDetector.Checks;
 
 /// <summary>
-/// CheckDefinition extension for looking for a specific window class present within a process.
+/// CheckDefinition extension for looking for a specific window present within a process.
 /// </summary>
-public static class ContainsWindowClassCheck
+public static class ContainsWindowCheck
 {
     /// <summary>
-    /// Static registration information defining <see cref="ContainsWindowClassCheck"/>.
+    /// Static registration information defining <see cref="ContainsWindowCheck"/>.
     /// </summary>
-    private static CheckRegistrationInfo<ContainsWindowClassArgs, ContainsWindowClassData> CheckRegistrationInfo = new(
-        Name: nameof(ContainsWindowClassCheck),
+    private static CheckRegistrationInfo<ContainsWindowArgs, ContainsWindowData> CheckRegistrationInfo = new(
+        Name: nameof(ContainsWindowCheck),
         Description: "Checks for an active window in the Process by window class name",
         DataSourceIds: [ProcessDataSource.Id],
         PerformCheckAsync
     );
 
     /// <summary>
-    /// Input arguments for <see cref="ContainsWindowClassCheck"/>.
+    /// Input arguments for <see cref="ContainsWindowCheck"/>.
     /// </summary>
-    /// <param name="windowClassName">The name of the window class to look for.</param>
-    public readonly struct ContainsWindowClassArgs(string windowClassName)
+    /// <param name="classNameRegex">The name of the window class to look for.</param>
+    public readonly struct ContainsWindowArgs(string classNameRegex)
     {
-        public string WindowClassName { get; } = windowClassName;
+        public string ClassNameRegex { get; } = classNameRegex;
 
-        public override string ToString() => WindowClassName;
+        public override string ToString() => ClassNameRegex;
     }
 
     /// <summary>
-    /// Output data for <see cref="ContainsWindowClassCheck"/>.
+    /// Output data for <see cref="ContainsWindowCheck"/>.
     /// </summary>
     /// <param name="windowFound">The window found.</param>
-    public readonly struct ContainsWindowClassData(ProcessWindowMetadata windowFound)
+    public readonly struct ContainsWindowData(ProcessWindowMetadata windowFound)
     {
         public ProcessWindowMetadata WindowFound { get; } = windowFound;
 
@@ -55,14 +55,14 @@ public static class ContainsWindowClassCheck
         /// <summary>
         /// Checks for an active window in the Process by window class name.
         /// </summary>
-        /// <param name="windowClassName">The name of the window class to look for.</param>
+        /// <param name="classNameRegex">The name of the window class to look for.</param>
         /// <returns></returns>
-        public DetectorCheckGroup ContainsWindowClass(string windowClassName)
+        public DetectorCheckGroup ContainsWindow(string classNameRegex)
         {
             // This copies over an entry pointing to this specific check's registration with the metadata requested by the detector.
             // The metadata along with the live data sources (as indicated by the registration)
             // will be passed into the PerformCheckAsync method below to do the actual check.
-            @this.AddCheck(new CheckDefinition<ContainsWindowClassArgs, ContainsWindowClassData>(CheckRegistrationInfo, new ContainsWindowClassArgs(windowClassName)));
+            @this.AddCheck(new CheckDefinition<ContainsWindowArgs, ContainsWindowData>(CheckRegistrationInfo, new ContainsWindowArgs(classNameRegex)));
 
             return @this;
         }
@@ -70,11 +70,17 @@ public static class ContainsWindowClassCheck
 
     //// Actual check code run by engine
     
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsWindowClassArgs, ContainsWindowClassData> definition, DataSourceCollection dataSources, DetectorCheckResult<ContainsWindowClassArgs, ContainsWindowClassData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsWindowArgs, ContainsWindowData> definition, DataSourceCollection dataSources, DetectorCheckResult<ContainsWindowArgs, ContainsWindowData> result, CancellationToken cancellationToken)
     {
+        Regex? classNameRegex = null;
+
         if (dataSources.TryGetSources(ProcessDataSource.Id, out ProcessDataSource[] processes))
         {
             result.CheckStatus = DetectorCheckStatus.InProgress;
+
+            await Task.Yield();
+
+            classNameRegex ??= new Regex(definition.CheckArguments.ClassNameRegex, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
             // TODO: Think about child processes and what that means here for a check...
             foreach (ProcessDataSource process in processes)
@@ -92,9 +98,9 @@ public static class ContainsWindowClassCheck
                             break;
                         }
 
-                        if (window.ClassName is not null && window.ClassName.Contains(definition.CheckArguments.WindowClassName, StringComparison.InvariantCultureIgnoreCase))
+                        if (window.ClassName is not null && classNameRegex.IsMatch(window.ClassName))
                         {
-                            result.OutputData = new ContainsWindowClassData(window);
+                            result.OutputData = new ContainsWindowData(window);
                             result.CheckStatus = DetectorCheckStatus.CompletedPassed;
                             break;
                         }
