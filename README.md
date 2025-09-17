@@ -7,24 +7,40 @@ A library and set of tools for detecting the frameworks and components used to b
 1. Make sure you have the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) installed.
 2. If using Visual Studio Stable, enable `Use previews of the .NET SDK (requires restart)` under `Tools->Options->Environment->Preview Features`.
 
+## Build
+
+Use the build script to create a self-contained `FrameworkDetector.CLI.exe` tool:
+
+```ps
+scripts\build.ps1
+```
+
+It will be available in the `bld\` folder.
+
+Otherwise you can manually build the solution at `src\FrameworkDetector.sln` with Visual Studio or on the command-line:
+
+```ps
+dotnet msbuild ./src/FrameworkDetector.sln
+```
+
 ## Usage
 
 ### Inspect by Process Id (PID)
 
 ```ps
-dotnet run --project ./src/FrameworkDetector.CLI -- --processId ###
+FrameworkDetector.CLI.exe inspect --processId ###
 ```
 
 *OR*
 
 ```ps
-dotnet run --project ./src/FrameworkDetector.CLI -- --pid ###
+FrameworkDetector.CLI.exe inspect --pid ###
 ```
 
 ### Inspect by Process Name
 
 ```ps
-dotnet run --project ./src/FrameworkDetector.CLI -- --processName ###
+FrameworkDetector.CLI.exe inspect --processName ###
 ```
 
 ## Project Structure

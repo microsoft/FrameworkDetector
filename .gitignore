@@ -428,3 +428,4 @@ FodyWeavers.xsd
 *.msp
 
 launchSettings.json
+bld/
