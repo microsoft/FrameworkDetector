@@ -2,12 +2,10 @@
 // Licensed under the MIT License.
 
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FrameworkDetector.DataSources;
-using FrameworkDetector.DetectorChecks;
 using FrameworkDetector.Engine;
 using FrameworkDetector.Models;
 

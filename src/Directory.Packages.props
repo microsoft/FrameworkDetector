@@ -15,5 +15,6 @@
     <PackageVersion Include="MSTest.TestFramework" Version="3.10.1" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="ConsoleTables" Version="2.7.0" />
+    <PackageVersion Include="Semver" Version="3.0.0" />
   </ItemGroup>
 </Project>

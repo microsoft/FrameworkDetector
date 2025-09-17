@@ -2,11 +2,11 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Diagnostics;
+
 using Windows.Win32;
 using Windows.Win32.Foundation;
 
-namespace FrameworkDetector.DetectorChecks;
+namespace FrameworkDetector;
 
 internal static class HWNDExtensions
 {

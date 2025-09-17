@@ -8,7 +8,7 @@ using System.Linq;
 using System.Management;
 using Windows.Win32.Foundation;
 
-namespace FrameworkDetector.DetectorChecks;
+namespace FrameworkDetector;
 
 public static class ProcessExtensions
 {
