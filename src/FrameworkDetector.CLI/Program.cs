@@ -199,15 +199,14 @@ internal static class Program
                             break;
                     }
 
-                    table.AddRow($"  {(checkResult.CheckStatus == DetectorCheckStatus.CompletedPassed ? checkResult.CheckOutput : checkResult.CheckInput)}",
+                    table.AddRow($"  {checkResult.CheckDefinition}",
                                  checkResultString);
                 }
             }
         }
 
         Console.WriteLine();
-        Console.WriteLine("Detection Results:");
-        table.Write();
+        table.Write(Format.MarkDown);
     }
 
     private static bool TrySaveOutput(ToolRunResult result, string? outputFilename)

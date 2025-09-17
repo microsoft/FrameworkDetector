@@ -106,6 +106,6 @@ public record CheckDefinition<TInput,TOutput>(
 
     public override string ToString()
     {
-        return string.Format((GroupName + $" - Required ({IsRequired})") + ": " + Description, CheckArguments.ToString());
+        return $"({(IsRequired ? "Req" : "Opt")}){(string.IsNullOrWhiteSpace(GroupName) ? "" : $" {GroupName}")}: {CheckArguments}";
     }
 }

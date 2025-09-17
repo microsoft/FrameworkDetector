@@ -23,11 +23,10 @@ public class UWPXAMLDetector : IDetector
     public DetectorDefinition CreateDefinition()
     {
         return this.Create()
-            .Required("Windows UI XAML", checks => checks
-                .ContainsLoadedModule("windows.ui.xaml.dll"))
-            .Optional("w/ CoreWindow", checks => checks
-                .ContainsWindowClass("Windows.UI.Core.CoreWindow"))
-            .Optional("w/ ApplicationFrameInputSinkWindow", checks => checks
+            .Required("", checks => checks
+                .ContainsLoadedModule("Windows.UI.Xaml.dll"))
+            .Optional("Windows", checks => checks
+                .ContainsWindowClass("Windows.UI.Core.CoreWindow")
                 .ContainsWindowClass("ApplicationFrameInputSinkWindow"))
             .BuildDefinition();
 

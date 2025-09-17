@@ -27,8 +27,8 @@ public class WinFormsDetector : IDetector
     public DetectorDefinition CreateDefinition()
     {
         return this.Create()
-            .Required("Windows Forms", checks => checks
-                .ContainsLoadedModule("System.Windows.Forms.dll", true))
+            .Required("", checks => checks
+                .ContainsLoadedModule("System.Windows.Forms.dll", checkForNgenModule: true))
             .BuildDefinition();
     }
 }

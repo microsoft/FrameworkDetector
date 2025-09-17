@@ -27,14 +27,13 @@ public class RNWDetector : IDetector
     public DetectorDefinition CreateDefinition()
     {
         return this.Create()
-            .Required("Microsoft.ReactNative", checks => checks
-                .ContainsLoadedModule("Microsoft.ReactNative.dll", true))
+            .Required("Main Module", checks => checks
+                .ContainsLoadedModule("Microsoft.ReactNative.dll"))
             // OR
-            .Required("React Native Win32", checks => checks
-                .ContainsLoadedModule("react-native-win32.dll", true))
-            .Optional(".NET Managed Helpers", checks => checks
-                .ContainsLoadedModule("Microsoft.ReactNative.Managed.dll"))
-            .Optional(".NET CsWinRT .Projection", checks => checks
+            .Required("Win32 Module", checks => checks
+                .ContainsLoadedModule("react-native-win32.dll"))
+            .Optional(".NET Helpers", checks => checks
+                .ContainsLoadedModule("Microsoft.ReactNative.Managed.dll")
                 .ContainsLoadedModule("Microsoft.ReactNative.Projection.dll"))
             .BuildDefinition();
     }

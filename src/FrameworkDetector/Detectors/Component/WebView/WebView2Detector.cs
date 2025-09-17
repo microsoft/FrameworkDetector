@@ -24,14 +24,13 @@ public class WebView2Detector : IDetector
     {
         // https://learn.microsoft.com/microsoft-edge/webview2/concepts/distribution?tabs=dotnetcsharp#files-to-ship-with-the-app
         return this.Create()
-            .Required("WebView2Loader", checks => checks
+            .Required("Loader Module", checks => checks
                 .ContainsLoadedModule("WebView2Loader.dll"))
             // OR
-            .Required("WebView2.Core", checks => checks
+            .Required("Core Module", checks => checks
                 .ContainsLoadedModule("Microsoft.Web.WebView2.Core.dll"))
-            .Optional(".NET Managed WPF", checks => checks
-                .ContainsLoadedModule("Microsoft.Web.WebView2.WPF.dll"))
-            .Optional(".NET Managed Winforms", checks => checks
+            .Optional("Extra Modules", checks => checks
+                .ContainsLoadedModule("Microsoft.Web.WebView2.WPF.dll")
                 .ContainsLoadedModule("Microsoft.Web.WebView2.Winforms.dll"))
             .BuildDefinition();
     }

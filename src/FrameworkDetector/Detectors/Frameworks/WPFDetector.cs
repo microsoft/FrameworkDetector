@@ -27,11 +27,11 @@ public class WPFDetector : IDetector
     public DetectorDefinition CreateDefinition()
     {
         return this.Create()
-            .Required("Presentation Framework", checks => checks
-                .ContainsLoadedModule("PresentationFramework.dll", true))
+            .Required("Framework Module", checks => checks
+                .ContainsLoadedModule("PresentationFramework.dll", checkForNgenModule: true))
             // OR
-            .Required("Presentation Core", checks => checks
-                .ContainsLoadedModule("PresentationCore.dll", true))
+            .Required("Core Module", checks => checks
+                .ContainsLoadedModule("PresentationCore.dll", checkForNgenModule: true))
             .BuildDefinition();
     }
 }

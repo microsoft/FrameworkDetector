@@ -23,10 +23,10 @@ public class WinUI2Detector : IDetector
     public DetectorDefinition CreateDefinition()
     {
         return this.Create()
-            .Required("Microsoft UI XAML", checks => checks
-                .ContainsLoadedModule("microsoft.ui.xaml.dll", fileVersionRange: "^2.0.0"))
-            .Optional("Microsoft UI XAML Controls", checks => checks
-                .ContainsLoadedModule("microsoft.ui.xaml.controls.dll", fileVersionRange: "^2.0.0"))
+            .Required("", checks => checks
+                .ContainsLoadedModule("Microsoft.UI.Xaml.dll", fileVersionRange: ">=2.0 <3.0"))
+            .Optional("Extra Modules", checks => checks
+                .ContainsLoadedModule("Microsoft.UI.Xaml.Controls.dll", fileVersionRange: ">=2.0 <3.0"))
             .BuildDefinition();
     }
 }

@@ -33,17 +33,17 @@ public static class ContainsLoadedModuleCheck
     /// Input arguments for <see cref="ContainsLoadedModuleCheck"/>.
     /// </summary>
     /// <param name="filename">The filename of the module to look for.</param>
-    /// <param name="checkForNgenModule">Whether or not to look for an NGENed version of the module.</param>
     /// <param name="fileVersionRange">Semver version range sepc to match a specific module version.</param>
-    public readonly struct ContainsLoadedModuleArgs(string filename, bool checkForNgenModule, string? fileVersionRange)
+    ///     /// <param name="checkForNgenModule">Whether or not to look for an NGENed version of the module.</param>
+    public readonly struct ContainsLoadedModuleArgs(string filename, string? fileVersionRange, bool checkForNgenModule)
     {
         public string Filename { get; } = filename;
 
-        public bool CheckForNgenModule { get; } = checkForNgenModule;
-
         public string? FileVersionRange { get; } = fileVersionRange;
 
-        public override string ToString() => Filename;
+        public bool CheckForNgenModule { get; } = checkForNgenModule;
+
+        public override string ToString() => $"Find module {Filename}{(FileVersionRange is not null ? $" {FileVersionRange}": "")}";
     }
 
     /// <summary>
@@ -54,7 +54,7 @@ public static class ContainsLoadedModuleCheck
     {
         public WindowsBinaryMetadata ModuleFound { get; } = moduleFound;
 
-        public override string ToString() => ModuleFound.ToString();
+        public override string ToString() => $"Found module {ModuleFound.Filename}";
     }
 
     extension(DetectorCheckGroup @this)
@@ -63,15 +63,15 @@ public static class ContainsLoadedModuleCheck
         /// Checks for module by name in Process.LoadedModules.
         /// </summary>
         /// <param name="filename">The filename of the module to look for.</param>
+        /// /// <param name="fileVersionRange">Semver version range sepc to match a specific module version.</param>
         /// <param name="checkForNgenModule">Whether or not to look for an NGENed version of the module.</param>
-        /// <param name="fileVersionRange">Semver version range sepc to match a specific module version.</param>
         /// <returns></returns>
-        public DetectorCheckGroup ContainsLoadedModule(string filename, bool checkForNgenModule = false, string? fileVersionRange = null)
+        public DetectorCheckGroup ContainsLoadedModule(string filename, string? fileVersionRange = null, bool checkForNgenModule = false)
         {
             // This copies over an entry pointing to this specific check's registration with the metadata requested by the detector.
             // The metadata along with the live data sources (as indicated by the registration)
             // will be passed into the PerformCheckAsync method below to do the actual check.
-            @this.AddCheck(new CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData>(CheckRegistrationInfo, new ContainsLoadedModuleArgs(filename, checkForNgenModule, fileVersionRange)));
+            @this.AddCheck(new CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData>(CheckRegistrationInfo, new ContainsLoadedModuleArgs(filename, fileVersionRange, checkForNgenModule)));
 
             return @this;
         }
@@ -91,7 +91,7 @@ public static class ContainsLoadedModuleCheck
                 nGenModuleName = Path.ChangeExtension(definition.CheckArguments.Filename, ".ni" + Path.GetExtension(definition.CheckArguments.Filename));
             }
 
-            var fileVersionRange = definition.CheckArguments.FileVersionRange is not null ? SemVersionRange.Parse(definition.CheckArguments.FileVersionRange) : null;
+            var fileVersionRange = definition.CheckArguments.FileVersionRange is not null ? SemVersionRange.Parse(definition.CheckArguments.FileVersionRange, SemVersionRangeOptions.OptionalPatch) : null;
 
             // TODO: Think about child processes and what that means here for a check...
             foreach (ProcessDataSource process in processes)

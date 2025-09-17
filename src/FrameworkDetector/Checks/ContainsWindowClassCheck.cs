@@ -34,7 +34,7 @@ public static class ContainsWindowClassCheck
     {
         public string WindowClassName { get; } = windowClassName;
 
-        public override string ToString() => WindowClassName;
+        public override string ToString() => $"Find window {WindowClassName}";
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public static class ContainsWindowClassCheck
     {
         public ProcessWindowMetadata WindowFound { get; } = windowFound;
 
-        public override string ToString() => WindowFound.ToString();
+        public override string ToString() => $"Found window {WindowFound.ClassName}";
     }
 
     extension(DetectorCheckGroup @this)
