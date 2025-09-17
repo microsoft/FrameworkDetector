@@ -56,11 +56,17 @@ internal static class Program
             Description = "Save the inspection report as JSON to the given filename.",
         };
 
+        Option<bool> verboseOption = new("--verbose", "--v")
+        {
+            Description = "Print verbose output.",
+        };
+
         RootCommand rootCommand = new("Framework Detector")
         {
             pidOption,
             processNameOption,
             outputFileOption,
+            verboseOption,
         };
         rootCommand.TreatUnmatchedTokensAsErrors = true;
 
@@ -83,10 +89,11 @@ internal static class Program
             var processId = parseResult.GetValue(pidOption);
             var processName = parseResult.GetValue(processNameOption);
             var outputFilename = parseResult.GetValue(outputFileOption);
+            var verbose = parseResult.GetValue(verboseOption);
 
             if (processId is not null)
             {
-                if (await InspectProcess(Process.GetProcessById(processId.Value), outputFilename, cancellationToken))
+                if (await InspectProcess(Process.GetProcessById(processId.Value), verbose, outputFilename, cancellationToken))
                 {
                     return (int)ExitCode.Success;
                 }
@@ -111,7 +118,7 @@ internal static class Program
                     }
                     PrintError("Please run again with the PID of the specific process you wish to inspect.");
                 }
-                else if (await InspectProcess(processes[0], outputFilename, cancellationToken))
+                else if (await InspectProcess(processes[0], verbose, outputFilename, cancellationToken))
                 {
                     return (int)ExitCode.Success;
                 }
@@ -131,7 +138,7 @@ internal static class Program
     }
 
     //// Encapsulation of initializing datasource and grabbing engine reference to kick-off a detection against all registered detectors (see ConfigureServices)
-    private static async Task<bool> InspectProcess(Process process, string? outputFilename, CancellationToken cancellationToken)
+    private static async Task<bool> InspectProcess(Process process, bool verbose, string? outputFilename, CancellationToken cancellationToken)
     {
         // TODO: Probably have this elsewhere to be called
         var message = $"Inspecting process {process.ProcessName}({process.Id})";
@@ -149,7 +156,7 @@ internal static class Program
 
         Console.WriteLine();
 
-        PrintResult(result);
+        PrintResult(result, verbose);
 
         TrySaveOutput(result, outputFilename);
 
@@ -157,19 +164,45 @@ internal static class Program
         return true;
     }
 
-    private static void PrintResult(ToolRunResult result)
+    private static void PrintResult(ToolRunResult result, bool verbose)
     {
-        var table = new ConsoleTable(nameof(DetectorResult.DetectorName),
-                                     nameof(DetectorResult.DetectorDescription),
-                                     nameof(DetectorResult.DetectorStatus),
-                                     nameof(DetectorResult.FrameworkId),
-                                     nameof(DetectorResult.FrameworkFound));
+        var table = new ConsoleTable("Framework",
+                                     "Result");
 
         table.Options.EnableCount = false;
+        table.MaxWidth = Console.BufferWidth - 10;
 
         foreach (var detectorResult in result.DetectorResults.OrderByDescending(dr => dr.FrameworkFound).ThenBy(dr => dr.DetectorName))
         {
-            table.AddRow(detectorResult.DetectorName, detectorResult.DetectorDescription, detectorResult.DetectorStatus, detectorResult.FrameworkId, detectorResult.FrameworkFound ? "✅" : "❌");
+            var detectorResultString = "  ⚠️";
+
+            if (detectorResult.DetectorStatus == DetectorStatus.Completed)
+            {
+                detectorResultString = detectorResult.FrameworkFound ? "  ✅" : "  ❌";
+            }
+
+            table.AddRow(detectorResult.DetectorDescription,
+                         detectorResultString);
+
+            if (verbose)
+            {
+                foreach (var checkResult in detectorResult.CheckResults)
+                {
+                    var checkResultString = "  ⚠️";
+                    switch (checkResult.CheckStatus)
+                    {
+                        case DetectorCheckStatus.CompletedPassed:
+                            checkResultString = "  ✅";
+                            break;
+                        case DetectorCheckStatus.CompletedFailed:
+                            checkResultString = "  ❌";
+                            break;
+                    }
+
+                    table.AddRow($"  {(checkResult.CheckStatus == DetectorCheckStatus.CompletedPassed ? checkResult.CheckOutput : checkResult.CheckInput)}",
+                                 checkResultString);
+                }
+            }
         }
 
         Console.WriteLine();
