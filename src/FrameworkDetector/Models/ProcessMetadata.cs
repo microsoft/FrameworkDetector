@@ -32,7 +32,7 @@ public record ProcessMetadata(string Filename,
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                return await Task.FromCanceled<ProcessMetadata?>(cancellationToken);
+                return null;
             }
 
             var moduleMetadata = await GetMetadataAsync(module.FileName, cancellationToken);

@@ -26,7 +26,7 @@ public record WindowsBinaryMetadata(string Filename,
 
         if (cancellationToken.IsCancellationRequested)
         {
-            return await Task.FromCanceled<WindowsBinaryMetadata?>(cancellationToken);
+            return null;
         }
 
         if (!Path.Exists(filename))

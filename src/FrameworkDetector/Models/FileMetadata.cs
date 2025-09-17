@@ -21,7 +21,7 @@ public record FileMetadata(string Filename)
 
         if (cancellationToken.IsCancellationRequested)
         {
-            return await Task.FromCanceled<FileMetadata?>(cancellationToken);
+            return null;
         }
 
         return new FileMetadata(Path.GetFileName(filename));

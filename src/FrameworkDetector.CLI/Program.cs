@@ -1,6 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using ConsoleTables;
+using FrameworkDetector.DataSources;
+using FrameworkDetector.Detectors;
+using FrameworkDetector.Engine;
+using FrameworkDetector.Models;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.CommandLine;
 using System.CommandLine.Parsing;
@@ -10,14 +16,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
-using ConsoleTables;
-using Microsoft.Extensions.DependencyInjection;
-
-using FrameworkDetector.DataSources;
-using FrameworkDetector.Detectors;
-using FrameworkDetector.Engine;
-using FrameworkDetector.Models;
+using static FrameworkDetector.CLI.Program;
 
 namespace FrameworkDetector.CLI;
 
@@ -35,12 +34,23 @@ internal static class Program
     //// Handles main command line parsing through System.CommandLine lib
     //// TODO: Use Spectre.Console throughout for pretty output. See ReportProgress method stub below for more.
     [STAThread]
-    public static int Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
         Console.OutputEncoding = Encoding.UTF8;
 
+        var rootCommand = new RootCommand("Framework Detector")
+        {
+            GetInspectCommand(),
+        };
+
+        var cts = new CancellationTokenSource();
+        return await rootCommand.Parse(args).InvokeAsync(cts.Token);
+    }
+
+    private static Command GetInspectCommand()
+    {
         Option<int?> pidOption = new("--processId", "--pid")
         {
             Description = "The PID of the process to inspect.",
@@ -61,19 +71,16 @@ internal static class Program
             Description = "Print verbose output.",
         };
 
-        RootCommand rootCommand = new("Framework Detector")
+        var command = new Command("inspect", "Inspect a given process")
         {
             pidOption,
             processNameOption,
             outputFileOption,
             verboseOption,
         };
-        rootCommand.TreatUnmatchedTokensAsErrors = true;
+        command.TreatUnmatchedTokensAsErrors = true;
 
-        // TODO: Not familiar enough with System.CommandLine lib yet to understand if we have multiple data sources how to chain them together.
-        // Basically each parameter should create it' datasource to add to the list passed into the DetectionEngine.
-        //// https://learn.microsoft.com/dotnet/standard/commandline/how-to-parse-and-invoke#asynchronous-actions
-        rootCommand.SetAction(async (ParseResult parseResult, CancellationToken cancellationToken) =>
+        command.SetAction(async (ParseResult parseResult, CancellationToken cancellationToken) =>
         {
             if (parseResult.Errors.Count > 0)
             {
@@ -93,7 +100,7 @@ internal static class Program
 
             if (processId is not null)
             {
-                if (await InspectProcess(Process.GetProcessById(processId.Value), verbose, outputFilename, cancellationToken))
+                if (await InspectProcessAsync(Process.GetProcessById(processId.Value), verbose, outputFilename, cancellationToken))
                 {
                     return (int)ExitCode.Success;
                 }
@@ -120,7 +127,7 @@ internal static class Program
                     if (processes.TryGetRootProcess(out var rootProcess) && rootProcess is not null)
                     {
                         PrintWarning("Determined root process {0}({1}).\n", rootProcess.ProcessName, rootProcess.Id);
-                        if (await InspectProcess(rootProcess, verbose, outputFilename, cancellationToken))
+                        if (await InspectProcessAsync(rootProcess, verbose, outputFilename, cancellationToken))
                         {
                             return (int)ExitCode.Success;
                         }
@@ -128,7 +135,7 @@ internal static class Program
 
                     PrintError("Please run again with the PID of the specific process you wish to inspect.");
                 }
-                else if (await InspectProcess(processes[0], verbose, outputFilename, cancellationToken))
+                else if (await InspectProcessAsync(processes[0], verbose, outputFilename, cancellationToken))
                 {
                     return (int)ExitCode.Success;
                 }
@@ -136,19 +143,17 @@ internal static class Program
                 return (int)ExitCode.InspectFailed;
             }
 
+            PrintError("Missing command arguments.");
+            command.Parse("-h").Invoke();
+
             return (int)ExitCode.ArgumentParsingError;
         });
 
-        var exitCode = rootCommand.Parse(args).Invoke();
-        if (exitCode == (int)ExitCode.ArgumentParsingError)
-        {
-            rootCommand.Parse("-h").Invoke();
-        }
-        return exitCode;
+        return command;
     }
-
-    //// Encapsulation of initializing datasource and grabbing engine reference to kick-off a detection against all registered detectors (see ConfigureServices)
-    private static async Task<bool> InspectProcess(Process process, bool verbose, string? outputFilename, CancellationToken cancellationToken)
+    
+    /// Encapsulation of initializing datasource and grabbing engine reference to kick-off a detection against all registered detectors (see ConfigureServices)
+    private static async Task<bool> InspectProcessAsync(Process process, bool verbose, string? outputFilename, CancellationToken cancellationToken)
     {
         // TODO: Probably have this elsewhere to be called
         var message = $"Inspecting process {process.ProcessName}({process.Id})";
@@ -165,6 +170,12 @@ internal static class Program
         ToolRunResult result = await engine.DetectAgainstSourcesAsync(sources, cancellationToken);
 
         Console.WriteLine();
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            PrintWarning("Inspection was canceled prior to completion.");
+            Console.WriteLine();
+        }
 
         PrintResult(result, verbose);
 
@@ -184,11 +195,11 @@ internal static class Program
 
         foreach (var detectorResult in result.DetectorResults.OrderByDescending(dr => dr.FrameworkFound).ThenBy(dr => dr.DetectorName))
         {
-            var detectorResultString = "  ⚠️";
+            var detectorResultString = "  🟨";
 
             if (detectorResult.DetectorStatus == DetectorStatus.Completed)
             {
-                detectorResultString = detectorResult.FrameworkFound ? "  ✅" : "  ❌";
+                detectorResultString = detectorResult.FrameworkFound ? "  ✅" : "  🟥";
             }
 
             table.AddRow(detectorResult.DetectorDescription,
@@ -198,14 +209,14 @@ internal static class Program
             {
                 foreach (var checkResult in detectorResult.CheckResults)
                 {
-                    var checkResultString = "  ⚠️";
+                    var checkResultString = "  🟨";
                     switch (checkResult.CheckStatus)
                     {
                         case DetectorCheckStatus.CompletedPassed:
                             checkResultString = "  ✅";
                             break;
                         case DetectorCheckStatus.CompletedFailed:
-                            checkResultString = "  ❌";
+                            checkResultString = "  🟥";
                             break;
                     }
 
@@ -233,7 +244,7 @@ internal static class Program
         return false;
     }
 
-    private static void PrintException(Exception ex, string messageFormat = "Error: {0}", bool showStackTrace = true)
+    private static void PrintException(Exception ex, string messageFormat = "Exception: {0}", bool showStackTrace = true)
     {
         Console.WriteLine();
         PrintError(messageFormat, ex.Message);
@@ -253,7 +264,7 @@ internal static class Program
         ConsoleColor oldColor = Console.ForegroundColor;
         Console.ForegroundColor = ConsoleColor.Red;
 
-        Console.Error.WriteLine(format, args);
+        Console.Error.WriteLine("error: " + format, args);
 
         Console.ForegroundColor = oldColor;
     }
@@ -263,7 +274,7 @@ internal static class Program
         ConsoleColor oldColor = Console.ForegroundColor;
         Console.ForegroundColor = ConsoleColor.DarkYellow;
 
-        Console.Out.WriteLine(format, args);
+        Console.Out.WriteLine("warning: " + format, args);
 
         Console.ForegroundColor = oldColor;
     }
@@ -312,7 +323,7 @@ internal static class Program
         // running processes. I'm missing how we handle that in the current design and associate all the
         // like data sources to associate with the same app/process.
 
-        // I think in the current setup, we could just spawn off multiple calls to InspectProcess above, as even though the DetectionEngine is shared and the static definitions (as we want), we'd be encapsulating
+        // I think in the current setup, we could just spawn off multiple calls to InspectProcessAsync above, as even though the DetectionEngine is shared and the static definitions (as we want), we'd be encapsulating
         // each app's actual detection of data sources with the calls to DetectAgainstSourcesWithProgressAsync...
         // So maybe it does work as-is.
 

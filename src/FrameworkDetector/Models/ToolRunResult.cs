@@ -24,14 +24,17 @@ public record ToolRunResult
 
     public List<DetectorResult> DetectorResults { get; set; } = [];
 
-    public ToolRunResult(string toolName, string toolVersion, DataSourceCollection sources)
+    public ToolRunResult(string toolName, string toolVersion)
     {
         ToolName = toolName;
         ToolVersion = toolVersion;
         Timestamp = DateTime.UtcNow.ToString("O");
 
         DataSources = new Dictionary<Guid, List<object?>?>();
+    }
 
+    public void AddDataSources(DataSourceCollection sources)
+    {
         foreach (var kvp in sources)
         {
             if (kvp.Value is not null && kvp.Value.Length > 0)
