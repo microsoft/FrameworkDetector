@@ -17,14 +17,17 @@ namespace FrameworkDetector.Checks;
 public static class ContainsWindowClassCheck
 {
     /// <summary>
-    /// Static registration information defining <see cref="ContainsWindowClassCheck"/>.
+    /// Get registration information defining <see cref="ContainsWindowClassCheck"/>.
     /// </summary>
-    private static CheckRegistrationInfo<ContainsWindowClassArgs, ContainsWindowClassData> CheckRegistrationInfo = new(
-        Name: nameof(ContainsWindowClassCheck),
-        Description: "Checks for an active window in the Process by window class name",
-        DataSourceIds: [ProcessDataSource.Id],
-        PerformCheckAsync
-    );
+    private static CheckRegistrationInfo<ContainsWindowClassArgs, ContainsWindowClassData> GetCheckRegistrationInfo(ContainsWindowClassArgs args)
+    {
+        return new(
+            Name: nameof(ContainsWindowClassCheck),
+            Description: $"Find window {args.WindowClassName}",
+            DataSourceIds: [ProcessDataSource.Id],
+            PerformCheckAsync
+            );
+    }
 
     /// <summary>
     /// Input arguments for <see cref="ContainsWindowClassCheck"/>.
@@ -33,8 +36,6 @@ public static class ContainsWindowClassCheck
     public readonly struct ContainsWindowClassArgs(string windowClassName)
     {
         public string WindowClassName { get; } = windowClassName;
-
-        public override string ToString() => $"Find window {WindowClassName}";
     }
 
     /// <summary>
@@ -44,8 +45,6 @@ public static class ContainsWindowClassCheck
     public readonly struct ContainsWindowClassData(ProcessWindowMetadata windowFound)
     {
         public ProcessWindowMetadata WindowFound { get; } = windowFound;
-
-        public override string ToString() => $"Found window {WindowFound.ClassName}";
     }
 
     extension(DetectorCheckGroup @this)
@@ -60,14 +59,15 @@ public static class ContainsWindowClassCheck
             // This copies over an entry pointing to this specific check's registration with the metadata requested by the detector.
             // The metadata along with the live data sources (as indicated by the registration)
             // will be passed into the PerformCheckAsync method below to do the actual check.
-            @this.AddCheck(new CheckDefinition<ContainsWindowClassArgs, ContainsWindowClassData>(CheckRegistrationInfo, new ContainsWindowClassArgs(windowClassName)));
+            var args = new ContainsWindowClassArgs(windowClassName);
+            @this.AddCheck(new CheckDefinition<ContainsWindowClassArgs, ContainsWindowClassData>(GetCheckRegistrationInfo(args), args));
 
             return @this;
         }
     }
 
     //// Actual check code run by engine
-    
+
     public static async Task PerformCheckAsync(CheckDefinition<ContainsWindowClassArgs, ContainsWindowClassData> definition, DataSourceCollection dataSources, DetectorCheckResult<ContainsWindowClassArgs, ContainsWindowClassData> result, CancellationToken cancellationToken)
     {
         if (dataSources.TryGetSources(ProcessDataSource.Id, out ProcessDataSource[] processes))

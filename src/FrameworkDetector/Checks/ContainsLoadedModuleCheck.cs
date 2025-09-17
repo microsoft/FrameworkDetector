@@ -20,14 +20,16 @@ namespace FrameworkDetector.Checks;
 public static class ContainsLoadedModuleCheck
 {
     /// <summary>
-    /// Static registration information defining <see cref="ContainsLoadedModuleCheck"/>.
+    /// Get registration information defining <see cref="ContainsLoadedModuleCheck"/>.
     /// </summary>
-    private static CheckRegistrationInfo<ContainsLoadedModuleArgs, ContainsLoadedModuleData> CheckRegistrationInfo = new(
-        Name: nameof(ContainsLoadedModuleCheck),
-        Description: "Checks for module by name in Process.LoadedModules",
-        DataSourceIds: [ProcessDataSource.Id],
-        PerformCheckAsync
-    );
+    private static CheckRegistrationInfo<ContainsLoadedModuleArgs, ContainsLoadedModuleData> GetCheckRegistrationInfo(ContainsLoadedModuleArgs args)
+    {
+        return new(
+            Name: nameof(ContainsLoadedModuleCheck),
+            Description: $"Find module {args.Filename}{(args.FileVersionRange is not null ? $" {args.FileVersionRange}" : "")}",
+            DataSourceIds: [ProcessDataSource.Id],
+            PerformCheckAsync);
+    }
 
     /// <summary>
     /// Input arguments for <see cref="ContainsLoadedModuleCheck"/>.
@@ -42,8 +44,6 @@ public static class ContainsLoadedModuleCheck
         public string? FileVersionRange { get; } = fileVersionRange;
 
         public bool CheckForNgenModule { get; } = checkForNgenModule;
-
-        public override string ToString() => $"Find module {Filename}{(FileVersionRange is not null ? $" {FileVersionRange}": "")}";
     }
 
     /// <summary>
@@ -53,8 +53,6 @@ public static class ContainsLoadedModuleCheck
     public readonly struct ContainsLoadedModuleData(WindowsBinaryMetadata moduleFound)
     {
         public WindowsBinaryMetadata ModuleFound { get; } = moduleFound;
-
-        public override string ToString() => $"Found module {ModuleFound.Filename}";
     }
 
     extension(DetectorCheckGroup @this)
@@ -71,14 +69,15 @@ public static class ContainsLoadedModuleCheck
             // This copies over an entry pointing to this specific check's registration with the metadata requested by the detector.
             // The metadata along with the live data sources (as indicated by the registration)
             // will be passed into the PerformCheckAsync method below to do the actual check.
-            @this.AddCheck(new CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData>(CheckRegistrationInfo, new ContainsLoadedModuleArgs(filename, fileVersionRange, checkForNgenModule)));
+            var args = new ContainsLoadedModuleArgs(filename, fileVersionRange, checkForNgenModule);
+            @this.AddCheck(new CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData>(GetCheckRegistrationInfo(args), args));
 
             return @this;
         }
     }
 
     //// Actual check code run by engine
-    
+
     public static async Task PerformCheckAsync(CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData> definition, DataSourceCollection dataSources, DetectorCheckResult<ContainsLoadedModuleArgs, ContainsLoadedModuleData> result, CancellationToken cancellationToken)
     {
         if (dataSources.TryGetSources(ProcessDataSource.Id, out ProcessDataSource[] processes))
