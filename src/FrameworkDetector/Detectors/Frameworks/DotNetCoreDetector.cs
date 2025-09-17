@@ -24,9 +24,9 @@ public class DotNetCoreDetector : IDetector
     {
         return this.Create()
             .Required("CoreClr", checks => checks
-                .ContainsLoadedModule(@"CoreClr\.dll"))
+                .ContainsLoadedModule("CoreClr.dll"))
             .Optional("clrjit", checks => checks
-                .ContainsLoadedModule(@"clrjit\.dll"))
+                .ContainsLoadedModule("clrjit.dll"))
             .BuildDefinition();
     }
 }

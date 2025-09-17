@@ -24,9 +24,9 @@ public class WinUI2Detector : IDetector
     {
         return this.Create()
             .Required("Microsoft UI XAML", checks => checks
-                .ContainsLoadedModule(@"Microsoft\.UI\.Xaml\.dll", fileVersionRegex: @"^2\..*"))
+                .ContainsLoadedModule("microsoft.ui.xaml.dll", versionRegex: @"^2\..*"))
             .Optional("Microsoft UI XAML Controls", checks => checks
-                .ContainsLoadedModule(@"Microsoft\.UI\.Xaml\.Controls\.dll", fileVersionRegex: @"^2\..*"))
+                .ContainsLoadedModule("microsoft.ui.xaml.controls.dll", versionRegex: @"^2\..*"))
             .BuildDefinition();
     }
 }

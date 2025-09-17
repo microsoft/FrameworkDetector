@@ -29,10 +29,10 @@ public class MVVMToolkitDetector : IDetector
         // MVVM Toolkit
         return this.Create()
             .Required("New Version", checks => checks
-                .ContainsLoadedModule(@"CommunityToolkit\.MVVM(\.ni)?\.dll"))
+                .ContainsLoadedModule("CommunityToolkit.MVVM.dll", true))
             // OR
             .Required("Old Version", checks => checks
-                .ContainsLoadedModule(@"Microsoft\.Toolkit\.MVVM(\.ni)?\.dll"))
+                .ContainsLoadedModule("Microsoft.Toolkit.MVVM.dll", true))
             .BuildDefinition();
     }
 }

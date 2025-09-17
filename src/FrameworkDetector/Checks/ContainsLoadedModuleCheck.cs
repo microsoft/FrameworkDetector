@@ -31,15 +31,18 @@ public static class ContainsLoadedModuleCheck
     /// <summary>
     /// Input arguments for <see cref="ContainsLoadedModuleCheck"/>.
     /// </summary>
-    /// <param name="filenameRegex">Regex to match the filename of the module.</param>
-    /// <param name="fileVersionRegex">Regex to match the file version of the module.</param>
-    public readonly struct ContainsLoadedModuleArgs(string filenameRegex, string? fileVersionRegex)
+    /// <param name="moduleName">The name of the module to look for.</param>
+    /// <param name="checkForNgenModule">Whether or not to look for an Ngened version of the module.</param>
+    /// <param name="versionRegex">Regex to match a specific version.</param>
+    public readonly struct ContainsLoadedModuleArgs(string moduleName, bool checkForNgenModule, string? versionRegex)
     {
-        public string FilenameRegex { get; } = filenameRegex;
+        public string ModuleName { get; } = moduleName;
 
-        public string? FileVersionRegex { get; } = fileVersionRegex;
+        public bool CheckForNgenModule { get; } = checkForNgenModule;
 
-        public override string ToString() => FilenameRegex;
+        public string? VersionRegex { get; } = versionRegex;
+
+        public override string ToString() => ModuleName;
     }
 
     /// <summary>
@@ -58,15 +61,16 @@ public static class ContainsLoadedModuleCheck
         /// <summary>
         /// Checks for module by name in Process.LoadedModules.
         /// </summary>
-        /// <param name="filenameRegex">Regex to match the filename of the module.</param>
-        /// <param name="fileVersionRegex">Regex to match the file version of the module.</param>
+        /// <param name="moduleName">The name of the module to look for.</param>
+        /// <param name="checkForNgenModule">Whether or not to look for an Ngened version of the module.</param>
+        /// <param name="versionRegex">Regex to match a specific version.</param>
         /// <returns></returns>
-        public DetectorCheckGroup ContainsLoadedModule(string filenameRegex, string? fileVersionRegex = null)
+        public DetectorCheckGroup ContainsLoadedModule(string moduleName, bool checkForNgenModule = false, string? versionRegex = null)
         {
             // This copies over an entry pointing to this specific check's registration with the metadata requested by the detector.
             // The metadata along with the live data sources (as indicated by the registration)
             // will be passed into the PerformCheckAsync method below to do the actual check.
-            @this.AddCheck(new CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData>(CheckRegistrationInfo, new ContainsLoadedModuleArgs(filenameRegex, fileVersionRegex)));
+            @this.AddCheck(new CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData>(CheckRegistrationInfo, new ContainsLoadedModuleArgs(moduleName, checkForNgenModule, versionRegex)));
 
             return @this;
         }
@@ -80,12 +84,16 @@ public static class ContainsLoadedModuleCheck
         {
             result.CheckStatus = DetectorCheckStatus.InProgress;
 
-            Regex filenameRegex = new Regex(definition.CheckArguments.FilenameRegex, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-
-            Regex? fileVersionRegex = null;
-            if (definition.CheckArguments.FileVersionRegex is not null)
+            string? nGenModuleName = null;
+            if (definition.CheckArguments.CheckForNgenModule)
             {
-                fileVersionRegex = new Regex(definition.CheckArguments.FileVersionRegex, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+                nGenModuleName = Path.ChangeExtension(definition.CheckArguments.ModuleName, ".ni" + Path.GetExtension(definition.CheckArguments.ModuleName));
+            }
+
+            Regex? versionRegex = null;
+            if (definition.CheckArguments.VersionRegex is not null)
+            {
+                versionRegex = new Regex(definition.CheckArguments.VersionRegex);
             }
 
             // TODO: Think about child processes and what that means here for a check...
@@ -104,10 +112,12 @@ public static class ContainsLoadedModuleCheck
                             break;
                         }
 
-                        if (filenameRegex.IsMatch(module.Filename))
+                        if (module.Filename.Equals(definition.CheckArguments.ModuleName, StringComparison.InvariantCultureIgnoreCase) ||
+                            (definition.CheckArguments.CheckForNgenModule && module.Filename.Equals(nGenModuleName, StringComparison.InvariantCultureIgnoreCase)))
                         {
-                            if (fileVersionRegex is null ||
-                                (module.FileVersion is not null && fileVersionRegex.IsMatch(module.FileVersion)))
+                            if (versionRegex is null ||
+                                (module.FileVersion is not null && versionRegex.IsMatch(module.FileVersion)) ||
+                                (module.ProductVersion is not null && versionRegex.IsMatch(module.ProductVersion)))
                             {
                                 result.OutputData = new ContainsLoadedModuleData(module);
                                 result.CheckStatus = DetectorCheckStatus.CompletedPassed;
