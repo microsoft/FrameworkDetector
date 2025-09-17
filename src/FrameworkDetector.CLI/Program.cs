@@ -106,16 +106,26 @@ internal static class Program
 
                 if (processes.Length == 0)
                 {
-                    PrintError("Unable to find processes with name \"{0}\".", processName);
+                    PrintError("Unable to find process with name \"{0}\".", processName);
                 }
                 else if (processes.Length > 1)
                 {
-                    //TODO: figure out how if want to handle inspecting multiple processes and how to output the results.
-                    PrintError("More than one process with name \"{0}\":", processName);
+                    //TODO: figure out how to handle inspecting multiple processes and how to output the results.
+                    PrintWarning("More than one process with name \"{0}\":", processName);
                     foreach (var process in processes)
                     {
-                        PrintError("  {0}({1})", process.ProcessName, process.Id);
+                        PrintWarning("  {0}({1})", process.ProcessName, process.Id);
                     }
+
+                    if (processes.TryGetRootProcess(out var rootProcess) && rootProcess is not null)
+                    {
+                        PrintWarning("Determined root process {0}({1}).\n", rootProcess.ProcessName, rootProcess.Id);
+                        if (await InspectProcess(rootProcess, verbose, outputFilename, cancellationToken))
+                        {
+                            return (int)ExitCode.Success;
+                        }
+                    }
+
                     PrintError("Please run again with the PID of the specific process you wish to inspect.");
                 }
                 else if (await InspectProcess(processes[0], verbose, outputFilename, cancellationToken))
@@ -244,6 +254,16 @@ internal static class Program
         Console.ForegroundColor = ConsoleColor.Red;
 
         Console.Error.WriteLine(format, args);
+
+        Console.ForegroundColor = oldColor;
+    }
+
+    private static void PrintWarning(string format, params object[] args)
+    {
+        ConsoleColor oldColor = Console.ForegroundColor;
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+
+        Console.Out.WriteLine(format, args);
 
         Console.ForegroundColor = oldColor;
     }

@@ -25,6 +25,26 @@ public static class ProcessExtensions
         return recursive ? children.Union(children.Select(c => c.GetChildProcesses(recursive)).SelectMany(x => x)) : children;
     }
 
+    public static bool TryGetRootProcess(this Process[] processes, out Process? rootProcess)
+    {
+        var remainingProcesses = new List<Process>(processes);
+
+        foreach (var process in processes)
+        {
+            var children = process.GetChildProcesses().Select(p => p.Id);
+            remainingProcesses.RemoveAll(p => children.Contains(p.Id));
+        }
+
+        if (remainingProcesses.Count == 1)
+        {
+            rootProcess = remainingProcesses[0];
+            return true;
+        }
+
+        rootProcess = default;
+        return false;
+    }
+
     public static IEnumerable<ProcessWindowMetadata> GetActiveWindowMetadata(this Process process)
     {
         var windows = new HashSet<ProcessWindowMetadata>();
@@ -60,13 +80,13 @@ public static class ProcessExtensions
                     var processMatch = processID == process.Id;
                     if (processMatch)
                     {
-                        // Add the top-level windows for the process
+                        // Add the top-level windows for the rootProcess
                         addWindow(hwnd);
                     }
 
                     if (processMatch || applicationFrameHosts.Where(p => p.Id == processID).Any())
                     {
-                        // Add child windows plus any for the process that are currently parented with ApplicationFrameHost
+                        // Add child windows plus any for the rootProcess that are currently parented with ApplicationFrameHost
                         hwnd.EnumChildWindows(child =>
                         {
                             try
