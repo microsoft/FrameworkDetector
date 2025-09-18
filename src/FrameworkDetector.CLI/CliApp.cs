@@ -18,6 +18,7 @@ using FrameworkDetector.DataSources;
 using FrameworkDetector.Detectors;
 using FrameworkDetector.Engine;
 using FrameworkDetector.Models;
+using System.Collections.Generic;
 
 namespace FrameworkDetector.CLI;
 
@@ -37,8 +38,6 @@ public class CliApp
     public async Task<int> RunAsync(string[] args, CancellationToken cancellationToken)
     {
         Console.OutputEncoding = Encoding.UTF8;
-
-
 
         var rootCommand = new RootCommand("Framework Detector")
         {
@@ -68,6 +67,11 @@ public class CliApp
             Description = "Save the inspection report as JSON to the given filename.",
         };
 
+        Option<bool> includeChildrenOption = new("--includeChildren")
+        {
+            Description = "Include the children processes of an inspected process.",
+        };
+
         Option<bool> verboseOption = new("--verbose", "--v")
         {
             Description = "Print verbose output.",
@@ -77,6 +81,7 @@ public class CliApp
         {
             pidOption,
             processNameOption,
+            includeChildrenOption,
             outputFileOption,
             verboseOption,
         };
@@ -99,10 +104,11 @@ public class CliApp
             var processName = parseResult.GetValue(processNameOption);
             var outputFilename = parseResult.GetValue(outputFileOption);
             var verbose = parseResult.GetValue(verboseOption);
+            var includeChildren = parseResult.GetValue(includeChildrenOption);
 
             if (processId is not null)
             {
-                if (await InspectProcessAsync(Process.GetProcessById(processId.Value), verbose, outputFilename, cancellationToken))
+                if (await InspectProcessAsync(Process.GetProcessById(processId.Value), includeChildren, verbose, outputFilename, cancellationToken))
                 {
                     return (int)ExitCode.Success;
                 }
@@ -129,7 +135,7 @@ public class CliApp
                     if (processes.TryGetRootProcess(out var rootProcess) && rootProcess is not null)
                     {
                         PrintWarning("Determined root process {0}({1}).\n", rootProcess.ProcessName, rootProcess.Id);
-                        if (await InspectProcessAsync(rootProcess, verbose, outputFilename, cancellationToken))
+                        if (await InspectProcessAsync(rootProcess, includeChildren, verbose, outputFilename, cancellationToken))
                         {
                             return (int)ExitCode.Success;
                         }
@@ -137,7 +143,7 @@ public class CliApp
 
                     PrintError("Please run again with the PID of the specific process you wish to inspect.");
                 }
-                else if (await InspectProcessAsync(processes[0], verbose, outputFilename, cancellationToken))
+                else if (await InspectProcessAsync(processes[0], includeChildren, verbose, outputFilename, cancellationToken))
                 {
                     return (int)ExitCode.Success;
                 }
@@ -155,13 +161,19 @@ public class CliApp
     }
 
     /// Encapsulation of initializing datasource and grabbing engine reference to kick-off a detection against all registered detectors (see ConfigureServices)
-    private async Task<bool> InspectProcessAsync(Process process, bool verbose, string? outputFilename, CancellationToken cancellationToken)
+    private async Task<bool> InspectProcessAsync(Process process, bool includeChildren, bool verbose, string? outputFilename, CancellationToken cancellationToken)
     {
         // TODO: Probably have this elsewhere to be called
-        var message = $"Inspecting process {process.ProcessName}({process.Id})";
+        var message = $"Inspecting process {process.ProcessName}({process.Id}){(includeChildren ? " (and children)" : "")}";
         Console.Write($"{message}:");
 
-        DataSourceCollection sources = new([new ProcessDataSource(process)]);
+        var processDataSources = new List<ProcessDataSource>() { new ProcessDataSource(process) };
+        if (includeChildren)
+        {
+            processDataSources.AddRange(process.GetChildProcesses().Select(p => new ProcessDataSource(p)));
+        }
+
+        DataSourceCollection sources = new(processDataSources.ToArray());
 
         DetectionEngine engine = Services.GetRequiredService<DetectionEngine>();
         engine.DetectionProgressChanged += (s, e) =>

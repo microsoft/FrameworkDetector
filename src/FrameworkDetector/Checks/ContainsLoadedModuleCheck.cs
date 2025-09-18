@@ -92,8 +92,7 @@ public static class ContainsLoadedModuleCheck
 
             var fileVersionRange = definition.CheckArguments.FileVersionRange is not null ? SemVersionRange.Parse(definition.CheckArguments.FileVersionRange, SemVersionRangeOptions.OptionalPatch) : null;
 
-            // TODO: Think about child processes and what that means here for a check...
-            foreach (ProcessDataSource process in processes)
+            foreach (var process in processes)
             {
                 var loadedModules = process.ProcessMetadata?.LoadedModules;
                 if (loadedModules is not null)
@@ -119,6 +118,12 @@ public static class ContainsLoadedModuleCheck
                             break;
                         }
                     }
+                }
+
+                // Stop evaluating other process data sources if we've gotten a pass or cancel
+                if (result.CheckStatus != DetectorCheckStatus.InProgress)
+                {
+                    break;
                 }
             }
 

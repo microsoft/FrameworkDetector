@@ -74,8 +74,7 @@ public static class ContainsWindowClassCheck
         {
             result.CheckStatus = DetectorCheckStatus.InProgress;
 
-            // TODO: Think about child processes and what that means here for a check...
-            foreach (ProcessDataSource process in processes)
+            foreach (var process in processes)
             {
                 var activeWindows = process.ProcessMetadata?.ActiveWindows;
                 if (activeWindows is not null)
@@ -97,6 +96,12 @@ public static class ContainsWindowClassCheck
                             break;
                         }
                     }
+                }
+
+                // Stop evaluating other process data sources if we've gotten a pass or cancel
+                if (result.CheckStatus != DetectorCheckStatus.InProgress)
+                {
+                    break;
                 }
             }
 
