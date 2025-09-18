@@ -16,5 +16,6 @@ internal class DetectorJsonSerializerOptions
         {
             new System.Text.Json.Serialization.JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
         },
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 }
