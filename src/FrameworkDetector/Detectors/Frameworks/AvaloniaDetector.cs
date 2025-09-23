@@ -6,6 +6,10 @@ using FrameworkDetector.Engine;
 
 namespace FrameworkDetector.Detectors;
 
+/// <summary>
+/// Detector for Avalonia UI (Avalonia).
+/// Built according to docs/Frameworks/Avalonia.md.
+/// </summary>
 public class AvaloniaDetector : IDetector 
 {
     public string Name => nameof(AvaloniaDetector);

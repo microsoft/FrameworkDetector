@@ -6,7 +6,7 @@ Windows Forms (WinForms) is a free, open-source graphical user interface (GUI) c
 
 Windows Forms provides access to native Windows User Interface Common Controls by wrapping the existent Windows API in managed code.
 
-**Website:** [WinForms Docs](https://learn.microsoft.com/en-us/dotnet/desktop/winforms//)
+**Website:** [WinForms Docs](https://learn.microsoft.com/en-us/dotnet/desktop/winforms/)
 
 ### Languages
 
