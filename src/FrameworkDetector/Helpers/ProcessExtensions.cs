@@ -88,6 +88,38 @@ public static class ProcessExtensions
         }
     }
 
+    public static bool TryGetApplicationUserModelId(this Process process, out string? applicationUserModelId)
+    {
+        unsafe
+        {
+            int len = 0;
+            if (NativeMethods.ERROR_INSUFFICIENT_BUFFER != NativeMethods.GetApplicationUserModelId(process.Handle, ref len, IntPtr.Zero))
+            {
+                applicationUserModelId = default;
+                return false;
+            }
+
+            IntPtr buffer = Marshal.AllocHGlobal(len);
+
+            try
+            {
+                if (NativeMethods.ERROR_SUCCESS != NativeMethods.GetApplicationUserModelId(process.Handle, ref len, buffer))
+                {
+                    applicationUserModelId = default;
+                    return false;
+                }
+
+                applicationUserModelId = Marshal.PtrToStringUni(buffer);
+                return true;
+
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(buffer);
+            }
+        }
+    }
+
     public static IEnumerable<ProcessWindowMetadata> GetActiveWindowMetadata(this Process process)
     {
         var windows = new HashSet<ProcessWindowMetadata>();
@@ -195,4 +227,7 @@ internal partial class NativeMethods
 
     [DllImport("kernel32.dll")]
     public static extern int GetPackageId(IntPtr hProcess, ref int bufferLength, IntPtr pBuffer);
+
+    [DllImport("kernel32.dll")]
+    public static extern int GetApplicationUserModelId(IntPtr hProcess, ref int applicationUserModelIdLength, IntPtr applicationUserModelId);
 }

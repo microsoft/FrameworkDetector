@@ -18,6 +18,7 @@ public record ProcessMetadata(string Filename,
                               string? ProductVersion,
                               int? ProcessId,
                               string? PackageFullName,
+                              string? ApplicationUserModelId,
                               WindowsBinaryMetadata[]? LoadedModules,
                               ProcessWindowMetadata[]? ActiveWindows) : WindowsBinaryMetadata(Filename, OriginalFilename, FileVersion, ProductName, ProductVersion)
 {
@@ -29,6 +30,8 @@ public record ProcessMetadata(string Filename,
         var fileVersionInfo = process.MainModule?.FileVersionInfo ?? throw new ArgumentNullException(nameof(process.MainModule));
 
         process.TryGetPackageFullName(out var packageFullName);
+
+        process.TryGetApplicationUserModelId(out var applicationUserModelId);
 
         var loadedModules = new HashSet<WindowsBinaryMetadata>();
         foreach (var module in process.Modules.Cast<ProcessModule>())
@@ -54,6 +57,7 @@ public record ProcessMetadata(string Filename,
                                    fileVersionInfo.ProductVersion,
                                    process.Id,
                                    packageFullName,
+                                   applicationUserModelId,
                                    loadedModules.OrderBy(pm => pm.Filename).ToArray(),
                                    activeWindows.OrderBy(aw => aw.ClassName ?? "").ToArray());
     }
