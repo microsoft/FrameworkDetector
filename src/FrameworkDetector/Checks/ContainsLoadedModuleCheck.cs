@@ -26,7 +26,7 @@ public static class ContainsLoadedModuleCheck
     {
         return new(
             Name: nameof(ContainsLoadedModuleCheck),
-            Description: $"Find module {args.Filename}{(args.FileVersionRange is not null ? $" {args.FileVersionRange}" : "")}",
+            Description: $"Find module {args.Filename ?? args.OriginalFilename ?? args.ProductName}{(args.FileVersionRange is not null || args.ProductVersionRange is not null ? $" {args.FileVersionRange ?? args.ProductVersionRange}" : "")}",
             DataSourceIds: [ProcessDataSource.Id],
             PerformCheckAsync);
     }
@@ -83,9 +83,9 @@ public static class ContainsLoadedModuleCheck
             // will be passed into the PerformCheckAsync method below to do the actual check.
 
             // TODO: Maybe make args and then have it run its own validator?
-            if (filename is null && originalFilename is null && fileVersionRange is null && productName is null && productVersionRange is null)
+            if (filename is null && originalFilename is null && productName is null)
             {
-                throw new ArgumentNullException($"{nameof(ContainsLoadedModule)} requires at least one argument to not be null.");
+                throw new ArgumentNullException($"{nameof(ContainsLoadedModule)} requires at least one name to not be null.");
             }
 
             var args = new ContainsLoadedModuleArgs(filename, originalFilename, fileVersionRange, productName, productVersionRange, checkForNgenModule);
