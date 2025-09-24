@@ -318,6 +318,7 @@ public class CliApp
         services.AddSingleton<IDetector, CEFDetector>();
         services.AddSingleton<IDetector, DotNetCoreDetector>();
         services.AddSingleton<IDetector, DotNetFrameworkDetector>();
+        services.AddSingleton<IDetector, ElectronDetector>();
         services.AddSingleton<IDetector, MVVMToolkitDetector>();
         services.AddSingleton<IDetector, RNWDetector>();
         services.AddSingleton<IDetector, UWPXAMLDetector>();
