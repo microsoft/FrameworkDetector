@@ -14,7 +14,7 @@ internal static class SemVersionExtensions
     {
         public static bool TryLooseParse(string? version, out SemVersion? semver)
         {
-            if (version is not null)
+            if (!string.IsNullOrWhiteSpace(version))
             {
                 try
                 {
