@@ -1,0 +1,171 @@
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Microsoft.Extensions.DependencyInjection;
+using System.CommandLine;
+using System.CommandLine.Parsing;
+
+using FrameworkDetector.DataSources;
+using FrameworkDetector.Engine;
+using FrameworkDetector.Models;
+
+namespace FrameworkDetector.CLI;
+
+public partial class CliApp
+{
+    private Command GetInspectCommand()
+    {
+        Option<int?> pidOption = new("--processId", "--pid")
+        {
+            Description = "The PID of the process to inspect.",
+        };
+
+        Option<string?> processNameOption = new("--processName")
+        {
+            Description = "The name of the process to inspect.",
+        };
+
+        Option<string?> outputFileOption = new("--outputFile")
+        {
+            Description = "Save the inspection report as JSON to the given filename.",
+        };
+
+        Option<bool> includeChildrenOption = new("--includeChildren")
+        {
+            Description = "Include the children processes of an inspected process.",
+        };
+
+        Option<bool> verboseOption = new("--verbose", "--v")
+        {
+            Description = "Print verbose output.",
+        };
+
+        var command = new Command("inspect", "Inspect a given process")
+        {
+            pidOption,
+            processNameOption,
+            includeChildrenOption,
+            outputFileOption,
+            verboseOption,
+        };
+        command.TreatUnmatchedTokensAsErrors = true;
+
+        command.SetAction(async (ParseResult parseResult, CancellationToken cancellationToken) =>
+        {
+            if (parseResult.Errors.Count > 0)
+            {
+                // Display any command argument errors
+                foreach (ParseError parseError in parseResult?.Errors ?? Array.Empty<ParseError>())
+                {
+                    PrintError(parseError.Message);
+                }
+
+                return (int)ExitCode.ArgumentParsingError;
+            }
+
+            var processId = parseResult.GetValue(pidOption);
+            var processName = parseResult.GetValue(processNameOption);
+            var outputFilename = parseResult.GetValue(outputFileOption);
+            var verbose = parseResult.GetValue(verboseOption);
+            var includeChildren = parseResult.GetValue(includeChildrenOption);
+
+            if (processId is not null)
+            {
+                if (await InspectProcessAsync(Process.GetProcessById(processId.Value), includeChildren, verbose, outputFilename, cancellationToken))
+                {
+                    return (int)ExitCode.Success;
+                }
+
+                return (int)ExitCode.InspectFailed;
+            }
+            else if (!string.IsNullOrWhiteSpace(processName))
+            {
+                var processes = Process.GetProcessesByName(processName);
+
+                if (processes.Length == 0)
+                {
+                    PrintError("Unable to find process with name \"{0}\".", processName);
+                }
+                else if (processes.Length > 1)
+                {
+                    //TODO: figure out how to handle inspecting multiple processes and how to output the results.
+                    PrintWarning("More than one process with name \"{0}\":", processName);
+                    foreach (var process in processes)
+                    {
+                        PrintWarning("  {0}({1})", process.ProcessName, process.Id);
+                    }
+
+                    if (processes.TryGetRootProcess(out var rootProcess) && rootProcess is not null)
+                    {
+                        PrintWarning("Determined root process {0}({1}).\n", rootProcess.ProcessName, rootProcess.Id);
+                        if (await InspectProcessAsync(rootProcess, includeChildren, verbose, outputFilename, cancellationToken))
+                        {
+                            return (int)ExitCode.Success;
+                        }
+                    }
+
+                    PrintError("Please run again with the PID of the specific process you wish to inspect.");
+                }
+                else if (await InspectProcessAsync(processes[0], includeChildren, verbose, outputFilename, cancellationToken))
+                {
+                    return (int)ExitCode.Success;
+                }
+
+                return (int)ExitCode.InspectFailed;
+            }
+
+            PrintError("Missing command arguments.");
+            command.Parse("-h").Invoke();
+
+            return (int)ExitCode.ArgumentParsingError;
+        });
+
+        return command;
+    }
+
+    /// Encapsulation of initializing datasource and grabbing engine reference to kick-off a detection against all registered detectors (see ConfigureServices)
+    private async Task<bool> InspectProcessAsync(Process process, bool includeChildren, bool verbose, string? outputFilename, CancellationToken cancellationToken)
+    {
+        // TODO: Probably have this elsewhere to be called
+        var message = $"Inspecting process {process.ProcessName}({process.Id}){(includeChildren ? " (and children)" : "")}";
+        Console.Write($"{message}:");
+
+        var processDataSources = new List<ProcessDataSource>() { new ProcessDataSource(process) };
+        if (includeChildren)
+        {
+            processDataSources.AddRange(process.GetChildProcesses().Select(p => new ProcessDataSource(p)));
+        }
+
+        DataSourceCollection sources = new(processDataSources.ToArray());
+
+        DetectionEngine engine = Services.GetRequiredService<DetectionEngine>();
+        engine.DetectionProgressChanged += (s, e) =>
+        {
+            Console.Write($"\r{message}: {e.Progress:000.0}%");
+        };
+
+        ToolRunResult result = await engine.DetectAgainstSourcesAsync(sources, cancellationToken);
+
+        Console.WriteLine();
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            PrintWarning("Inspection was canceled prior to completion.");
+            Console.WriteLine();
+        }
+
+        PrintResult(result, verbose);
+
+        TrySaveOutput(result, outputFilename);
+
+        // TODO: Return false on failure
+        return true;
+    }
+}
