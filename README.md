@@ -23,6 +23,12 @@ Otherwise you can manually build the solution at `src\FrameworkDetector.sln` wit
 dotnet msbuild ./src/FrameworkDetector.sln
 ```
 
+You can also navigate to the `src\FrameworkDetector.CLI` folder and use the dotnet run command:
+
+```ps
+dotnet run [parameters]
+```
+
 ## Usage
 
 ### Inspect by Process Id (PID)
@@ -72,6 +78,16 @@ Optional groups can also be defined, they have no impact on detection. They are 
 ### FrameworkDetector.CLI
 
 A commandline tool to initialize and run the library to inspect a specific process, see [Usage](#usage) above.
+
+## Debugging
+
+To debug a specific detector add a conditional breakpoint in the `DetectionEngine` class, specifically in the `DetectAgainstSourcesAsync` method looking at the `detector.Info.Name`:
+
+```
+detector.Info.Name == nameof(FrameworkDetector.Detectors.WPFDetector) // Link:DetectionEngine.cs#L66
+```
+
+Then look into the calls for `PerformCheckAsync` that get called from there.
 
 ## License
 
