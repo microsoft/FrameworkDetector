@@ -67,7 +67,7 @@ public interface ICheckDefinition
 public record CheckDefinition<TInput,TOutput>(
     CheckRegistrationInfo<TInput,TOutput> CheckRegistration,
     TInput CheckArguments
-) : ICheckDefinition where TInput : struct
+) : ICheckDefinition where TInput : ICheckArgs
                      where TOutput : struct
 {
     /// <inheritdoc/>

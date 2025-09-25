@@ -27,7 +27,7 @@ public record CheckRegistrationInfo<TInput,TOutput>(
     string Description,
     string[] DataSourceIds,
     CheckFunction<TInput,TOutput> PerformCheckAsync
-) where TInput : struct
+) where TInput : ICheckArgs
   where TOutput : struct
 {
 }
@@ -47,4 +47,4 @@ public record CheckRegistrationInfo<TInput,TOutput>(
 /// <param name="result">The check result to be set during execution.</param>
 /// <param name="cancellationToken">Cancellation token.</param>
 /// <returns></returns>
-public delegate Task CheckFunction<TInput,TOutput>(CheckDefinition<TInput,TOutput> definition, DataSourceCollection dataSources, DetectorCheckResult<TInput,TOutput> result, CancellationToken cancellationToken) where TInput : struct where TOutput : struct;
+public delegate Task CheckFunction<TInput,TOutput>(CheckDefinition<TInput,TOutput> definition, DataSourceCollection dataSources, DetectorCheckResult<TInput,TOutput> result, CancellationToken cancellationToken) where TInput : ICheckArgs where TOutput : struct;

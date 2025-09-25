@@ -11,6 +11,7 @@ using Semver;
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
 using FrameworkDetector.Models;
+using System.Text;
 
 namespace FrameworkDetector.Checks;
 
@@ -26,7 +27,7 @@ public static class ContainsLoadedModuleCheck
     {
         return new(
             Name: nameof(ContainsLoadedModuleCheck),
-            Description: $"Find module {args.Filename ?? args.OriginalFilename ?? args.ProductName}{(args.FileVersionRange is not null || args.ProductVersionRange is not null ? $" {args.FileVersionRange ?? args.ProductVersionRange}" : "")}",
+            Description: args.GetDescription(),
             DataSourceIds: [ProcessDataSource.Id],
             PerformCheckAsync);
     }
@@ -34,13 +35,13 @@ public static class ContainsLoadedModuleCheck
     /// <summary>
     /// Input arguments for <see cref="ContainsLoadedModuleCheck"/>.
     /// </summary>
-    /// <param name="filename">The filename of the module to look for.</param>
-    /// <param name="originalFilename">The original filename of the module to look for.</param>
-    /// <param name="fileVersionRange">Semver version range sepc to match a specific module file version.</param>
-    /// <param name="productName">The product name of the module to look for.</param>
-    /// <param name="productVersionRange">Semver version range sepc to match a specific module product version.</param>
-    /// <param name="checkForNgenModule">Whether or not to look for an NGENed version of the module.</param>
-    public readonly struct ContainsLoadedModuleArgs(string? filename, string? originalFilename, string? fileVersionRange, string? productName, string? productVersionRange, bool? checkForNgenModule)
+    /// <param name="filename">A loaded module's filename must match this text, if specified.</param>
+    /// <param name="originalFilename">A loaded module's original filename must match this text, if specified.</param>
+    /// <param name="fileVersionRange">A loaded module's file version must match this semver version range sepc, if specified.</param>
+    /// <param name="productName">A loaded module's product name must match this text, if specified.</param>
+    /// <param name="productVersionRange">A loaded module's product version must match this semver version range sepc, if specified.</param>
+    /// <param name="checkForNgenModule">Whether or not to also match NGENed versions (.ni.dll) of the specified filename and/or original filename.</param>
+    public readonly struct ContainsLoadedModuleArgs(string? filename, string? originalFilename, string? fileVersionRange, string? productName, string? productVersionRange, bool? checkForNgenModule) : ICheckArgs
     {
         public string? Filename { get; } = filename;
 
@@ -53,6 +54,68 @@ public static class ContainsLoadedModuleCheck
         public string? ProductVersionRange { get; } = productVersionRange;
 
         public bool? CheckForNgenModule { get; } = checkForNgenModule;
+
+        public string GetDescription()
+        {
+            var descriptionSB = new StringBuilder("Find module ");
+
+            bool nameAdded = false;
+            if (Filename is not null)
+            {
+                descriptionSB.AppendFormat("{0}", Filename);
+                nameAdded = true;
+            }
+
+            if (OriginalFilename is not null)
+            {
+                if (nameAdded)
+                {
+                    descriptionSB.Append(", ");
+                }
+                descriptionSB.AppendFormat("originally named {0}", OriginalFilename);
+                nameAdded = true;
+            }
+
+            if (ProductName is not null)
+            {
+                if (nameAdded)
+                {
+                    descriptionSB.Append(", ");
+                }
+                descriptionSB.AppendFormat("with product name {0}", ProductName);
+                nameAdded = true;
+            }
+
+            if (FileVersionRange is not null || ProductVersionRange is not null)
+            {
+                if (nameAdded)
+                {
+                    descriptionSB.Append(' ');
+                }
+
+                descriptionSB.Append("with ");
+
+                bool versionAdded = false;
+                if (FileVersionRange is not null)
+                {
+                    descriptionSB.AppendFormat("version {0}", FileVersionRange);
+                    versionAdded = true;
+                }
+
+                if (ProductVersionRange is not null)
+                {
+                    if (versionAdded)
+                    {
+                        descriptionSB.Append(", ");
+                    }
+                    descriptionSB.AppendFormat("product version {0}", ProductVersionRange);
+                }
+            }
+
+            return descriptionSB.ToString();
+        }
+
+        public void Validate() => ArgumentNullException.ThrowIfNull(Filename ?? OriginalFilename ?? ProductName, nameof(ContainsLoadedModuleArgs));
     }
 
     /// <summary>
@@ -69,12 +132,12 @@ public static class ContainsLoadedModuleCheck
         /// <summary>
         /// Checks for module by name in Process.LoadedModules.
         /// </summary>
-        /// <param name="filename">The filename of the module to look for.</param>
-        /// <param name="originalFilename">The original filename of the module to look for.</param>
-        /// <param name="fileVersionRange">Semver version range sepc to match a specific module file version.</param>
-        /// <param name="productName">The product name of the module to look for.</param>
-        /// <param name="productVersionRange">Semver version range sepc to match a specific module product version.</param>
-        /// <param name="checkForNgenModule">Whether or not to look for an NGENed version of the module.</param>
+        /// <param name="filename">A loaded module's filename must match this text, if specified.</param>
+        /// <param name="originalFilename">A loaded module's original filename must match this text, if specified.</param>
+        /// <param name="fileVersionRange">A loaded module's file version must match this semver version range sepc, if specified.</param>
+        /// <param name="productName">A loaded module's product name must match this text, if specified.</param>
+        /// <param name="productVersionRange">A loaded module's product version must match this semver version range sepc, if specified.</param>
+        /// <param name="checkForNgenModule">Whether or not to also match NGENed versions (.ni.dll) of the specified filename and/or original filename.</param>
         /// <returns></returns>
         public DetectorCheckGroup ContainsLoadedModule(string? filename = null, string? originalFilename = null, string? fileVersionRange = null, string? productName = null, string? productVersionRange = null, bool? checkForNgenModule = null)
         {
@@ -82,13 +145,9 @@ public static class ContainsLoadedModuleCheck
             // The metadata along with the live data sources (as indicated by the registration)
             // will be passed into the PerformCheckAsync method below to do the actual check.
 
-            // TODO: Maybe make args and then have it run its own validator?
-            if (filename is null && originalFilename is null && productName is null)
-            {
-                throw new ArgumentNullException($"{nameof(ContainsLoadedModule)} requires at least one name to not be null.");
-            }
-
             var args = new ContainsLoadedModuleArgs(filename, originalFilename, fileVersionRange, productName, productVersionRange, checkForNgenModule);
+            args.Validate();
+
             @this.AddCheck(new CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData>(GetCheckRegistrationInfo(args), args));
 
             return @this;

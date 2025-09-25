@@ -30,7 +30,7 @@ public class CEFDetector : IDetector
                 .ContainsLoadedModule("Xilium.CefGlue.Avalonia.dll")
                 .ContainsLoadedModule("Xilium.CefGlue.WPF.dll"))
             .Optional("Window Classes", checks => checks
-                .ContainsWindowClass("CefBrowserWindow"))
+                .ContainsActiveWindow("CefBrowserWindow"))
             .BuildDefinition();
     }
 }

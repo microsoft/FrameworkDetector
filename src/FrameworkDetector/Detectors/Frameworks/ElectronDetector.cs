@@ -24,10 +24,12 @@ public class ElectronDetector : IDetector
     {
         return this.Create()
             .Required("Main Window Class", checks => checks
-                .ContainsWindowClass("Electron_SystemPreferencesHostWindow"))
+                .ContainsActiveWindow("Electron_SystemPreferencesHostWindow"))
             .Optional("Other Window Classes", checks => checks
-                .ContainsWindowClass("Electron_PowerMonitorHostWindow")
-                .ContainsWindowClass("Electron_NotifyIconHostWindow"))
+                .ContainsActiveWindow("Electron_PowerMonitorHostWindow")
+                .ContainsActiveWindow("Electron_NotifyIconHostWindow"))
+            .Optional("Renamed electron.exe", checks => checks
+                .ContainsLoadedModule(originalFilename: "electron.exe"))
             .BuildDefinition();
     }
 }

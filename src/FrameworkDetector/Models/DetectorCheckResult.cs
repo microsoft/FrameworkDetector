@@ -45,7 +45,7 @@ public interface IDetectorCheckResult
 public record DetectorCheckResult<TInput, TOutput>(
     IDetector Detector,
     ICheckDefinition CheckDefinition
-) : IDetectorCheckResult where TInput : struct
+) : IDetectorCheckResult where TInput : ICheckArgs
                          where TOutput : struct
 {
     public DetectorCheckStatus CheckStatus { get; set; } = DetectorCheckStatus.None;
