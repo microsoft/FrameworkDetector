@@ -51,12 +51,12 @@ public record DetectorCheckResult<TInput, TOutput>(
     public DetectorCheckStatus CheckStatus { get; set; } = DetectorCheckStatus.None;
 
     /// <summary>
-    /// Gets the type registered by the check to store input arguments from Detector defintion for processing. Automatically populated by <see cref="CheckDefinition{TInput,TOutput}"/>.
+    /// Gets the type registered by the check to store input arguments from Detector definition for processing. Automatically populated by <see cref="CheckDefinition{TInput,TOutput}"/>.
     /// </summary>
     public TInput? InputArgs { get; set; }
 
     /// <summary>
-    /// Gets the type registered by the check to store output data from Detector defintion for processing. Automatically populated by <see cref="CheckDefinition{TInput,TOutput}"/>.
+    /// Gets the type registered by the check to store output data from Detector definition for processing. Automatically populated by <see cref="CheckDefinition{TInput,TOutput}"/>.
     /// </summary>
     public TOutput? OutputData { get; set; }
 
