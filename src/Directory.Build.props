@@ -7,7 +7,8 @@
     <Copyright>Copyright © Microsoft Corporation</Copyright>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/jonthysell/FrameworkDetector</RepositoryUrl>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041</TargetFramework>
+	<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <Nullable>enable</Nullable>
     <Version>0.9.0</Version>
     <AssemblyVersion>$(Version).$([System.DateTime]::UtcNow.ToString("yy"))$([System.DateTime]::UtcNow.DayOfYear.ToString("00"))</AssemblyVersion>

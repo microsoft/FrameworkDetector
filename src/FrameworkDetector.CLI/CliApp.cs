@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +19,18 @@ namespace FrameworkDetector.CLI;
 
 public partial class CliApp
 {
+    public bool IsRunningAsAdmin { get; } = CheckIfRunningAsAdmin();
+
+    private static bool CheckIfRunningAsAdmin()
+    {
+        // Check if process running as admin and initialize our property.
+        using WindowsIdentity identity = WindowsIdentity.GetCurrent();
+
+        WindowsPrincipal principal = new(identity);
+
+        return principal.IsInRole(WindowsBuiltInRole.Administrator);
+    }
+
     public CliApp() { }
 
     public async Task<int> RunAsync(string[] args, CancellationToken cancellationToken)

@@ -2,19 +2,16 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
-using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.CommandLine.Parsing;
+using Windows.ApplicationModel;
+using Windows.Management.Deployment;
 
-using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
-using FrameworkDetector.Models;
 
 namespace FrameworkDetector.CLI;
 
@@ -31,9 +28,9 @@ public partial class CliApp
             Description = "The full path of the program to run.",
         };
 
-        Option<string?> packageOption = new("--packageName", "--pkg")
+        Option<string?> packageOption = new("--packageFullName", "--pkg")
         {
-            Description = "The name of the package to run.",
+            Description = "The full name of the package to run. Must be available to the current user (unless process is running as admin).",
         };
 
         Option<int?> waitTimeOption = new("--waitTime", "--wait")
@@ -81,7 +78,7 @@ public partial class CliApp
             }
 
             var exepath = parseResult.GetValue(pathOption);
-            var packageName = parseResult.GetValue(packageOption);
+            var packageFullName = parseResult.GetValue(packageOption);
             var waitTime = parseResult.GetValue(waitTimeOption) ?? 2000;
             var outputFilename = parseResult.GetValue(outputFileOption);
             var verbose = parseResult.GetValue(verboseOption);
@@ -102,6 +99,9 @@ public partial class CliApp
                     return (int)ExitCode.ArgumentParsingError;
                 }
 
+                PrintInfo("Process Running (PID={0})", process.Id);
+
+                // TODO: This is copied below, we should refactor into a common method for "waiting for UI process".
                 PrintInfo("Waiting for UI Idle of app");
                 if (process?.WaitForInputIdle() == true && process?.Responding == true)                
                 {
@@ -117,13 +117,113 @@ public partial class CliApp
                     {
                         return (int)ExitCode.Success;
                     }
-                }                
+                }
 
                 return (int)ExitCode.InspectFailed;
             }
-            else if (!string.IsNullOrWhiteSpace(packageName))
+            else if (!string.IsNullOrWhiteSpace(packageFullName))
             {
-                // TODO: Implement package running
+                // See: https://github.com/microsoft/WindowsAppSDK/discussions/2747
+                // Note: This code required us to specify a specific Windows Version TFM
+                PackageManager packageManager = new();
+                Package? pkg = null;
+
+                // 1. Find package by full name
+                if (IsRunningAsAdmin)
+                {
+                    PrintInfo("Running as Admin, Searching Across System for App Package");
+
+                    // https://learn.microsoft.com/uwp/api/windows.management.deployment.packagemanager.findpackage
+                    pkg = packageManager.FindPackage(packageFullName);
+                }
+                else
+                {
+                    // Empty string == current user
+                    // https://learn.microsoft.com/uwp/api/windows.management.deployment.packagemanager.findpackageforuser
+                    pkg = packageManager.FindPackageForUser(string.Empty, packageFullName);
+                }
+
+                if (pkg is null)
+                {
+                    PrintError("Unable to find package with full name \"{0}\".", packageFullName);
+                    return (int)ExitCode.ArgumentParsingError;
+                }
+
+                PrintInfo("Found app: \"{0}\"", pkg.Id.Name);
+
+                // 2. Get the AppList entries for the package (hopefully only one in most cases)
+                var entries = await pkg.GetAppListEntriesAsync();
+
+                // TODO: Support selecting an entry to run...
+                if (entries.Count > 1)
+                {
+                    PrintWarning("Package has multiple AppList entries, using the first one found.");
+                }
+                else if (entries.Count == 0)
+                {
+                    PrintError("Package \"{0}\" has no AppList entries to run.", packageFullName);
+                    return (int)ExitCode.ArgumentParsingError;
+                }
+
+                var entry = entries.First();
+
+                PrintInfo("Starting app entry: \"{0}\"", entry.DisplayInfo.DisplayName);
+                if (!await entry.LaunchAsync())
+                {
+                    PrintError("Failed to launch package \"{0}\".", packageFullName);
+                    return (int)ExitCode.InspectFailed;
+                }
+
+                // 3. Find the process that was just started...
+                var processes = Process.GetProcesses();
+                Process? targetProcess = null;
+
+                foreach (var process in processes)
+                {
+                    try
+                    {
+                        // Arbitrary 30-sec window to find recently started processes
+                        if (process.StartTime > DateTime.Now.AddSeconds(-30)
+                            && process.TryGetPackageFullName(out var pkgName)
+                            && pkgName == packageFullName)
+                        {
+                            PrintInfo("Found Packaged App Process Running (PID={0})", process.Id);
+                            targetProcess = process;
+                            break;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Ignore processes we can't access the start time for.
+                    }
+                }
+
+                if (targetProcess is null)
+                {
+                    PrintError("Could not find process for started package \"{0}\".", packageFullName);
+                    return (int)ExitCode.InspectFailed;
+                }
+
+                // 4. Inspect the process (and children)
+                // TODO: This is copied from above, we should refactor into a common method for "waiting for UI process".
+                PrintInfo("Waiting for UI Idle of app");
+                if (targetProcess?.WaitForInputIdle() == true && targetProcess?.Responding == true)
+                {
+                    // Question: Should we wait first and then check for idle?
+                    if (waitTime > 0)
+                    {
+                        PrintInfo("Waiting an additional {0}ms before inspecting...", waitTime);
+                        Thread.Sleep(waitTime);
+                    }
+
+                    PrintInfo("Inspecting app...");
+                    if (await InspectProcessAsync(targetProcess, includeChildren, verbose, outputFilename, cancellationToken))
+                    {
+                        return (int)ExitCode.Success;
+                    }
+                }
+
+                return (int)ExitCode.InspectFailed;
             }
 
             PrintError("Missing command arguments.");
