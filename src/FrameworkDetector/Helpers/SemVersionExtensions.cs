@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 using Semver;
 
@@ -10,46 +11,23 @@ namespace FrameworkDetector;
 
 internal static class SemVersionExtensions
 {
+    static readonly Regex CleanVersionRegex = new Regex(@"^v?((\d+)(\.|, |,)(\d+)?(\.|, |,)?(\d+)?)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
     extension (SemVersion semVersion)
     {
-        public static bool TryLooseParse(string? version, out SemVersion? semver)
+        public static bool TryParseCleaned(string? version, out SemVersion? semver)
         {
-            if (!string.IsNullOrWhiteSpace(version))
+            if (!string.IsNullOrEmpty(version))
             {
-                try
+                var match = CleanVersionRegex.Match(version);
+                if (match.Success)
                 {
-                    semver = SemVersion.Parse(version, SemVersionStyles.Any);
-                    return true;
+                    var major = string.IsNullOrEmpty(match.Groups[2].Value) ? "0" : match.Groups[2].Value;
+                    var minor = string.IsNullOrEmpty(match.Groups[4].Value) ? "0" : match.Groups[4].Value;
+                    var patch = string.IsNullOrEmpty(match.Groups[6].Value) ? "0" : match.Groups[6].Value;
+                    var cleanVersion = $"{major}.{minor}.{patch}";
+                    return SemVersion.TryParse(cleanVersion, out semver);
                 }
-                catch (FormatException fex)
-                {
-                    if (fex.Message.StartsWith("Fourth version number"))
-                    {
-                        // Remove the fourth version number part and try again
-                        version = string.Join('.', version.Split('.').Take(3));
-                        return SemVersion.TryLooseParse(version, out semver);
-                    }
-                    else if (fex.Message.Contains("contains invalid character ' '"))
-                    {
-                        // Some version strings have extra content after a space, take just the version and try again
-                        version = version.Split(' ')[0];
-                        return SemVersion.TryLooseParse(version, out semver);
-                    }
-                    else if (fex.Message.Contains("contains invalid character ','"))
-                    {
-                        // Some version strings use ',' or ', ' instead of '.' as a delimiter, reformat and try again
-                        version = version.Replace(", ", ".").Replace(',', '.');
-                        return SemVersion.TryLooseParse(version, out semver);
-                    }
-#if DEBUG
-                    else
-                    {
-                        // Log other unexpected formatting errors
-                        Console.Error.WriteLine(fex.Message);
-                    }
-#endif
-                }
-                catch { }
             }
 
             semver = default;

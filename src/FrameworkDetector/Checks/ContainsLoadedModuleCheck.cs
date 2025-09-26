@@ -190,12 +190,12 @@ public static class ContainsLoadedModuleCheck
                         }
 
                         var filenameMatch = definition.CheckArguments.Filename is null || string.Equals(definition.CheckArguments.Filename, module.Filename, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenModuleName, module.Filename, StringComparison.InvariantCultureIgnoreCase));
-                        var fileVersionMatch = fileVersionRange is null || SemVersion.TryLooseParse(module.FileVersion, out var fileVersion) && fileVersionRange.Contains(fileVersion);
+                        var fileVersionMatch = fileVersionRange is null || SemVersion.TryParseCleaned(module.FileVersion, out var fileVersion) && fileVersionRange.Contains(fileVersion);
 
                         var originalFilenameMatch = definition.CheckArguments.OriginalFilename is null || string.Equals(definition.CheckArguments.OriginalFilename, module.OriginalFilename, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenOriginalModuleName, module.OriginalFilename, StringComparison.InvariantCultureIgnoreCase));
 
                         var productNameMatch = definition.CheckArguments.ProductName is null || string.Equals(definition.CheckArguments.ProductName, module.ProductName, StringComparison.InvariantCultureIgnoreCase);
-                        var productVersionMatch = productVersionRange is null || SemVersion.TryLooseParse(module.ProductVersion, out var productVersion) && productVersionRange.Contains(productVersion);
+                        var productVersionMatch = productVersionRange is null || SemVersion.TryParseCleaned(module.ProductVersion, out var productVersion) && productVersionRange.Contains(productVersion);
 
                         if (filenameMatch && fileVersionMatch && originalFilenameMatch && productNameMatch && productVersionMatch)
                         {
