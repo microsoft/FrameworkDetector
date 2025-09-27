@@ -20,7 +20,9 @@ public record ProcessMetadata(string Filename,
                               string? PackageFullName,
                               string? ApplicationUserModelId,
                               WindowsBinaryMetadata[]? LoadedModules,
-                              ProcessWindowMetadata[]? ActiveWindows) : WindowsBinaryMetadata(Filename, OriginalFilename, FileVersion, ProductName, ProductVersion)
+                              ProcessWindowMetadata[]? ActiveWindows,
+                              ProcessImportedFunctionsMetadata[]? ImportedFunctions,
+                              ProcessExportedFunctionsMetadata[]? ExportedFunctions) : WindowsBinaryMetadata(Filename, OriginalFilename, FileVersion, ProductName, ProductVersion)
 {
 
     public static async Task<ProcessMetadata?> GetMetadataAsync(Process process, CancellationToken cancellationToken)
@@ -50,6 +52,10 @@ public record ProcessMetadata(string Filename,
 
         var activeWindows = process.GetActiveWindowMetadata();
 
+        var importedFunctions = process.ProcessImportedFunctionsMetadata();
+
+        var exportedFunctions = process.ProcessExportedFunctionsMetadata();
+
         return new ProcessMetadata(Path.GetFileName(fileVersionInfo.FileName),
                                    fileVersionInfo.OriginalFilename,
                                    fileVersionInfo.FileVersion,
@@ -59,6 +65,8 @@ public record ProcessMetadata(string Filename,
                                    packageFullName,
                                    applicationUserModelId,
                                    loadedModules.OrderBy(pm => pm.Filename).ToArray(),
-                                   activeWindows.OrderBy(aw => aw.ClassName ?? "").ToArray());
+                                   activeWindows.OrderBy(aw => aw.ClassName ?? "").ToArray(),
+                                   importedFunctions.OrderBy(f => f.ModuleName).ToArray(),
+                                   exportedFunctions.OrderBy(f => f.Name).ToArray());
     }
 }

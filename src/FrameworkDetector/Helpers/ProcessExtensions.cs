@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 
@@ -10,6 +11,8 @@ using System.Management;
 using System.Runtime.InteropServices;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+
+using PeNet;
 
 namespace FrameworkDetector;
 
@@ -152,6 +155,117 @@ public static class ProcessExtensions
 
         return windows;
     }
+
+    public static IEnumerable<ProcessImportedFunctionsMetadata> ProcessImportedFunctionsMetadata(this Process process)
+    {
+        var importedFunctions = new HashSet<ProcessImportedFunctionsMetadata>();
+
+        if (process.MainModule is not null && process.MainModule.FileName is not null)
+        {
+            if (TryGetCachedPeFile(process.MainModule.FileName, out var peFile) && peFile is not null)
+            {
+                lock (peFile)
+                {
+                    var tempMap = new Dictionary<string, List<ProcessFunctionMetadata>>();
+
+                    if (peFile.ImportedFunctions is not null)
+                    {
+                        foreach (var importedFunction in peFile.ImportedFunctions)
+                        {
+                            if (!tempMap.TryGetValue(importedFunction.DLL, out var functions))
+                            {
+                                functions = new List<ProcessFunctionMetadata>();
+                                tempMap[importedFunction.DLL] = functions;
+                            }
+
+                            if (importedFunction.Name is not null)
+                            {
+                                tempMap[importedFunction.DLL].Add(new ProcessFunctionMetadata(importedFunction.Name, false));
+                            }
+                        }
+
+                    }
+
+                    if (peFile.DelayImportedFunctions is not null)
+                    {
+                        foreach (var delayImportedFunction in peFile.DelayImportedFunctions)
+                        {
+                            if (!tempMap.TryGetValue(delayImportedFunction.DLL, out var functions))
+                            {
+                                functions = new List<ProcessFunctionMetadata>();
+                                tempMap[delayImportedFunction.DLL] = functions;
+                            }
+
+                            if (delayImportedFunction.Name is not null)
+                            {
+                                tempMap[delayImportedFunction.DLL].Add(new ProcessFunctionMetadata(delayImportedFunction.Name, true));
+                            }
+                        }
+                    }
+
+                    foreach (var kvp in tempMap)
+                    {
+                        importedFunctions.Add(new ProcessImportedFunctionsMetadata(kvp.Key, kvp.Value.ToArray()));
+                    }
+                }
+            }
+        }
+
+        return importedFunctions;
+    }
+
+    public static IEnumerable<ProcessExportedFunctionsMetadata> ProcessExportedFunctionsMetadata(this Process process)
+    {
+        var exportedFunctions = new HashSet<ProcessExportedFunctionsMetadata>();
+
+        if (process.MainModule is not null && process.MainModule.FileName is not null)
+        {
+            if (TryGetCachedPeFile(process.MainModule.FileName, out var peFile) && peFile is not null)
+            {
+                lock (peFile)
+                {
+                    if (peFile.ExportedFunctions is not null)
+                    {
+                        foreach (var exportedFunction in peFile.ExportedFunctions)
+                        {
+                            if (exportedFunction is not null && exportedFunction.Name is not null)
+                            {
+                                exportedFunctions.Add(new ProcessExportedFunctionsMetadata(exportedFunction.Name));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return exportedFunctions;
+    }
+
+    private static bool TryGetCachedPeFile(string filename, out PeFile? peFile)
+    {
+        PeFile? result = null;
+        lock (_cachedPeFiles)
+        {
+            if (!_cachedPeFiles.TryGetValue(filename, out result))
+            {
+                // Cache whatever PeFile.TryParse gets, so we don't ever waste time reparsing a file
+                PeFile.TryParse(filename, out var newPeFile);
+                _cachedPeFiles.TryAdd(filename, newPeFile);
+                result = newPeFile;
+            }
+
+            peFile = result;
+            return result is not null;
+        }
+    }
+
+    private static readonly ConcurrentDictionary<string, PeFile?> _cachedPeFiles = new ConcurrentDictionary<string, PeFile?>();
 }
 
 public record ProcessWindowMetadata(string? ClassName, string? Text, bool? IsVisible) { }
+
+public record ProcessFunctionMetadata(string Name, bool? DelayLoaded);
+
+public record ProcessImportedFunctionsMetadata(string ModuleName, ProcessFunctionMetadata[]? Functions) { }
+
+public record ProcessExportedFunctionsMetadata(string Name) : ProcessFunctionMetadata(Name, null);

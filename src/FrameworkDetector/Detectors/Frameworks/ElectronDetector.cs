@@ -23,6 +23,9 @@ public class ElectronDetector : IDetector
     public DetectorDefinition CreateDefinition()
     {
         return this.Create()
+            .Required("Function Exports", checks => checks
+                .ContainsExportedFunction("@electron@@"))
+            // OR
             .Required("Main Window Class", checks => checks
                 .ContainsActiveWindow("Electron_SystemPreferencesHostWindow"))
             .Optional("Other Window Classes", checks => checks
