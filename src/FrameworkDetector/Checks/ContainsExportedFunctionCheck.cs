@@ -20,7 +20,7 @@ public static class ContainsExportedFunctionCheck
     /// <summary>
     /// Get registration information defining <see cref="ContainsExportedFunctionCheck"/>.
     /// </summary>
-    private static CheckRegistrationInfo<ContainsExportedFunctionArgs, ContainsExportedFunctionData> GetCheckRegistrationInfo(ContainsExportedFunctionArgs args)
+    internal static CheckRegistrationInfo<ContainsExportedFunctionArgs, ContainsExportedFunctionData> GetCheckRegistrationInfo(ContainsExportedFunctionArgs args)
     {
         return new(
             Name: nameof(ContainsExportedFunctionCheck),
