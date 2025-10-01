@@ -35,6 +35,11 @@ public class RNWDetector : IDetector
             .Optional(".NET Helpers", checks => checks
                 .ContainsLoadedModule("Microsoft.ReactNative.Managed.dll")
                 .ContainsLoadedModule("Microsoft.ReactNative.Projection.dll"))
+            .Optional("Community Modules", checks => checks
+                .ContainsLoadedModule("LottieReactNative.dll")
+                .ContainsLoadedModule("ReactNativeWebView.dll")
+                .ContainsLoadedModule("ReactNativeXaml.dll")
+                .ContainsLoadedModule("RNSVG.dll"))
             .BuildDefinition();
     }
 }
