@@ -99,16 +99,19 @@ public partial class CliApp
 
         var results = Verbosity > VerbosityLevel.Normal ? result.DetectorResults : result.DetectorResults.Where(dr => dr.FrameworkFound);
 
-        foreach (var detectorResult in results.OrderByDescending(dr => dr.FrameworkFound).ThenBy(dr => dr.DetectorName))
+        foreach (var detectorResult in results.OrderByDescending(dr => dr.FrameworkFound).ThenByDescending(dr => dr.HasAnyPassedChecks).ThenBy(dr => dr.DetectorName))
         {
             var detectorResultString = "  🟨";
 
             if (detectorResult.DetectorStatus == DetectorStatus.Completed)
             {
-                detectorResultString = detectorResult.FrameworkFound ? "  ✅" : "  🟥";
+                detectorResultString = detectorResult.FrameworkFound ? "  ✅" : // Green checked box for framework found
+                    (detectorResult.HasAnyPassedChecks ?
+                    "  🟨" : // Yellow box for at least one check passed (even if detector failed)
+                    "  🟥"); // Red box for not checks passed
             }
 
-            table.AddRow(detectorResult.DetectorDescription,
+            table.AddRow($"[{detectorResult.FrameworkId}] {detectorResult.DetectorDescription}",
                          detectorResultString);
 
             if (Verbosity == VerbosityLevel.Diagnostic)

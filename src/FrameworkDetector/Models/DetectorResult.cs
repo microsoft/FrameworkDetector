@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
+using System.Linq;
 
 using FrameworkDetector.Engine;
 
@@ -30,6 +31,8 @@ public class DetectorResult
     public required string FrameworkId { get; set; }
 
     public bool FrameworkFound { get; set; } = false;
+
+    public bool HasAnyPassedChecks => CheckResults.Any(c => c.CheckStatus == DetectorCheckStatus.CompletedPassed);
 
     public DetectorStatus DetectorStatus { get; set; } = DetectorStatus.None;
 
