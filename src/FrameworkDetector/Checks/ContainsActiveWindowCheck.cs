@@ -47,7 +47,7 @@ public static class ContainsActiveWindowCheck
             bool namedAdded = false;
             if (ClassName is not null)
             {
-                descriptionSB.AppendFormat("{0}", ClassName);
+                descriptionSB.AppendFormat("class has \"{0}\"", ClassName);
                 namedAdded = true;
             }
 
@@ -57,7 +57,7 @@ public static class ContainsActiveWindowCheck
                 {
                     descriptionSB.Append(", ");
                 }
-                descriptionSB.AppendFormat("titled {0}", Text);
+                descriptionSB.AppendFormat("title has \"{0}\"", Text);
             }
 
             return descriptionSB.ToString();

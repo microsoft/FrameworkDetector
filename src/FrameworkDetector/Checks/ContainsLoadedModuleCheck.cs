@@ -62,7 +62,7 @@ public static class ContainsLoadedModuleCheck
             bool nameAdded = false;
             if (Filename is not null)
             {
-                descriptionSB.AppendFormat("{0}", Filename);
+                descriptionSB.AppendFormat("\"{0}\"", Filename);
                 nameAdded = true;
             }
 
@@ -72,7 +72,7 @@ public static class ContainsLoadedModuleCheck
                 {
                     descriptionSB.Append(", ");
                 }
-                descriptionSB.AppendFormat("originally named {0}", OriginalFilename);
+                descriptionSB.AppendFormat("originally \"{0}\"", OriginalFilename);
                 nameAdded = true;
             }
 
@@ -82,7 +82,7 @@ public static class ContainsLoadedModuleCheck
                 {
                     descriptionSB.Append(", ");
                 }
-                descriptionSB.AppendFormat("with product name {0}", ProductName);
+                descriptionSB.AppendFormat("product \"{0}\"", ProductName);
                 nameAdded = true;
             }
 
@@ -98,7 +98,7 @@ public static class ContainsLoadedModuleCheck
                 bool versionAdded = false;
                 if (FileVersionRange is not null)
                 {
-                    descriptionSB.AppendFormat("version {0}", FileVersionRange);
+                    descriptionSB.AppendFormat("version \"{0}\"", FileVersionRange);
                     versionAdded = true;
                 }
 
@@ -108,7 +108,7 @@ public static class ContainsLoadedModuleCheck
                     {
                         descriptionSB.Append(", ");
                     }
-                    descriptionSB.AppendFormat("product version {0}", ProductVersionRange);
+                    descriptionSB.AppendFormat("product version \"{0}\"", ProductVersionRange);
                 }
             }
 

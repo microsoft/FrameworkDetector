@@ -58,7 +58,7 @@ public static class ContainsImportedFunctionCheck
             bool nameAdded = false;
             if (FunctionName is not null)
             {
-                descriptionSB.AppendFormat("{0}", FunctionName);
+                descriptionSB.AppendFormat("name has \"{0}\"", FunctionName);
                 nameAdded = true;
             }
 
@@ -68,7 +68,7 @@ public static class ContainsImportedFunctionCheck
                 {
                     descriptionSB.Append(' ');
                 }
-                descriptionSB.AppendFormat("in {0}", ModuleName);
+                descriptionSB.AppendFormat("in module \"{0}\"", ModuleName);
             }
 
             return descriptionSB.ToString();

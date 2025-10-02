@@ -39,11 +39,11 @@ public static class ContainsExportedFunctionCheck
 
         public string GetDescription()
         {
-            var descriptionSB = new StringBuilder("Find exported function containing ");
+            var descriptionSB = new StringBuilder("Find exported function ");
 
             if (Name is not null)
             {
-                descriptionSB.AppendFormat("{0}", Name);
+                descriptionSB.AppendFormat("name has \"{0}\"", Name);
             }
 
             return descriptionSB.ToString();
