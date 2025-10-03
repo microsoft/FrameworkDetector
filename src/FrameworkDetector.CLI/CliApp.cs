@@ -24,6 +24,8 @@ public partial class CliApp
     // Value here represents the default verbosity when the -v option is specified without argument; otherwise it is defined below as normal in the DefaultValueFactory.
     private VerbosityLevel Verbosity { get; set; } = VerbosityLevel.Diagnostic;
 
+    private bool IncludeChildren { get; set; }
+
     private static bool CheckIfRunningAsAdmin()
     {
         // Check if process running as admin and initialize our property.
@@ -52,10 +54,18 @@ public partial class CliApp
         };
         verbosityOption.AcceptOnlyFromAmong("quiet", "minimal", "normal", "detailed", "diagnostic");
 
+        Option<bool> includeChildrenOption = new("--includeChildren", "-c")
+        {
+            Description = "Include the children processes of an inspected process. (May require running with elevation.)",
+            Recursive = true, // Note: Makes this a global command when added to the Root Command
+            Arity = ArgumentArity.Zero, // Note: Flag only, no value
+        };
+
         var rootCommand = new RootCommand("Framework Detector")
         {
             // Global Options (Recursive = true)
             verbosityOption,
+            includeChildrenOption,
             // Commands
             GetInspectAllCommand(),
             GetInspectCommand(),
@@ -68,6 +78,7 @@ public partial class CliApp
         var result = config.Parse(args);
         // Note: When "-v" specified without a value we get "null" so our default becomes the default value of the property.
         var verbosityString = result.GetValue(verbosityOption);
+        IncludeChildren = result.GetValue(includeChildrenOption);
 
         if (Enum.TryParse(verbosityString, true, out VerbosityLevel verbosity))
         {

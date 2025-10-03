@@ -41,16 +41,10 @@ public partial class CliApp
             Description = "Save the inspection report as JSON to the given filename.",
         };
 
-        Option<bool> includeChildrenOption = new("--includeChildren")
-        {
-            Description = "Include the children processes of an inspected process.",
-        };
-
         var command = new Command("inspect", "Inspect a given process")
         {
             pidOption,
             processNameOption,
-            includeChildrenOption,
             outputFileOption,
         };
         command.TreatUnmatchedTokensAsErrors = true;
@@ -71,11 +65,10 @@ public partial class CliApp
             var processId = parseResult.GetValue(pidOption);
             var processName = parseResult.GetValue(processNameOption);
             var outputFilename = parseResult.GetValue(outputFileOption);
-            var includeChildren = parseResult.GetValue(includeChildrenOption);
 
             if (processId is not null)
             {
-                if (await InspectProcessAsync(Process.GetProcessById(processId.Value), includeChildren, outputFilename, cancellationToken))
+                if (await InspectProcessAsync(Process.GetProcessById(processId.Value), outputFilename, cancellationToken))
                 {
                     return (int)ExitCode.Success;
                 }
@@ -102,7 +95,7 @@ public partial class CliApp
                     if (processes.TryGetRootProcess(out var rootProcess) && rootProcess is not null)
                     {
                         PrintWarning("Determined root process {0}({1}).\n", rootProcess.ProcessName, rootProcess.Id);
-                        if (await InspectProcessAsync(rootProcess, includeChildren, outputFilename, cancellationToken))
+                        if (await InspectProcessAsync(rootProcess, outputFilename, cancellationToken))
                         {
                             return (int)ExitCode.Success;
                         }
@@ -110,7 +103,7 @@ public partial class CliApp
 
                     PrintError("Please run again with the PID of the specific process you wish to inspect.");
                 }
-                else if (await InspectProcessAsync(processes[0], includeChildren, outputFilename, cancellationToken))
+                else if (await InspectProcessAsync(processes[0], outputFilename, cancellationToken))
                 {
                     return (int)ExitCode.Success;
                 }
@@ -128,17 +121,17 @@ public partial class CliApp
     }
 
     /// Encapsulation of initializing datasource and grabbing engine reference to kick-off a detection against all registered detectors (see ConfigureServices)
-    private async Task<bool> InspectProcessAsync(Process process, bool includeChildren, string? outputFilename, CancellationToken cancellationToken)
+    private async Task<bool> InspectProcessAsync(Process process, string? outputFilename, CancellationToken cancellationToken)
     {
         // TODO: Probably have this elsewhere to be called
-        var message = $"Inspecting process {process.ProcessName}({process.Id}){(includeChildren ? " (and children)" : "")}";
+        var message = $"Inspecting process {process.ProcessName}({process.Id}){(IncludeChildren ? " (and children)" : "")}";
         if (Verbosity > VerbosityLevel.Quiet)
         {
             Console.Write($"{message}:");
         }
 
         var processDataSources = new List<ProcessDataSource>() { new ProcessDataSource(process) };
-        if (includeChildren)
+        if (IncludeChildren)
         {
             processDataSources.AddRange(process.GetChildProcesses().Select(p => new ProcessDataSource(p)));
         }

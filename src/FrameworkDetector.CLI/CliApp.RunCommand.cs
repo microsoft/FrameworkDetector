@@ -43,17 +43,11 @@ public partial class CliApp
             Description = "Save the inspection report as JSON to the given filename.",
         };
 
-        Option<bool> includeChildrenOption = new("--includeChildren")
-        {
-            Description = "Include the children processes of an inspected process.",
-        };
-
         var command = new Command("run", "Inspect a process/package provided to run first")
         {
             pathOption,
             packageOption,
             waitTimeOption,
-            includeChildrenOption,
             outputFileOption,
         };
         command.TreatUnmatchedTokensAsErrors = true;
@@ -75,7 +69,6 @@ public partial class CliApp
             var packageFullName = parseResult.GetValue(packageOption);
             var waitTime = parseResult.GetValue(waitTimeOption) ?? 2000;
             var outputFilename = parseResult.GetValue(outputFileOption);
-            var includeChildren = parseResult.GetValue(includeChildrenOption);
 
             if (exepath is not null)
             {
@@ -106,7 +99,7 @@ public partial class CliApp
                     }
 
                     PrintInfo("Inspecting app...");
-                    if (await InspectProcessAsync(process, includeChildren, outputFilename, cancellationToken))
+                    if (await InspectProcessAsync(process, outputFilename, cancellationToken))
                     {
                         return (int)ExitCode.Success;
                     }
@@ -210,7 +203,7 @@ public partial class CliApp
                     }
 
                     PrintInfo("Inspecting app...");
-                    if (await InspectProcessAsync(targetProcess, includeChildren, outputFilename, cancellationToken))
+                    if (await InspectProcessAsync(targetProcess, outputFilename, cancellationToken))
                     {
                         return (int)ExitCode.Success;
                     }

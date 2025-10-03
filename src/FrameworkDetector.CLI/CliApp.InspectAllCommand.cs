@@ -50,15 +50,9 @@ public partial class CliApp
             Description = "Filters processes by those that are more likely to be applications with a MainWindowHandle. Default is true.",
         };
 
-        Option<bool> includeChildrenOption = new("--includeChildren")
-        {
-            Description = "Include the children processes of an inspected process.",
-        };
-
         var command = new Command("all", "Inspect all running processes")
         {
             filterWindowProcessesOption,
-            includeChildrenOption,
             outputFileTemplateOption,
             outputFolderOption
         };
@@ -80,7 +74,6 @@ public partial class CliApp
             var outputFileTemplate = parseResult.GetValue(outputFileTemplateOption);
             var outputFolderName = parseResult.GetValue(outputFolderOption);
             var filterProcesses = parseResult.GetValue(filterWindowProcessesOption) ?? true;
-            var includeChildren = parseResult.GetValue(includeChildrenOption);
 
             // Create output folder (if specified) for output
             if (!string.IsNullOrEmpty(outputFolderName) && !System.IO.Directory.Exists(outputFolderName))
@@ -125,7 +118,7 @@ public partial class CliApp
             {
                 string? outputFilename = string.IsNullOrEmpty(outputFolderName) ? null : Path.Combine(outputFolderName, FormatFileName(process, outputFileTemplate));
                 PrintInfo("Inspecting process {0}({1}) {2:00.0}%", process.ProcessName, process.Id, 100.0 * count++ / processesToInspect.Count);
-                if (!await InspectProcessAsync(process, includeChildren, outputFilename, cancellationToken))
+                if (!await InspectProcessAsync(process, outputFilename, cancellationToken))
                 {
                     PrintError("Failed to inspect process {0}({1}).", process.ProcessName, process.Id);
                     // Set error, but continue
