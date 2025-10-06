@@ -18,7 +18,13 @@ namespace FrameworkDetector;
 
 public static class ProcessExtensions
 {
-    // Adapted from https://stackoverflow.com/a/38614443
+    /// <summary>
+    /// Gets all of the children processes for the given process.
+    /// Adapted from https://stackoverflow.com/a/38614443
+    /// </summary>
+    /// <param name="process">The target process.</param>
+    /// <param name="recursive">Whether or not to recursively include children of the children.</param>
+    /// <returns>The children processes.</returns>
     public static IEnumerable<Process> GetChildProcesses(this Process process, bool recursive = false)
     {
         var children = new ManagementObjectSearcher(
@@ -31,6 +37,12 @@ public static class ProcessExtensions
         return recursive ? children.Union(children.Select(c => c.GetChildProcesses(recursive)).SelectMany(x => x)) : children;
     }
 
+    /// <summary>
+    /// Given an array of processes, tries to identify if one is the root (parent) of all of the others.
+    /// </summary>
+    /// <param name="processes">The array of processes.</param>
+    /// <param name="rootProcess">The root process.</param>
+    /// <returns>Whether or not a root process was identified.</returns>
     public static bool TryGetRootProcess(this Process[] processes, out Process? rootProcess)
     {
         var remainingProcesses = new List<Process>(processes);
@@ -51,6 +63,12 @@ public static class ProcessExtensions
         return false;
     }
 
+    /// <summary>
+    /// Tries to find the Package Full Name (PFN) of a process by calling <see cref="https://learn.microsoft.com/en-us/windows/win32/api/appmodel/nf-appmodel-getpackagefullname">GetPackageFullName</see>.
+    /// </summary>
+    /// <param name="process">The target process.</param>
+    /// <param name="packageFullName">The Package Full Name (PFN), if found.</param>
+    /// <returns>Whether or not the Package Full Name (PFN) was found.</returns>
     public static bool TryGetPackageFullName(this Process process, out string? packageFullName)
     {
         if (OperatingSystem.IsWindowsVersionAtLeast(8))
@@ -71,6 +89,12 @@ public static class ProcessExtensions
         return false;
     }
 
+    /// <summary>
+    /// Tries to find the Application User Model Id (AUMID) of a process by calling <see cref="https://learn.microsoft.com/en-us/windows/win32/api/appmodel/nf-appmodel-getapplicationusermodelid">GetApplicationUserModelId</see>.
+    /// </summary>
+    /// <param name="process">The target process.</param>
+    /// <param name="applicationUserModelId">The Application User Model Id (AUMID), if found.</param>
+    /// <returns>Whether or not the Application User Model Id (AUMID) was found.</returns>
     public static bool TryGetApplicationUserModelId(this Process process, out string? applicationUserModelId)
     {
         uint length = 0;
@@ -89,6 +113,11 @@ public static class ProcessExtensions
         return false;
     }
 
+    /// <summary>
+    /// Gets the window metadata for every active window belonging to the given process.
+    /// </summary>
+    /// <param name="process">The target process.</param>
+    /// <returns>The metadata for each active window.</returns>
     public static IEnumerable<ProcessWindowMetadata> GetActiveWindowMetadata(this Process process)
     {
         var windows = new HashSet<ProcessWindowMetadata>();
@@ -166,6 +195,11 @@ public static class ProcessExtensions
         return windows;
     }
 
+    /// <summary>
+    /// Gets the metadata for the functions imported by the main module of the given process.
+    /// </summary>
+    /// <param name="process">The target process.</param>
+    /// <returns>The metadata from each imported function.</returns>
     public static IEnumerable<ProcessImportedFunctionsMetadata> ProcessImportedFunctionsMetadata(this Process process)
     {
         var importedFunctions = new HashSet<ProcessImportedFunctionsMetadata>();
@@ -193,7 +227,6 @@ public static class ProcessExtensions
                                 tempMap[importedFunction.DLL].Add(new ProcessFunctionMetadata(importedFunction.Name, false));
                             }
                         }
-
                     }
 
                     if (peFile.DelayImportedFunctions is not null)
@@ -224,6 +257,11 @@ public static class ProcessExtensions
         return importedFunctions;
     }
 
+    /// <summary>
+    /// Gets the metadata for the functions exported by the main module of the given process.
+    /// </summary>
+    /// <param name="process">The target process.</param>
+    /// <returns>The metadata from each exported function.</returns>
     public static IEnumerable<ProcessExportedFunctionsMetadata> ProcessExportedFunctionsMetadata(this Process process)
     {
         var exportedFunctions = new HashSet<ProcessExportedFunctionsMetadata>();
