@@ -2,7 +2,7 @@
 
 ## Summary
 
-The Microsoft Common Controls (ComCtl) is a a set of windows that are implemented by the common control library, Comctl32.dll, which is a DLL included with the Windows operating system.
+The Microsoft Common Controls (ComCtl) is a set of windows that are implemented by the common control library, Comctl32.dll, which is a DLL included with the Windows operating system.
 
 **Website:** [ComCtl Docs](https://learn.microsoft.com/en-us/windows/win32/controls/common-controls-intro)
 
