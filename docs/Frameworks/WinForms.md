@@ -22,7 +22,7 @@ Windows Forms provides access to native Windows User Interface Common Controls b
 
 ### Dependencies
 
-WinForms depends on either:
+WinForms depends on [Common Controls](https://learn.microsoft.com/en-us/windows/win32/controls/common-controls-intro) and either:
 
 - [.NET](https://dotnet.microsoft.com/en-us/download/dotnet) or
 - [.NET Framework](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
