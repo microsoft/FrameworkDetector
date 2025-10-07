@@ -79,7 +79,7 @@ public partial class CliApp
             }
 
             PrintError("Missing command arguments.");
-            command.Parse("-h").Invoke();
+            await command.Parse("-h").InvokeAsync();
 
             return (int)ExitCode.ArgumentParsingError;
         });
