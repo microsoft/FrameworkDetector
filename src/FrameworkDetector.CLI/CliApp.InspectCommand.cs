@@ -132,7 +132,7 @@ public partial class CliApp
 
         if (!process.IsAccessible())
         {
-            PrintError("Cannot access process {0}({1}) to inspect, try re-running as Administrator.", process.ProcessName, process.Id);
+            PrintError("Cannot access process {0}({1}) to inspect" + (!IsRunningAsAdmin ? ", try running as Administrator." : "."), process.ProcessName, process.Id);
             return false;
         }
 

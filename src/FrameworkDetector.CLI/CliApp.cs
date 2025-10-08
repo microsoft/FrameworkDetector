@@ -93,7 +93,7 @@ public partial class CliApp
             return (int)ExitCode.ArgumentParsingError;
         }
 
-        PrintInfo("Verbosity set to {0}", Verbosity);
+        PrintInfo("Verbosity set to {0} - Running as Admin: {1}", Verbosity, IsRunningAsAdmin);
 
         return await result.InvokeAsync(cancellationToken);
     }
