@@ -100,7 +100,7 @@ public partial class CliApp
                 else if (!isAccessible && (!filterProcesses || (filterProcesses && hasGUI)))
                 {
                     // Warn for processes that aren't accessible and meet filtering
-                    PrintWarning("Cannot inspect process {0}({1})" + (!IsRunningAsAdmin ? ", try running as Administrator." : "."), process.ProcessName, process.Id);
+                    PrintWarning("Cannot access process {0}({1}) to inspect" + (!IsRunningAsAdmin ? ", try running as Administrator." : "."), process.ProcessName, process.Id);
                 }
 
                 // Ignore remaining processes
