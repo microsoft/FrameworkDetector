@@ -34,7 +34,7 @@ public partial class CliApp
         services.AddSingleton<IDetector, ElectronDetector>();
         services.AddSingleton<IDetector, MVVMToolkitDetector>();
         services.AddSingleton<IDetector, RNWDetector>();
-        services.AddSingleton<IDetector, UWPXAMLDetector>();
+        services.AddSingleton<IDetector, WinUIDetector>();
         services.AddSingleton<IDetector, WebView1Detector>();
         services.AddSingleton<IDetector, WebView2Detector>();
         services.AddSingleton<IDetector, WinFormsDetector>();

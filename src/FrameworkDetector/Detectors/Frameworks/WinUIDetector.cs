@@ -6,17 +6,21 @@ using FrameworkDetector.Engine;
 
 namespace FrameworkDetector.Detectors;
 
-public class UWPXAMLDetector : IDetector
+/// <summary>
+/// Detector for Windows UI Library for UWP (WinUI).
+/// Built according to docs/Frameworks/WinUI.md.
+/// </summary>
+public class WinUIDetector : IDetector
 {
-    public string Name => nameof(UWPXAMLDetector);
+    public string Name => nameof(WinUIDetector);
 
-    public string Description => "Universal Windows Platform XAML";
+    public string Description => "Windows UI Library for UWP";
 
-    public string FrameworkId => "UWPXAML";
+    public string FrameworkId => "WinUI";
 
     public DetectorCategory Category => DetectorCategory.Framework;
 
-    public UWPXAMLDetector()
+    public WinUIDetector()
     {
     }
 
