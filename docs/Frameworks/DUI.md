@@ -22,8 +22,8 @@ Windows 7 SP1, 8, 8.1, 10, and 11
 
 ### Canonical Apps
 
-- [MMC](https://learn.microsoft.com/en-us/troubleshoot/windows-server/system-management-components/what-is-microsoft-management-console)
-- [Windows Task Scheduler](https://learn.microsoft.com/en-us/windows/win32/taskschd/about-the-task-scheduler)
+- [MMC](https://learn.microsoft.com/troubleshoot/windows-server/system-management-components/what-is-microsoft-management-console)
+- [Windows Task Scheduler](https://learn.microsoft.com/windows/win32/taskschd/about-the-task-scheduler)
 
 ## How to Detect
 

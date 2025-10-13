@@ -4,7 +4,7 @@
 
 The MVVM Toolkit is a modern, fast, and modular MVVM library. It is part of the .NET Community Toolkit.
 
-**Website:** [MVVM Toolkit Docs](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm)
+**Website:** [MVVM Toolkit Docs](https://learn.microsoft.com/dotnet/communitytoolkit/mvvm)
 
 ### Languages
 
@@ -22,10 +22,10 @@ The MVVM Toolkit is a modern, fast, and modular MVVM library. It is part of the 
 
 The MVVM Toolkit depends on either:
 
-- [.NET](https://dotnet.microsoft.com/en-us/download/dotnet) or
-- [.NET Framework](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
+- [.NET](https://dotnet.microsoft.com/download/dotnet) or
+- [.NET Framework](https://dotnet.microsoft.com/download/dotnet-framework)
 
-For more information on the differences, see [NET implementations](https://learn.microsoft.com/en-us/dotnet/fundamentals/implementations).
+For more information on the differences, see [NET implementations](https://learn.microsoft.com/dotnet/fundamentals/implementations).
 
 ### Canonical Apps
 
@@ -52,7 +52,7 @@ The module was originally named `Microsoft.Toolkit.MVVM.dll` but was then rename
 
 The specific version of the MVVM Toolkit can be gotten by checking the FileVersion of either of these modules.
 
-[^1]: [Ngen on Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/framework/tools/ngen-exe-native-image-generator)
+[^1]: [Ngen on Microsoft Learn](https://learn.microsoft.com/dotnet/framework/tools/ngen-exe-native-image-generator)
 
 ### Static Detection
 
@@ -60,5 +60,5 @@ It is not possible to definitively determine the use of the MVVM Toolkit by an a
 
 ## Resources
 
-- [MVVM Toolkit Docs](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm)
+- [MVVM Toolkit Docs](https://learn.microsoft.com/dotnet/communitytoolkit/mvvm)
 - [Community Toolkit Github Source](https://github.com/CommunityToolkit/dotnet)

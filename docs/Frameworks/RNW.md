@@ -26,12 +26,12 @@ React Native for Windows has two parallel implementations: the *Old Architecture
 
 **Old Architecture:**
 
-- [UWP XAML](https://learn.microsoft.com/en-us/windows/uwp/xaml-platform)
-- [WinUI 2](https://learn.microsoft.com/en-us/windows/uwp/get-started/winui2)
+- [UWP XAML](https://learn.microsoft.com/windows/uwp/xaml-platform)
+- [WinUI 2](https://learn.microsoft.com/windows/uwp/get-started/winui2)
 
 **New Architecture:**
 
-- [Windows App SDK Visual Layer](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/composition)
+- [Windows App SDK Visual Layer](https://learn.microsoft.com/windows/apps/windows-app-sdk/composition)
 
 ### Canonical Apps
 

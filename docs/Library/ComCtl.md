@@ -4,7 +4,7 @@
 
 The Microsoft Common Controls (ComCtl) is a set of windows that are implemented by the common control library, Comctl32.dll, which is a DLL included with the Windows operating system.
 
-**Website:** [ComCtl Docs](https://learn.microsoft.com/en-us/windows/win32/controls/common-controls-intro)
+**Website:** [ComCtl Docs](https://learn.microsoft.com/windows/win32/controls/common-controls-intro)
 
 ### Languages
 
@@ -22,7 +22,7 @@ Windows 2000, XP, Vista, 7 SP1, 8, 8.1, 10, and 11
 
 ### Canonical Apps
 
-- [RegEdit](https://learn.microsoft.com/en-us/troubleshoot/windows-server/performance/windows-registry-advanced-users#use-registry-editor)
+- [RegEdit](https://learn.microsoft.com/troubleshoot/windows-server/performance/windows-registry-advanced-users#use-registry-editor)
 
 ## How to Detect
 
@@ -42,6 +42,6 @@ It is not possible to definitively determine the use of ComCtl by an app by dete
 
 ## Resources
 
-- [ComCtl Docs](https://learn.microsoft.com/en-us/windows/win32/controls/common-controls-intro)
-- [Common Control Versions](https://learn.microsoft.com/en-us/windows/win32/controls/common-control-versions)
+- [ComCtl Docs](https://learn.microsoft.com/windows/win32/controls/common-controls-intro)
+- [Common Control Versions](https://learn.microsoft.com/windows/win32/controls/common-control-versions)
 - [The history of the Windows XP common controls](https://devblogs.microsoft.com/oldnewthing/20080129-00/?p=23663)

@@ -6,7 +6,7 @@ Windows Forms (WinForms) is a free, open-source graphical user interface (GUI) c
 
 Windows Forms provides access to native Windows User Interface Common Controls by wrapping the existent Windows API in managed code.
 
-**Website:** [WinForms Docs](https://learn.microsoft.com/en-us/dotnet/desktop/winforms)
+**Website:** [WinForms Docs](https://learn.microsoft.com/dotnet/desktop/winforms)
 
 ### Languages
 
@@ -22,12 +22,12 @@ Windows Forms provides access to native Windows User Interface Common Controls b
 
 ### Dependencies
 
-WinForms depends on [Common Controls](https://learn.microsoft.com/en-us/windows/win32/controls/common-controls-intro) and either:
+WinForms depends on [Common Controls](https://learn.microsoft.com/windows/win32/controls/common-controls-intro) and either:
 
-- [.NET](https://dotnet.microsoft.com/en-us/download/dotnet) or
-- [.NET Framework](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
+- [.NET](https://dotnet.microsoft.com/download/dotnet) or
+- [.NET Framework](https://dotnet.microsoft.com/download/dotnet-framework)
 
-For more information on the differences, see [NET implementations](https://learn.microsoft.com/en-us/dotnet/fundamentals/implementations).
+For more information on the differences, see [NET implementations](https://learn.microsoft.com/dotnet/fundamentals/implementations).
 
 ### Canonical Apps
 
@@ -51,7 +51,7 @@ The following module should be loaded by the running process:
 
 The specific version of WinForms can be gotten by checking the FileVersion of the loaded module.
 
-[^1]: [Ngen on Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/framework/tools/ngen-exe-native-image-generator)
+[^1]: [Ngen on Microsoft Learn](https://learn.microsoft.com/dotnet/framework/tools/ngen-exe-native-image-generator)
 
 ### Static Detection
 
@@ -63,5 +63,5 @@ For both (framework-dependent) .NET apps and standard .NET Framework apps, which
 
 ## Resources
 
-- [WinForms Docs](https://learn.microsoft.com/en-us/dotnet/desktop/winforms)
+- [WinForms Docs](https://learn.microsoft.com/dotnet/desktop/winforms)
 - [WinForms GitHub Source](https://github.com/dotnet/winforms)

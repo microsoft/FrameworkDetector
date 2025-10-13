@@ -22,7 +22,7 @@ Windows 10 and 11
 
 ### Dependencies
 
-WebView1 depends on [Legacy Microsoft Edge](https://learn.microsoft.com/en-us/archive/microsoft-edge/legacy/developer).
+WebView1 depends on [Legacy Microsoft Edge](https://learn.microsoft.com/archive/microsoft-edge/legacy/developer).
 
 ### Canonical Apps
 
@@ -50,5 +50,5 @@ It is not possible to definitively determine the use of WebView1 by an app by de
 
 - [WebView Docs](https://learn.microsoft.com/windows/apps/design/controls/web-view)
 - [WebView API Docs](https://learn.microsoft.com/uwp/api/windows.ui.xaml.controls.webview)
-- [Legacy Microsoft Edge Developer Docs](https://learn.microsoft.com/en-us/archive/microsoft-edge/legacy/developer)
+- [Legacy Microsoft Edge Developer Docs](https://learn.microsoft.com/archive/microsoft-edge/legacy/developer)
 - [What's new in EdgeHTML 18](https://learn.microsoft.com/archive/microsoft-edge/legacy/developer/dev-guide)
