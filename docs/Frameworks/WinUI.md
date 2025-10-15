@@ -6,7 +6,7 @@ The Windows UI Library for UWP (WinUI) is a user interface API that is part of t
 
 WinUI is included with the Windows operating system, and is the primary UI framework for the Windows Runtime (WinRT). WinUI is often synonymous with UWP itself, and is also known as System XAML, UWP XAML, and/or WUX (after the Windows.UI.Xaml namespace).
 
-**Website:** [WinUI Docs](https://learn.microsoft.com/windows/apps/winui/)
+**Website:** [WinUI Docs](https://learn.microsoft.com/windows/apps/winui)
 
 ### Languages
 
@@ -44,8 +44,8 @@ It is not possible to definitively determine the use of WinUI by an app by detec
 
 ## Resources
 
-- [WinUI Docs](https://learn.microsoft.com/windows/apps/winui/)
-- [Universal Windows Platform Docs](https://learn.microsoft.com/en-us/windows/uwp/)
-- [Develop UWP Apps](https://learn.microsoft.com/windows/uwp/develop/)
+- [WinUI Docs](https://learn.microsoft.com/windows/apps/winui)
+- [Universal Windows Platform Docs](https://learn.microsoft.com/en-us/windows/uwp)
+- [Develop UWP Apps](https://learn.microsoft.com/windows/uwp/develop)
 - [UWP XAML Docs](https://learn.microsoft.com/windows/uwp/xaml-platform)
 - [Windows.UI.Xaml Namespace Docs](https://learn.microsoft.com/uwp/api/windows.ui.xaml)

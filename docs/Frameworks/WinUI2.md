@@ -6,7 +6,7 @@ WinUI 2 for UWP (WinUI2) is an extension of the Windows UI Library for UWP (WinU
 
 As many (if not most) WinUI UWP apps use WinUI 2, the term WinUI 2 is often used to describe all WinUI and WinUI 2 apps. To differentiate the two, WinUI2 is often referred to as MUX or MUXC (after the Microsoft.UI.Xaml and Microsoft.UI.Xaml.Controls namespaces, respectively).
 
-**Website:** [WinUI2 Docs](https://learn.microsoft.com/windows/uwp/get-started/winui2/)
+**Website:** [WinUI2 Docs](https://learn.microsoft.com/windows/uwp/get-started/winui2)
 
 ### Languages
 
@@ -44,6 +44,6 @@ It is not possible to definitively determine the use of WinUI2 by an app by dete
 
 ## Resources
 
-- [WinUI2 Docs](https://learn.microsoft.com/windows/uwp/get-started/winui2/)
+- [WinUI2 Docs](https://learn.microsoft.com/windows/uwp/get-started/winui2)
 - [WinUI2 GitHub Source](https://github.com/microsoft/microsoft-ui-xaml/tree/winui2/main)
-- [Microsoft.UI.Xaml API Docs](https://learn.microsoft.com/windows/winui/api/?view=winui-2.8)
+- [Microsoft.UI.Xaml API Docs](https://learn.microsoft.com/windows/winui/api)

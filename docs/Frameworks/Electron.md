@@ -25,7 +25,7 @@ Windows 10 and 11
 Electron depends on:
 
 - [Google Chromium](https://chromium.org/Home)
-- [Node.js](https://nodejs.org/)
+- [Node.js](https://nodejs.org)
 
 ### Canonical Apps
 
