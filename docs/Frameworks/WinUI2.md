@@ -1,8 +1,10 @@
-# WinUI for UWP (WinUI2)
+# WinUI 2 for UWP (WinUI2)
 
 ## Summary
 
-WinUI for UWP (WinUI2) is an extension of the Windows UI Library for UWP (WinUI) framework built into Windows 10 and 11. WinUI2 provides new and updated controls so that apps running on older versions of Windows 10 (with older base versions of WinUI) can take advantage of the latest functionality.
+WinUI 2 for UWP (WinUI2) is an extension of the Windows UI Library for UWP (WinUI) framework built into Windows 10 and 11. Unlike WinUI, WinUI2 is shipped separately from the Windows OS. WinUI2 provides new and updated controls so that apps running on older versions of Windows 10 (with older base versions of WinUI) can take advantage of the latest functionality.
+
+As many (if not most) WinUI UWP apps use WinUI 2, the term WinUI 2 is often used to describe all WinUI and WinUI 2 apps. To differentiate the two, WinUI2 is often referred to as MUX or MUXC (after the Microsoft.UI.Xaml and Microsoft.UI.Xaml.Controls namespaces, respectively).
 
 **Website:** [WinUI2 Docs](https://learn.microsoft.com/windows/uwp/get-started/winui2/)
 

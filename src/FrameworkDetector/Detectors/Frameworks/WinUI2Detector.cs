@@ -7,14 +7,14 @@ using FrameworkDetector.Engine;
 namespace FrameworkDetector.Detectors;
 
 /// <summary>
-/// Detector for WinUI for UWP (WinUI2).
+/// Detector for WinUI 2 for UWP (WinUI2).
 /// Built according to docs/Frameworks/WinUI2.md.
 /// </summary>
 public class WinUI2Detector : IDetector
 {
     public string Name => nameof(WinUI2Detector);
 
-    public string Description => "WinUI for UWP";
+    public string Description => "WinUI 2 for UWP";
 
     public string FrameworkId => "WinUI2";
 
