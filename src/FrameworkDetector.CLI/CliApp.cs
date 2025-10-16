@@ -20,22 +20,10 @@ namespace FrameworkDetector.CLI;
 
 public partial class CliApp
 {
-    public bool IsRunningAsAdmin { get; } = CheckIfRunningAsAdmin();
-
     // Value here represents the default verbosity when the -v option is specified without argument; otherwise it is defined below as normal in the DefaultValueFactory.
     private VerbosityLevel Verbosity { get; set; } = VerbosityLevel.Diagnostic;
 
     private bool IncludeChildren { get; set; }
-
-    private static bool CheckIfRunningAsAdmin()
-    {
-        // Check if process running as admin and initialize our property.
-        using WindowsIdentity identity = WindowsIdentity.GetCurrent();
-
-        WindowsPrincipal principal = new(identity);
-
-        return principal.IsInRole(WindowsBuiltInRole.Administrator);
-    }
 
     public CliApp() { }
 
@@ -93,7 +81,7 @@ public partial class CliApp
             return (int)ExitCode.ArgumentParsingError;
         }
 
-        PrintInfo("Verbosity set to {0} - Running as Admin: {1}", Verbosity, IsRunningAsAdmin);
+        PrintInfo("Verbosity set to {0} - Running as Admin: {1}", Verbosity, WindowsIdentity.IsRunningAsAdmin);
 
         return await result.InvokeAsync(cancellationToken);
     }

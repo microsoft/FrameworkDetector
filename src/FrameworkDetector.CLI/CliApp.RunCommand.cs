@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Principal;
 using System.Threading;
 
 using System.CommandLine;
@@ -115,7 +116,7 @@ public partial class CliApp
                 Package? pkg = null;
 
                 // 1. Find package by full name
-                if (IsRunningAsAdmin)
+                if (WindowsIdentity.IsRunningAsAdmin)
                 {
                     PrintInfo("Running as Admin, Searching Across System for App Package");
 

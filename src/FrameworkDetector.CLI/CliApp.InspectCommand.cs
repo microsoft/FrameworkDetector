@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -132,7 +133,7 @@ public partial class CliApp
 
         if (!process.IsAccessible())
         {
-            PrintError("Cannot access process {0}({1}) to inspect" + (!IsRunningAsAdmin ? ", try running as Administrator." : "."), process.ProcessName, process.Id);
+            PrintError("Cannot access process {0}({1}) to inspect" + (!WindowsIdentity.IsRunningAsAdmin ? ", try running as Administrator." : "."), process.ProcessName, process.Id);
             return false;
         }
 
