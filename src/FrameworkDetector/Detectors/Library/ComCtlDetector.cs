@@ -28,7 +28,7 @@ public class ComCtlDetector : IDetector
     {
         return this.Create()
             .Required("", checks => checks
-                .ContainsLoadedModule("comctl32.dll"))
+                .ContainsLoadedModule("comctl32.dll").GetVersionFromModule())
             .BuildDefinition();
     }
 }

@@ -28,7 +28,7 @@ public class CEFDetector : IDetector
     {
         return this.Create()
             .Required("", checks => checks
-                .ContainsLoadedModule("libcef.dll"))
+                .ContainsLoadedModule("libcef.dll").GetVersionFromModule())
             .Optional("CefGlue (.NET)", checks => checks
                 .ContainsLoadedModule("Xilium.CefGlue.dll")
                 .ContainsLoadedModule("Xilium.CefGlue.Avalonia.dll")

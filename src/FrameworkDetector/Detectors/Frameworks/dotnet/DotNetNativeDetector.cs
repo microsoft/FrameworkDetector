@@ -24,7 +24,7 @@ public class DotNetNativeDetector : IDetector
     {
         return this.Create()
             .Required("", checks => checks
-                .ContainsLoadedModule("mrt100_app.dll"))
+                .ContainsLoadedModule("mrt100_app.dll").GetVersionFromModule())
             .BuildDefinition();
     }
 }

@@ -101,6 +101,11 @@ public class DetectionEngine
                     {
                         var innerResult = await requiredCheck.PerformCheckAsync(detector.Info, sources, cancellationToken);
 
+                        if (requiredCheck == dcg.CheckWhichProvidesVersion && string.IsNullOrEmpty(detectorResult.FrameworkVersion) && dcg.VersionGetter is not null)
+                        {
+                            detectorResult.FrameworkVersion = dcg.VersionGetter.Invoke(innerResult);
+                        }
+
                         // If any check fails then we fail to find the framework.
                         if (innerResult.CheckStatus != DetectorCheckStatus.CompletedPassed)
                         {

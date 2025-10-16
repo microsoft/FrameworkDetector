@@ -127,6 +127,8 @@ public static class ContainsLoadedModuleCheck
         public WindowsBinaryMetadata ModuleFound { get; } = moduleFound;
     }
 
+    public interface IContainsLoadedModuleDetectorCheckGroup : IDetectorCheckGroup { };
+
     extension(IDetectorCheckGroup @this)
     {
         /// <summary>
@@ -139,9 +141,9 @@ public static class ContainsLoadedModuleCheck
         /// <param name="productVersionRange">A loaded module's product version must match this semver version range sepc, if specified.</param>
         /// <param name="checkForNgenModule">Whether or not to also match NGENed versions (.ni.dll) of the specified filename and/or original filename.</param>
         /// <returns></returns>
-        public IDetectorCheckGroup ContainsLoadedModule(string? filename = null, string? originalFilename = null, string? fileVersionRange = null, string? productName = null, string? productVersionRange = null, bool? checkForNgenModule = null)
+        public IContainsLoadedModuleDetectorCheckGroup ContainsLoadedModule(string? filename = null, string? originalFilename = null, string? fileVersionRange = null, string? productName = null, string? productVersionRange = null, bool? checkForNgenModule = null)
         {
-            if (@this is not DetectorCheckGroup dcg)
+            if (@this is not DetectorCheckGroup dcg || @this is not IContainsLoadedModuleDetectorCheckGroup retValue)
             {
                 throw new InvalidOperationException();
             }
@@ -155,8 +157,45 @@ public static class ContainsLoadedModuleCheck
 
             dcg.AddCheck(new CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData>(GetCheckRegistrationInfo(args), args));
 
-            return @this;
+            return retValue;
         }
+    }
+
+    public enum ModuleVersionType
+    {
+        FileVersion = 0,
+        ProductVersion,
+    }
+
+    extension(IContainsLoadedModuleDetectorCheckGroup @this)
+    {
+        public IDetectorCheckGroup GetVersionFromModule(ModuleVersionType moduleVersionSource = ModuleVersionType.FileVersion)
+        {
+            if (@this is not DetectorCheckGroup dcg)
+            {
+                throw new InvalidOperationException();
+            }
+
+            dcg.SetVersionGetter(r => GetVersionFromCheckResult(moduleVersionSource, r as DetectorCheckResult<ContainsLoadedModuleArgs, ContainsLoadedModuleData>));
+
+            return dcg;
+        }
+    }
+
+    public static string GetVersionFromCheckResult(ModuleVersionType moduleVersionSource, DetectorCheckResult<ContainsLoadedModuleArgs, ContainsLoadedModuleData>? result)
+    {
+        if (result is not null && result.CheckStatus == DetectorCheckStatus.CompletedPassed)
+        {
+            switch(moduleVersionSource)
+            {
+                case ModuleVersionType.FileVersion:
+                    return Version.TryParseCleaned(result.OutputData?.ModuleFound.FileVersion, out var fileVer) && fileVer is not null ? fileVer.ToShortString() : string.Empty;
+                case ModuleVersionType.ProductVersion:
+                    return Version.TryParseCleaned(result.OutputData?.ModuleFound.ProductVersion, out var productVer) && productVer is not null ? productVer.ToShortString() : string.Empty;
+            }
+        }
+
+        return string.Empty;
     }
 
     //// Actual check code run by engine

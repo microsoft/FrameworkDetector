@@ -28,10 +28,10 @@ public class RNWDetector : IDetector
     {
         return this.Create()
             .Required("Main Module", checks => checks
-                .ContainsLoadedModule("Microsoft.ReactNative.dll"))
+                .ContainsLoadedModule("Microsoft.ReactNative.dll").GetVersionFromModule())
             // OR
             .Required("Win32 Module", checks => checks
-                .ContainsLoadedModule("react-native-win32.dll"))
+                .ContainsLoadedModule("react-native-win32.dll").GetVersionFromModule())
             .Optional(".NET Helpers", checks => checks
                 .ContainsLoadedModule("Microsoft.ReactNative.Managed.dll")
                 .ContainsLoadedModule("Microsoft.ReactNative.Projection.dll"))

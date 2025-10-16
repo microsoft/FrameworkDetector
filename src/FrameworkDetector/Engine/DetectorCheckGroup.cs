@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 using FrameworkDetector.Checks;
+using FrameworkDetector.Models;
 
 namespace FrameworkDetector.Engine;
 
@@ -14,9 +15,15 @@ namespace FrameworkDetector.Engine;
 /// <summary>
 /// General collection of <see cref="ICheckDefinition"/> checks. Extension point for any checks to hook into Fluent API surface. e.g. <see cref="ContainsLoadedModuleCheck"/>.
 /// </summary>
-public class DetectorCheckGroup(string Name) : IDetectorCheckGroup, IReadOnlyCollection<ICheckDefinition>
+public class DetectorCheckGroup(string Name) : IDetectorCheckGroup,
+                                               ContainsLoadedModuleCheck.IContainsLoadedModuleDetectorCheckGroup,
+                                               IReadOnlyCollection<ICheckDefinition>
 {
     internal List<ICheckDefinition> Checks { get; init; } = new();
+
+    internal ICheckDefinition? CheckWhichProvidesVersion = null;
+
+    internal Func<IDetectorCheckResult, string>? VersionGetter = null;
 
     public int Count => Checks.Count;
     
@@ -25,6 +32,18 @@ public class DetectorCheckGroup(string Name) : IDetectorCheckGroup, IReadOnlyCol
         Checks.Add(definition);
     }
 
+    public void SetVersionGetter(Func<IDetectorCheckResult, string> versionGetter)
+    {
+        if (Count == 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(Count));
+        }
+
+        CheckWhichProvidesVersion = Checks[^1];
+
+        VersionGetter = versionGetter;
+    }
+        
     public IEnumerator<ICheckDefinition> GetEnumerator()
     {
         return Checks.GetEnumerator();

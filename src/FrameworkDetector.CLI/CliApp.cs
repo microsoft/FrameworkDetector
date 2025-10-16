@@ -106,10 +106,11 @@ public partial class CliApp
         }
 
         var table = new ConsoleTable("Framework",
-                                     "Result");
+                                     "Found",
+                                     "Version");
 
         table.Options.EnableCount = false;
-        table.MaxWidth = Console.BufferWidth - 10;
+        table.MaxWidth = Console.BufferWidth - 2;
 
         var results = Verbosity > VerbosityLevel.Normal ? result.DetectorResults : result.DetectorResults.Where(dr => dr.FrameworkFound);
 
@@ -119,32 +120,32 @@ public partial class CliApp
 
             if (detectorResult.DetectorStatus == DetectorStatus.Completed)
             {
-                detectorResultString = detectorResult.FrameworkFound ? "  ✅" : // Green checked box for framework found
+                detectorResultString = detectorResult.FrameworkFound ? " ✅" : // Green checked box for framework found
                     (detectorResult.HasAnyPassedChecks ?
-                    "  🟨" : // Yellow box for at least one check passed (even if detector failed)
-                    "  🟥"); // Red box for not checks passed
+                    " 🟨" : // Yellow box for at least one check passed (even if detector failed)
+                    " 🟥"); // Red box for not checks passed
             }
 
             table.AddRow($"[{detectorResult.FrameworkId}] {detectorResult.DetectorDescription}",
-                         detectorResultString);
+                         detectorResultString, detectorResult.FrameworkVersion);
 
             if (Verbosity == VerbosityLevel.Diagnostic)
             {
                 foreach (var checkResult in detectorResult.CheckResults)
                 {
-                    var checkResultString = "  🟨";
+                    var checkResultString = " 🟨";
                     switch (checkResult.CheckStatus)
                     {
                         case DetectorCheckStatus.CompletedPassed:
-                            checkResultString = "  ✅";
+                            checkResultString = " ✅";
                             break;
                         case DetectorCheckStatus.CompletedFailed:
-                            checkResultString = "  🟥";
+                            checkResultString = " 🟥";
                             break;
                     }
 
                     table.AddRow($"  {checkResult.CheckDefinition}",
-                                 checkResultString);
+                                 checkResultString, "");
                 }
             }
         }

@@ -28,7 +28,7 @@ public class AvaloniaDetector : IDetector
     {
         return this.Create()
             .Required("", checks => checks
-                .ContainsLoadedModule("Avalonia.Base.dll"))
+                .ContainsLoadedModule("Avalonia.Base.dll").GetVersionFromModule())
             .BuildDefinition();
     }
 }

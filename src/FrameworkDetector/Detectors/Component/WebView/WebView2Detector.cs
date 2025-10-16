@@ -26,16 +26,15 @@ public class WebView2Detector : IDetector
     
     public DetectorDefinition CreateDefinition()
     {
-        // https://learn.microsoft.com/microsoft-edge/webview2/concepts/distribution?tabs=dotnetcsharp#files-to-ship-with-the-app
         return this.Create()
             .Required("Loader Module", checks => checks
-                .ContainsLoadedModule("WebView2Loader.dll"))
+                .ContainsLoadedModule("WebView2Loader.dll").GetVersionFromModule())
             // OR
             .Required("Core Module", checks => checks
-                .ContainsLoadedModule("Microsoft.Web.WebView2.Core.dll"))
+                .ContainsLoadedModule("Microsoft.Web.WebView2.Core.dll").GetVersionFromModule())
             // OR
             .Required("CsWinRT Projection Module", checks => checks
-                .ContainsLoadedModule("Microsoft.Web.WebView2.Core.Projection.dll"))
+                .ContainsLoadedModule("Microsoft.Web.WebView2.Core.Projection.dll").GetVersionFromModule())
             .Optional("Extra Modules", checks => checks
                 .ContainsLoadedModule("EmbeddedBrowserWebView.dll")
                 .ContainsLoadedModule("Microsoft.Web.WebView2.WPF.dll")

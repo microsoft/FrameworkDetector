@@ -32,6 +32,8 @@ public class DetectorResult
 
     public bool FrameworkFound { get; set; } = false;
 
+    public string FrameworkVersion { get; set; } = string.Empty;
+
     public bool HasAnyPassedChecks => CheckResults.Any(c => c.CheckStatus == DetectorCheckStatus.CompletedPassed);
 
     public DetectorStatus DetectorStatus { get; set; } = DetectorStatus.None;

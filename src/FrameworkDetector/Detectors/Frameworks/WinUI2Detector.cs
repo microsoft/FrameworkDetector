@@ -28,7 +28,7 @@ public class WinUI2Detector : IDetector
     {
         return this.Create()
             .Required("", checks => checks
-                .ContainsLoadedModule("Microsoft.UI.Xaml.dll", fileVersionRange: ">=2.0 <3.0"))
+                .ContainsLoadedModule("Microsoft.UI.Xaml.dll", fileVersionRange: ">=2.0 <3.0").GetVersionFromModule())
             .BuildDefinition();
     }
 }
