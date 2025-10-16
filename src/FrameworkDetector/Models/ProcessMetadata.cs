@@ -58,6 +58,8 @@ public record ProcessMetadata(string Filename,
 
         var exportedFunctions = process.ProcessExportedFunctionsMetadata();
 
+        var packageInfo = await process.ProcessPackageMetadataAsync();
+
         return new ProcessMetadata(Path.GetFileName(fileVersionInfo.FileName),
                                    fileVersionInfo.OriginalFilename,
                                    fileVersionInfo.FileVersion,

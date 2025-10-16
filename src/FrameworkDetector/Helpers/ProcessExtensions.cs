@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Security.Principal;
@@ -11,14 +11,15 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using System.Management;
+using PeNet;
 
-using Windows.Win32;
-using Windows.Win32.Foundation;
-
+using Windows.ApplicationModel;
 using Windows.ApplicationModel.Core;
 using Windows.Management.Deployment;
-
-using PeNet;
+using Windows.System;
+using Windows.System.Diagnostics;
+using Windows.Win32;
+using Windows.Win32.Foundation;
 
 namespace FrameworkDetector;
 
@@ -106,7 +107,33 @@ public static class ProcessExtensions
     }
 
     /// <summary>
-    /// Tries to find the Package Full Name (PFN) of a process by calling <see cref="https://learn.microsoft.com/en-us/windows/win32/api/appmodel/nf-appmodel-getpackagefullname">GetPackageFullName</see>.
+    /// Tries to find the Package Family Name of a process by calling <see cref="https://learn.microsoft.com/windows/win32/api/appmodel/nf-appmodel-getpackagefamilyname">GetPackageFamilyName</see>.
+    /// </summary>
+    /// <param name="process">The target process.</param>
+    /// <param name="packageFamilyName">The Package Family Name, if found.</param>
+    /// <returns>Whether or not the Package Family Name was found.</returns>
+    public static bool TryGetPackageFamilyName(this Process process, out string? packageFamilyName)
+    {
+        if (OperatingSystem.IsWindowsVersionAtLeast(8))
+        {
+            uint length = 0;
+            if (WIN32_ERROR.ERROR_INSUFFICIENT_BUFFER == PInvoke.GetPackageFamilyName(process.SafeHandle, ref length, null) && length > 0)
+            {
+                var buffer = new char[length];
+                if (WIN32_ERROR.ERROR_SUCCESS == PInvoke.GetPackageFamilyName(process.SafeHandle, ref length, buffer))
+                {
+                    packageFamilyName = new string(buffer, 0, (int)length - 1);
+                    return true;
+                }
+            }
+        }
+
+        packageFamilyName = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Tries to find the Package Full Name (PFN) of a process by calling <see cref="https://learn.microsoft.com/windows/win32/api/appmodel/nf-appmodel-getpackagefullname">GetPackageFullName</see>.
     /// </summary>
     /// <param name="process">The target process.</param>
     /// <param name="packageFullName">The Package Full Name (PFN), if found.</param>
@@ -461,6 +488,147 @@ public static class ProcessExtensions
         return exportedFunctions;
     }
 
+    public static async Task<ProcessPackagedAppMetadata?> ProcessPackageMetadataAsync(this Process process)
+    {
+        var processInfo = ProcessDiagnosticInfo.TryGetForProcessId((uint)process.Id);
+        if (processInfo is null || !processInfo.IsPackaged)
+        {
+            return null;
+        }
+
+        AppInfo? appInfo = null;
+        if (process.TryGetPackageFamilyName(out var packageFamilyName))
+        {
+            var packageInfo = await AppDiagnosticInfo.RequestInfoAsync();
+            foreach (var package in packageInfo)
+            {
+                if (package.AppInfo.PackageFamilyName == packageFamilyName)
+                {
+                    appInfo = package.AppInfo;
+                    break;
+                }
+            }
+            
+            if (appInfo is not null)
+            {
+                Package? package = null;
+
+                // Package property introduced 19041: https://learn.microsoft.com/uwp/api/windows.applicationmodel.appinfo.package
+                if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
+                {
+                    package = appInfo.Package;
+                }
+                else
+                {
+                    // Fallback for older windows versions
+                    if (TryGetPackageFullName(process, out var packageFullName))
+                    {
+
+                        PackageManager packageManager = new();
+
+                        // 1. Find package by full name
+                        if (WindowsIdentity.IsRunningAsAdmin)
+                        {
+
+                            // https://learn.microsoft.com/uwp/api/windows.management.deployment.packagemanager.findpackage
+                            package = packageManager.FindPackage(packageFullName);
+                        }
+                        else
+                        {
+                            // Empty string == current user
+                            // https://learn.microsoft.com/uwp/api/windows.management.deployment.packagemanager.findpackageforuser
+                            package = packageManager.FindPackageForUser(string.Empty, packageFullName);
+                        }
+                    }
+                    else
+                    {
+                        // TODO: How do we bubble up warnings?
+                        // We can't find package, so we don't have extra info needed...
+                        return null;
+                    }
+                }
+
+                // Helper to be able to get all package metadata recursively for process package and dependencies
+                PackageMetadata GetPackageMetadata(Package pkg, bool topLevel)
+                {
+                    // Note: There's a lot of paths, these seem most relevant?
+                    // Most Path locations only available 19041+, see Version History: https://learn.microsoft.com/uwp/api/windows.applicationmodel.package
+                    string installedPath = pkg.InstalledLocation.Path ?? "Unknown";
+                    string externalPath = "Unknown, Run on Windows 19041 or later.";
+                    string path = externalPath;
+                    bool? isStub = null;
+
+                    if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
+                    {
+                        installedPath = pkg.InstalledPath ?? "Unknown";
+                        externalPath = pkg.EffectiveExternalPath ?? "Unknown";
+                        path = pkg.EffectivePath ?? "Unknown";
+                        isStub = pkg.IsStub;
+                    }
+                    else if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18362))
+                    {
+                        externalPath = pkg.EffectiveLocation?.Path ?? "Unknown";
+                        path = pkg.EffectiveLocation is null ? installedPath : externalPath;
+                    }
+
+                    // Get Dependency Info only for the top-level package, not for dependencies of dependencies
+                    // Note: I don't think we should need to worry about dependencies of dependencies, as we should know what a top-level framework dependency is comprised of.
+                    PackageMetadata[] dependencies = [];
+                    if (topLevel)
+                    { 
+                        dependencies = package.Dependencies
+                                              .Select(p => GetPackageMetadata(p, false))
+                                              .ToArray();
+                    }
+
+                    // TODO: Check if this is maybe a run as admin thing?
+                    string publisherDisplayName = "Unavailable";
+                    string displayName = "Unavailable";
+                    string description = "Unavailable";
+                    try
+                    {
+                        publisherDisplayName = pkg.PublisherDisplayName;
+                        displayName = pkg.DisplayName;
+                        description = pkg.Description;
+                    }
+                    catch (Exception e)
+                    {
+                        // Sometimes this throws for some reason (0x80070490 not found?), so just ignore it
+                        // Doesn't seem documented that exception can be thrown, only maybe empty pre-19041.
+                        // https://learn.microsoft.com/uwp/api/windows.applicationmodel.package.publisherdisplayname#remarks
+                    }
+
+                    // Return all data
+                    return new PackageMetadata(
+                                    publisherDisplayName,
+                                    displayName,
+                                    description,
+                                    installedPath,
+                                    externalPath,
+                                    path,
+                                    pkg.InstalledDate,
+                                    new PackageFlags(
+                                        pkg.IsBundle,
+                                        pkg.IsDevelopmentMode,
+                                        pkg.IsFramework,
+                                        pkg.IsOptional,
+                                        pkg.IsResourcePackage,
+                                        isStub),
+                                    dependencies);
+                }
+
+                var packageMetadata = package is not null ? GetPackageMetadata(package, true) : null;
+
+                return new ProcessPackagedAppMetadata(appInfo.DisplayInfo.DisplayName,
+                                                    appInfo.DisplayInfo.Description,
+                                                    appInfo.PackageFamilyName,
+                                                    packageMetadata);
+            }
+        }
+
+        return null;
+    }
+
     private static bool TryGetCachedPeFile(string filename, out PeFile? peFile)
     {
         PeFile? result = null;
@@ -489,3 +657,9 @@ public record ProcessFunctionMetadata(string Name, bool? DelayLoaded = null);
 public record ProcessImportedFunctionsMetadata(string ModuleName, ProcessFunctionMetadata[]? Functions = null) { }
 
 public record ProcessExportedFunctionsMetadata(string Name) : ProcessFunctionMetadata(Name);
+
+public record PackageFlags(bool IsBundle, bool IsDevelopmentMode, bool IsFramework, bool IsOptional, bool IsResourcePackage, bool? IsStub) { }
+
+public record PackageMetadata(string PackagePublisherDisplayName, string PackageDisplayName, string PackageDescription, string InstalledPath, string PackageEffectiveExternalPath, string PackageEffectivePath, DateTimeOffset InstalledDate, PackageFlags Flags, PackageMetadata[] Dependencies) { }
+
+public record ProcessPackagedAppMetadata(string AppDisplayName, string AppDescription, string AppPackageFamilyName, PackageMetadata? PackageMetadata) { }

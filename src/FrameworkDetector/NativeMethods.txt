@@ -2,6 +2,7 @@ EnumChildWindows
 EnumWindows
 GetApplicationUserModelId
 GetClassName
+GetPackageFamilyName
 GetPackageFullName
 GetShellWindow
 GetWindowText
