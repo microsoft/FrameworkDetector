@@ -1,10 +1,9 @@
 param(
+    [string] $OutputRoot = "bld",
     [boolean]$Clean = $True
 )
 
 [string] $RepoRoot = Resolve-Path "$PSScriptRoot\.."
-
-[string] $OutputRoot = "bld"
 
 $StartingLocation = Get-Location
 Set-Location -Path $RepoRoot
