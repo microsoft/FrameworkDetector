@@ -8,6 +8,7 @@ category: Library
 keywords: Framework Detector, MVVM, .NET, Community Toolkit
 ms.date: 10/13/2025
 author: jonthysell
+status: Detectable
 ---
 
 # MVVM Toolkit (MVVMToolkit)

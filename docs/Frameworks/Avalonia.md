@@ -8,6 +8,7 @@ category: Framework
 keywords: Framework Detector, UI, Cross-Platform, XAML, .NET
 ms.date: 10/13/2025
 author: jonthysell
+status: Detectable
 ---
 
 # Avalonia UI (Avalonia)

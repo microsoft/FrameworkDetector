@@ -7,6 +7,7 @@ category: Component
 keywords: Framework Detector, Web, Embedded, Edge, Chromium
 ms.date: 10/13/2025
 author: jonthysell
+status: Detectable
 ---
 
 # Microsoft Edge WebView2 (WebView2)

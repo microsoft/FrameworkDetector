@@ -8,6 +8,7 @@ category: Framework
 keywords: Framework Detector, UI, WinUI, UWP, MUX, MUXC, XAML
 ms.date: 10/15/2025
 author: jonthysell
+status: Detectable
 ---
 
 # WinUI 2 for UWP (WinUI2)

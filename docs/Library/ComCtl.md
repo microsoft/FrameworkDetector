@@ -7,6 +7,7 @@ category: Library
 keywords: Framework Detector, Windows, Common Controls, Comctl32
 ms.date: 10/13/2025
 author: jonthysell
+status: Detectable
 ---
 
 # Microsoft Common Controls (ComCtl)

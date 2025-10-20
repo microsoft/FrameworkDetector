@@ -8,6 +8,7 @@ category: Framework
 keywords: Framework Detector, UI, WinUI, Windows App SDK, XAML
 ms.date: 10/15/2025
 author: jonthysell
+status: Detectable
 ---
 
 # WinUI 3 for Windows App SDK (WinUI3)

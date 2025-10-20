@@ -8,6 +8,7 @@ category: Framework
 keywords: Framework Detector, React Native, Windows, JavaScript, TypeScript
 ms.date: 10/13/2025
 author: jonthysell
+status: Detectable
 ---
 
 # React Native for Windows (RNW)

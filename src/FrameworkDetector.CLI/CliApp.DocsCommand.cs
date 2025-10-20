@@ -85,6 +85,7 @@ public partial class CliApp
                             new ("Website", metadata.Website),
                             new ("Author", metadata.Author),
                             new ("Date", string.Format("{0:MM/dd/yyyy}", metadata?.Date)),
+                            new ("Status", metadata.Status),
                         });
 
                         table.MaxWidth = Console.BufferWidth - 10;
@@ -118,7 +119,6 @@ public partial class CliApp
         // TODO: Maybe tailor table display on verbosity?
         var table = new ConsoleTable("FrameworkId",
                                      "Framework Description",
-                                     ////"Category",
                                      "Docs",
                                      "Doc Updated",
                                      "Source Repo");
@@ -131,19 +131,40 @@ public partial class CliApp
         {
             var frameworkId = detector.Info.FrameworkId;
             var frameworkDescription = detector.Info.Description;
-            var hasDocs = FrameworkDocsById.ContainsKey(frameworkId.ToLowerInvariant());
-            var metadata = hasDocs ? FrameworkDocsById[frameworkId.ToLowerInvariant()].Metadata : null;
+            DocMetadata metadata = null;
+            if (FrameworkDocsById.TryGetValue(frameworkId.ToLowerInvariant(), out var docFile))
+            {
+                metadata = docFile.Metadata;
+            }
+            else
+            {
+                metadata = new DocMetadata()
+                {
+                    FrameworkId = frameworkId,
+                    Title = detector.Info.Name,
+                    Description = detector.Info.Description,
+                    Status = DocStatus.Unwritten,
+                };
+            }
 
             table.AddRow(frameworkId,
                          frameworkDescription,
-                         ////detector.Info.Category,
-                         hasDocs ? " ✅" : " 🟥",
+                         metadata.Status switch 
+                         {
+                             DocStatus.Detectable => "✅",
+                             DocStatus.Draft => "🏗️",
+                             DocStatus.Placeholder => "🔮",
+                             DocStatus.Unwritten => "🟥",
+                             _ => "?"
+                         },
                          string.Format("{0:MM/dd/yyyy}", metadata?.Date),
                          metadata?.Source?.Replace("https://", "").Replace("github.com/", ""));
         }
 
         Console.WriteLine();
         table.Write(Format.MarkDown);
+
+        Console.WriteLine("✅ Detectable, 🏗️ Draft, 🔮 Placeholder, 🟥 Unwritten");
     }
 
     private Dictionary<string, DocFile> FrameworkDocsById
@@ -183,26 +204,34 @@ public partial class CliApp
                                 try
                                 {
                                     metadata = deserializer.Deserialize<DocMetadata>(yamlMetadata);
+
+                                    // Ensure we have a FrameworkId
+                                    metadata.FrameworkId ??= filename.Split('.')[^2];
+
+                                    // If we have metadata the doc can't be unwritten, it's property wasn't set so leave it as Draft
+                                    if (metadata.Status == DocStatus.Unwritten)
+                                    {
+                                        metadata.Status = DocStatus.Draft;
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
                                     PrintWarning("Failed to parse doc metadata for {0}: {1}", filename, ex.Message);
                                 }
-
-                                // Ensure we have a FrameworkId
-                                metadata.FrameworkId ??= filename.Split('.')[^2];
                             }
-                            else
+
+                            if (metadata is null)
                             {
                                 metadata = new DocMetadata()
                                 {
                                     FrameworkId = filename.Split('.')[^2],
                                     Title = "Unknown Title",
                                     Description = "No Description",
+                                    Status = DocStatus.Draft,
                                 };
                             }
 
-                            var frameworkId = metadata.FrameworkId.ToLowerInvariant();
+                            var frameworkId = metadata.FrameworkId!.ToLowerInvariant();
                             _frameworkDocsById[frameworkId] = (metadata, parts.Last());
                         }
                     }

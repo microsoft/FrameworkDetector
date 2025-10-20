@@ -8,6 +8,7 @@ category: Framework
 keywords: Framework Detector, Web, Electron, Chromium, Node.js, Desktop
 ms.date: 10/15/2025
 author: jonthysell
+status: Detectable
 ---
 
 # Electron (Electron)

@@ -7,6 +7,7 @@ category: Component
 keywords: Framework Detector, Web, Embedded, EdgeHTML, Legacy Edge
 ms.date: 10/13/2025
 author: jonthysell
+status: Detectable
 ---
 
 # Microsoft EdgeHTML (WebView1)

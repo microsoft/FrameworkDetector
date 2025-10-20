@@ -8,6 +8,7 @@ category: Framework
 keywords: Framework Detector, WPF, UI, XAML, .NET, Desktop
 ms.date: 10/13/2025
 author: jonthysell
+status: Detectable
 ---
 
 # Windows Presentation Foundation (WPF)

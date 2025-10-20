@@ -33,4 +33,18 @@ public record DocMetadata
     public DateTimeOffset? Date { get; init; }
 
     public string? Author { get; init; }
+
+    public DocStatus Status { get; set; }
+}
+
+public enum DocStatus
+{
+    // Indicates no doc exists or could be loaded for the corresponding Detector
+    Unwritten,
+    // Indicates a doc exists but no corresponding Detector does yet
+    Placeholder,
+    // Used for in-progress docs/detector that are not verified completely for accuracy
+    Draft,
+    // Used for completed docs that have been verified for accuracy
+    Detectable
 }

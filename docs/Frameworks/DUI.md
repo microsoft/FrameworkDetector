@@ -6,6 +6,7 @@ category: Framework
 keywords: Framework Detector, DirectUI, Windows Shell, Internal
 ms.date: 10/13/2025
 author: jonthysell
+status: Detectable
 ---
 
 # Microsoft DirectUI (DUI)

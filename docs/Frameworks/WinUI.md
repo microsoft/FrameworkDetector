@@ -7,6 +7,7 @@ category: Framework
 keywords: Framework Detector, UI, WinUI, UWP, XAML, WinRT
 ms.date: 10/15/2025
 author: jonthysell
+status: Detectable
 ---
 
 # Windows UI Library for UWP (WinUI)
