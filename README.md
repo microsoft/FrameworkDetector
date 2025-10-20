@@ -117,6 +117,20 @@ You can control the verbosity of the output with the `--verbosity` (or `-v`) par
 
 If you specify `-v` without a value, it defaults to `diagnostic`.
 
+### Documentation
+
+You can view the list of available detectors and if detailed documentation is available for them by using the `docs` command:
+
+```ps
+FrameworkDetector.CLI.exe docs
+```
+
+This will provide a table of detector ids, names, and whether documentation is available. Add the id as an argument to retrieve the detailed specification of how that particular framework is detected (if available).
+
+```ps
+FrameworkDetector.CLI.exe docs WinUI3
+```
+
 ## Project Structure
 
 ### FrameworkDetector

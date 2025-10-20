@@ -25,20 +25,18 @@ public partial class CliApp
     /// <returns><see cref="Command"/></returns>
     private Command GetDocsCommand()
     {
-        Option<bool?> listOption = new("--list", "-l")
-        {
-            Description = "List the available framework ids",
-        };
-
-        Option<string?> frameworkIdOption = new("--frameworkId", "-i")
+        // https://learn.microsoft.com/dotnet/standard/commandline/syntax#arguments
+        Argument<string?> frameworkIdArgument = new("frameworkId")
         {
             Description = "Get the doc for the given id",
+            // Make it optional so we'll list out frameworks if not specified
+            Arity = ArgumentArity.ZeroOrOne,
+            DefaultValueFactory = parseResult => null,
         };
 
-        var command = new Command("docs", "Get documentation for how a particular framework is detected.")
+        var command = new Command("docs", "Get documentation for how a particular framework is detected. If no frameworkId specified, lists the available frameworks.")
         {
-            listOption,
-            frameworkIdOption,
+            frameworkIdArgument,
         };
         command.TreatUnmatchedTokensAsErrors = true;
 
@@ -55,15 +53,14 @@ public partial class CliApp
                 return (int)ExitCode.ArgumentParsingError;
             }
 
-            var list = parseResult.GetValue(listOption);
-            var frameworkId = parseResult.GetValue(frameworkIdOption);
+            var frameworkId = parseResult.GetValue(frameworkIdArgument)?.ToLowerInvariant();
 
-            if (list is not null && list.Value)
+            if (string.IsNullOrEmpty(frameworkId))
             {
                 PrintFrameworksById();
                 return (int)ExitCode.Success;
             }
-            else if (frameworkId is not null)
+            else
             {
                 if (FrameworkDocsById.TryGetValue(frameworkId, out var frameworkDoc))
                 {
@@ -72,16 +69,19 @@ public partial class CliApp
                     PrintMarkdown(frameworkDoc);
                     return (int)ExitCode.Success;
                 }
-
+                else if (Services.GetRequiredService<DetectionEngine>()
+                                 .Detectors
+                                 .Any(d => d.Info.FrameworkId.ToLowerInvariant() == frameworkId))
+                {
+                    PrintWarning("No docs currently written for {0} Detector.", frameworkId);
+                    return (int)ExitCode.InspectFailed;
+                }
+                
                 PrintError("Unable to find docs for \"{0}\"", frameworkId);
-                PrintError("Try running with {0} to get a list of supported frameworks", listOption.Aliases.FirstOrDefault() ?? "");
-                return (int)ExitCode.InspectFailed;
+                PrintError("Available frameworks are:");
+                PrintFrameworksById();
+                return (int)ExitCode.ArgumentParsingError;
             }
-
-            PrintError("Missing command arguments.");
-            await command.Parse("-h").InvokeAsync();
-
-            return (int)ExitCode.ArgumentParsingError;
         });
 
         return command;
@@ -102,7 +102,7 @@ public partial class CliApp
         {
             var frameworkId = detector.Info.FrameworkId;
             var frameworkDescription = detector.Info.Description;
-            var hasDocs = FrameworkDocsById.ContainsKey(frameworkId);
+            var hasDocs = FrameworkDocsById.ContainsKey(frameworkId.ToLowerInvariant());
 
             table.AddRow(frameworkId,
                          frameworkDescription,
@@ -132,7 +132,7 @@ public partial class CliApp
                         {
                             using var reader = new StreamReader(docStream);
 
-                            var frameworkId = filename.Split('.')[^2];
+                            var frameworkId = filename.Split('.')[^2].ToLowerInvariant();
                             _frameworkDocsById[frameworkId] = reader.ReadToEnd();
                         }
                     }
