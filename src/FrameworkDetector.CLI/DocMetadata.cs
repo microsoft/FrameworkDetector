@@ -12,7 +12,7 @@ namespace FrameworkDetector.CLI;
 public record DocMetadata
 {
     [YamlMember(Alias = "id")]
-    public string? DetectorId { get; set; }
+    public string? FrameworkId { get; set; }
 
     public string? Title { get; init; }
 

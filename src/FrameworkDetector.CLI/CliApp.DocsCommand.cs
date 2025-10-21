@@ -76,7 +76,7 @@ public partial class CliApp
 
                         var table = ConsoleTable.From(new KeyValuePair<string, object?>[]
                         {
-                            new ("FrameworkId", metadata.DetectorId),
+                            new ("FrameworkId", metadata.FrameworkId),
                             new ("Title", metadata.Title),
                             new ("Description", metadata.Description),
                             new ("Category", metadata.Category),
@@ -128,7 +128,7 @@ public partial class CliApp
         foreach (var (detectorId, doc) in DetectorDocsById
             .OrderBy(d => d.Key))
         {
-            table.AddRow(doc.Metadata.DetectorId,
+            table.AddRow(doc.Metadata.FrameworkId,
                          doc.Metadata.Title,
                          doc.Metadata.Status switch
                          {
@@ -187,7 +187,7 @@ public partial class CliApp
                                     metadata = deserializer.Deserialize<DocMetadata>(yamlMetadata);
 
                                     // Ensure we have a FrameworkId
-                                    metadata.DetectorId ??= filename.Split('.')[^2];
+                                    metadata.FrameworkId ??= filename.Split('.')[^2];
                                 }
                                 catch (Exception ex)
                                 {
@@ -200,14 +200,14 @@ public partial class CliApp
                                 // Assume docs with no YAML are placeholders
                                 metadata = new DocMetadata()
                                 {
-                                    DetectorId = filename.Split('.')[^2],
+                                    FrameworkId = filename.Split('.')[^2],
                                     Title = "Unknown Title",
                                     Description = "No Description",
                                     Status = DocStatus.Placeholder,
                                 };
                             }
 
-                            var detectorId = metadata.DetectorId!.ToLowerInvariant();
+                            var detectorId = metadata.FrameworkId!.ToLowerInvariant();
                             _detectorDocsById[detectorId] = (metadata, parts.Last());
                         }
                     }
@@ -224,7 +224,7 @@ public partial class CliApp
                         // If we have a Detector with no docs, then we're in the experimental phase as we have some sort of code running, it just may not be accurate across all scenarios yet.
                         var placeholderMetadata = new DocMetadata()
                         {
-                            DetectorId = detector.Info.FrameworkId,
+                            FrameworkId = detector.Info.FrameworkId,
                             Title = detector.Info.Name,
                             Description = detector.Info.Description,
                             Status = DocStatus.Experimental,
