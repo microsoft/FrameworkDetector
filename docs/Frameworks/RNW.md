@@ -1,3 +1,16 @@
+---
+id: RNW
+title: React Native for Windows (RNW)
+description: Enables React Native developers to build native Windows applications.
+website: https://microsoft.github.io/react-native-windows
+source: https://github.com/microsoft/react-native-windows
+category: Framework
+keywords: Framework Detector, React Native, Windows, JavaScript, TypeScript
+ms.date: 10/13/2025
+author: jonthysell
+status: Detectable
+---
+
 # React Native for Windows (RNW)
 
 ## Summary

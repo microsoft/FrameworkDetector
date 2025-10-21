@@ -14,8 +14,11 @@ using System.CommandLine.Parsing;
 
 using FrameworkDetector.Engine;
 using FrameworkDetector.Models;
+using YamlDotNet.Serialization;
 
 namespace FrameworkDetector.CLI;
+
+using DocFile = (DocMetadata Metadata, string MarkdownContents);
 
 public partial class CliApp
 {
@@ -62,11 +65,35 @@ public partial class CliApp
             }
             else
             {
-                if (FrameworkDocsById.TryGetValue(frameworkId, out var frameworkDoc))
+                if (DetectorDocsById.TryGetValue(frameworkId, out var frameworkDoc))
                 {
                     PrintInfo("Docs found for \"{0}\":", frameworkId);
 
-                    PrintMarkdown(frameworkDoc);
+                    // Print out metadata table first
+                    if (Verbosity >= VerbosityLevel.Normal)
+                    {
+                        var metadata = frameworkDoc.Metadata;
+
+                        var table = ConsoleTable.From(new KeyValuePair<string, object?>[]
+                        {
+                            new ("FrameworkId", metadata.FrameworkId),
+                            new ("Title", metadata.Title),
+                            new ("Description", metadata.Description),
+                            new ("Category", metadata.Category),
+                            new ("Keywords", metadata.Keywords),
+                            new ("Source", metadata.Source),
+                            new ("Website", metadata.Website),
+                            new ("Author", metadata.Author),
+                            new ("Date", string.Format("{0:MM/dd/yyyy}", metadata?.Date)),
+                            new ("Status", metadata.Status),
+                        });
+
+                        table.MaxWidth = Console.BufferWidth - 10;
+                        table.Write(Format.MarkDown);
+                    }
+
+                    // Print rest of the markdown document
+                    PrintMarkdown(frameworkDoc.MarkdownContents);
                     return (int)ExitCode.Success;
                 }
                 else if (Services.GetRequiredService<DetectionEngine>()
@@ -89,42 +116,56 @@ public partial class CliApp
 
     private void PrintFrameworksById()
     {
-        var table = new ConsoleTable("FrameworkId",
-                                     "Framework Description",
-                                     "Docs");
+        // TODO: Maybe tailor table display on verbosity?
+        var table = new ConsoleTable("DetectorId",
+                                     "Title",
+                                     "Status",
+                                     "Doc Updated",
+                                     "Source Repo");
 
         table.Options.EnableCount = false;
-        table.MaxWidth = Console.BufferWidth - 10;
 
-        var engine = Services.GetRequiredService<DetectionEngine>();
-
-        foreach (var detector in engine.Detectors.OrderBy(d => d.Info.FrameworkId))
+        foreach (var (detectorId, doc) in DetectorDocsById
+            .OrderBy(d => d.Key))
         {
-            var frameworkId = detector.Info.FrameworkId;
-            var frameworkDescription = detector.Info.Description;
-            var hasDocs = FrameworkDocsById.ContainsKey(frameworkId.ToLowerInvariant());
-
-            table.AddRow(frameworkId,
-                         frameworkDescription,
-                         hasDocs ? " ✅" : " 🟥");
+            table.AddRow(doc.Metadata.FrameworkId,
+                         doc.Metadata.Title,
+                         doc.Metadata.Status switch
+                         {
+                             DocStatus.Detectable => "✅",
+                             DocStatus.Experimental => "🧪",
+                             DocStatus.Placeholder => "🟥",
+                             _ => "?"
+                         },
+                         string.Format("{0:MM/dd/yyyy}", doc.Metadata?.Date),
+                         doc.Metadata?.Source?.Replace("https://", "").Replace("github.com/", ""));
         }
 
         Console.WriteLine();
         table.Write(Format.MarkDown);
+
+        Console.WriteLine("✅ Detectable, 🧪 Experimental, 🟥 Placeholder");
     }
 
-    private Dictionary<string, string> FrameworkDocsById
+    // Key is lowercase FrameworkId with associated DocFile
+    private Dictionary<string, DocFile> DetectorDocsById
     {
         get
         {
-            if (_frameworkDocsById is null)
+            if (_detectorDocsById is null)
             {
-                _frameworkDocsById = new Dictionary<string, string>();
+                // Docs: https://github.com/aaubry/YamlDotNet/wiki/Serialization.Deserializer
+                var deserializer = new DeserializerBuilder()
+                    .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.CamelCaseNamingConvention.Instance)
+                    .Build();
+
+                _detectorDocsById = new Dictionary<string, DocFile>();
 
                 foreach (var resourceName in AssemblyInfo.ToolAssembly.GetManifestResourceNames())
                 {
                     var filename = Path.GetFileName(resourceName);
-                    if (Path.GetExtension(filename) == ".md")
+                    if (Path.GetExtension(filename) == ".md" 
+                        && !filename.EndsWith("FrameworkDetectionTemplate.md"))
                     {
                         var docStream = AssemblyInfo.ToolAssembly.GetManifestResourceStream(resourceName);
 
@@ -132,15 +173,70 @@ public partial class CliApp
                         {
                             using var reader = new StreamReader(docStream);
 
-                            var frameworkId = filename.Split('.')[^2].ToLowerInvariant();
-                            _frameworkDocsById[frameworkId] = reader.ReadToEnd();
+                            DocMetadata? metadata = null;
+
+                            var contents = reader.ReadToEnd();
+                            var parts = contents.Split("---", StringSplitOptions.RemoveEmptyEntries);
+
+                            // Try to read YAML Frontmatter of doc
+                            if (parts.Length > 1 
+                                && parts.FirstOrDefault() is string yamlMetadata)
+                            {
+                                try
+                                {
+                                    metadata = deserializer.Deserialize<DocMetadata>(yamlMetadata);
+
+                                    // Ensure we have a FrameworkId
+                                    metadata.FrameworkId ??= filename.Split('.')[^2];
+                                }
+                                catch (Exception ex)
+                                {
+                                    PrintWarning("Failed to parse doc metadata for {0}: {1}", filename, ex.Message);
+                                }
+                            }
+
+                            if (metadata is null)
+                            {
+                                // Assume docs with no YAML are placeholders
+                                metadata = new DocMetadata()
+                                {
+                                    FrameworkId = filename.Split('.')[^2],
+                                    Title = "Unknown Title",
+                                    Description = "No Description",
+                                    Status = DocStatus.Placeholder,
+                                };
+                            }
+
+                            var detectorId = metadata.FrameworkId!.ToLowerInvariant();
+                            _detectorDocsById[detectorId] = (metadata, parts.Last());
                         }
                     }
                 }
+
+                // Now loop through detectors to find any without docs and add placeholder entries
+                var engine = Services.GetRequiredService<DetectionEngine>();
+
+                foreach (var detector in engine.Detectors.OrderBy(d => d.Info.FrameworkId))
+                {
+                    var detectorId = detector.Info.FrameworkId.ToLowerInvariant();
+                    if (!_detectorDocsById.ContainsKey(detectorId))
+                    {
+                        // If we have a Detector with no docs, then we're in the experimental phase as we have some sort of code running, it just may not be accurate across all scenarios yet.
+                        var placeholderMetadata = new DocMetadata()
+                        {
+                            FrameworkId = detector.Info.FrameworkId,
+                            Title = detector.Info.Name,
+                            Description = detector.Info.Description,
+                            Status = DocStatus.Experimental,
+                        };
+
+                        _detectorDocsById[detectorId] = (placeholderMetadata, $"# {detector.Info.Name}\n\n_Docs not yet written for this detector. Results for this detector should not be relied upon._");
+                    }
+                }
             }
-            return _frameworkDocsById;
+            return _detectorDocsById;
         }
     }
 
-    private Dictionary<string, string>? _frameworkDocsById = null;
+    private Dictionary<string, DocFile>? _detectorDocsById = null;
 }

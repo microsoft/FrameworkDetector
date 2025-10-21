@@ -20,6 +20,7 @@
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="ConsoleTables" />
     <PackageReference Include="ConsoleInk.Net" />
+    <PackageReference Include="YamlDotNet" />
   </ItemGroup>
 
 </Project>

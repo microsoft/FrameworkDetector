@@ -1,3 +1,16 @@
+---
+id: Electron
+title: Electron (Electron)
+description: An open-source framework for building desktop applications with web technologies using Chromium and Node.js.
+website: https://electronjs.org
+source: https://github.com/electron/electron
+category: Framework
+keywords: Framework Detector, Web, Electron, Chromium, Node.js, Desktop
+ms.date: 10/15/2025
+author: jonthysell
+status: Detectable
+---
+
 # Electron (Electron)
 
 ## Summary

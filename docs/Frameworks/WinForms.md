@@ -1,3 +1,16 @@
+---
+id: WinForms
+title: Windows Forms (WinForms)
+description: A GUI class library for building Windows desktop applications on .NET.
+website: https://learn.microsoft.com/dotnet/desktop/winforms
+source: https://github.com/dotnet/winforms
+category: Framework
+keywords: Framework Detector, UI, WinForms, Windows, .NET, Desktop
+ms.date: 10/13/2025
+author: jonthysell
+status: Detectable
+---
+
 # Windows Forms (WinForms)
 
 ## Summary

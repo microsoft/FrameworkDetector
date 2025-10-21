@@ -1,3 +1,15 @@
+---
+id: TLA
+title: Framework Detection Template
+description: Template for authoring framework detection documentation pages.
+website: https://frameworkdetector.example.com/docs
+source: https://github.com/Organization/Repository
+category: Component, Framework, Library, ProgrammingLanguage
+keywords: Framework Detector, ...
+ms.date: MM/DD/YYYY # Delete this comment, date last updated
+author: githubusername
+---
+
 # FrameworkName
 
 ## Summary

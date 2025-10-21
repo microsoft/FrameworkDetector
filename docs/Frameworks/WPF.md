@@ -1,3 +1,16 @@
+---
+id: WPF
+title: Windows Presentation Foundation (WPF)
+description: An open-source, vector-based UI framework for building Windows desktop applications on .NET.
+website: https://learn.microsoft.com/dotnet/desktop/wpf
+source: https://github.com/dotnet/wpf
+category: Framework
+keywords: Framework Detector, WPF, UI, XAML, .NET, Desktop
+ms.date: 10/13/2025
+author: jonthysell
+status: Detectable
+---
+
 # Windows Presentation Foundation (WPF)
 
 ## Summary
