@@ -27,6 +27,8 @@ public class WinUI2Detector : IDetector
     public DetectorDefinition CreateDefinition()
     {
         return this.Create()
+            .Required("Dependent Package", checks => checks
+                .ContainsDependentPackage("Microsoft.UI.Xaml"))
             .Required("", checks => checks
                 .ContainsLoadedModule("Microsoft.UI.Xaml.dll", fileVersionRange: ">=2.0 <3.0").GetVersionFromModule())
             .BuildDefinition();

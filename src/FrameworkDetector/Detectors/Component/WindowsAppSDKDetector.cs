@@ -27,11 +27,15 @@ public class WindowsAppSDKDetector : IDetector
     public DetectorDefinition CreateDefinition()
     {
         return this.Create()
+            // Use Package Info first if found
+            .Required("Dependent Package", checks => checks
+                .ContainsDependentPackage("Microsoft.WindowsAppRuntime"))
+            // Otherwise look for key modules
             .Required("", checks => checks
                 .ContainsLoadedModule("Microsoft.Windows.ApplicationModel.Resources.dll"))
             .Required("Framework Package", checks => checks
-                // TODO: There's a number of modules here that we need to check for.
                 .ContainsLoadedModule("Microsoft.WindowsAppRuntime.Bootstrap.dll"))
+            // TODO: There's a number of modules here that we could check for...
             .BuildDefinition();
     }
 }

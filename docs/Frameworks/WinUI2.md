@@ -45,7 +45,13 @@ Windows 10, and 11
 
 ### Runtime Detection
 
-The following module should be loaded by the running process:
+The following package dependency should be present in the app's package dependency information:
+
+1. `Microsoft.UI.Xaml` prefix.
+
+The specific version of WinUI2 can be determined by extracting the version from the PackageFullName.
+
+Or the following module should be loaded by the running process:
 
 1. `Microsoft.UI.Xaml.dll` with FileVersion ≥ 2.0 and < 3.0
 

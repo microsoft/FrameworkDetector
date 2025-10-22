@@ -600,6 +600,18 @@ public static class ProcessExtensions
 
                     // Return all data
                     return new PackageMetadata(
+                                    // Note: Author and ProductId are excluded, Windows Phone Only, as per docs
+                                    // https://learn.microsoft.com/uwp/api/windows.applicationmodel.packageid.author
+                                    new PackageIdentity(
+                                        pkg.Id.Architecture.ToString(),
+                                        pkg.Id.Name,
+                                        pkg.Id.FamilyName,
+                                        pkg.Id.FullName,
+                                        pkg.Id.Publisher,
+                                        pkg.Id.PublisherId,
+                                        pkg.Id.ResourceId,
+                                        $"{pkg.Id.Version.Major}.{pkg.Id.Version.Minor}.{pkg.Id.Version.Build}.{pkg.Id.Version.Revision}"
+                                    ),
                                     publisherDisplayName,
                                     displayName,
                                     description,
@@ -613,7 +625,8 @@ public static class ProcessExtensions
                                         pkg.IsFramework,
                                         pkg.IsOptional,
                                         pkg.IsResourcePackage,
-                                        isStub),
+                                        isStub
+                                    ),
                                     dependencies);
                 }
 
@@ -658,8 +671,13 @@ public record ProcessImportedFunctionsMetadata(string ModuleName, ProcessFunctio
 
 public record ProcessExportedFunctionsMetadata(string Name) : ProcessFunctionMetadata(Name);
 
+/// <summary>
+/// Wrapper around <see cref="PackageId"/>.
+/// </summary>
+public record PackageIdentity(string Architecture, string Name, string FamilyName, string FullName, string Publisher, string PublisherId, string ResourceId, string Version) { }
+
 public record PackageFlags(bool IsBundle, bool IsDevelopmentMode, bool IsFramework, bool IsOptional, bool IsResourcePackage, bool? IsStub) { }
 
-public record PackageMetadata(string PackagePublisherDisplayName, string PackageDisplayName, string PackageDescription, string InstalledPath, string PackageEffectiveExternalPath, string PackageEffectivePath, DateTimeOffset InstalledDate, PackageFlags Flags, PackageMetadata[] Dependencies) { }
+public record PackageMetadata(PackageIdentity Id, string PackagePublisherDisplayName, string PackageDisplayName, string PackageDescription, string InstalledPath, string PackageEffectiveExternalPath, string PackageEffectivePath, DateTimeOffset InstalledDate, PackageFlags Flags, PackageMetadata[] Dependencies) { }
 
 public record ProcessPackagedAppMetadata(string AppDisplayName, string AppDescription, string AppPackageFamilyName, PackageMetadata? PackageMetadata) { }
