@@ -8,7 +8,7 @@ category: Library
 keywords: Framework Detector, WinUI, UWP, Uno, XAML, .NET, Community Toolkit
 ms.date: 10/20/2025
 author: michael-hawker
-status: Placeholder
+status: Experimental
 ---
 
 # Windows Community Toolkit (WCT)

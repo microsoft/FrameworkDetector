@@ -8,7 +8,7 @@ category: Library
 keywords: Framework Detector, XAML, WinUI, UWP,  Windows App SDK, Direct2D, Win2D
 ms.date: 10/20/2025
 author: michael-hawker
-status: Placeholder
+status: Experimental
 ---
 
 # XAML Behaviors for WinUI
@@ -48,7 +48,13 @@ TBD
 
 ### Runtime Detection
 
-TBD
+The following module should be loaded by the running process:
+
+1.`Microsoft.Graphics.Canvas.dll`
+
+(UWP and WindowsAppSDK versions use the same dll name, may use similar versions needs investigation, may not matter as we have other detectors for those)
+
+**Note:** It may be necessary to navigate to Win2D driven content in the UI of an app before one of these modules is loaded.
 
 ### Static Detection
 

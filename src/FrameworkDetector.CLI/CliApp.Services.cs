@@ -39,6 +39,7 @@ public partial class CliApp
         services.AddSingleton<IDetector, WebView2Detector>();
         services.AddSingleton<IDetector, WindowsAppSDKDetector>();
         services.AddSingleton<IDetector, WinFormsDetector>();
+        services.AddSingleton<IDetector, Win2DDetector>();
         services.AddSingleton<IDetector, WinUIDetector>();
         services.AddSingleton<IDetector, WinUI2Detector>();
         services.AddSingleton<IDetector, WinUI3Detector>();
