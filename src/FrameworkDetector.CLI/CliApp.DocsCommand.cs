@@ -89,7 +89,7 @@ public partial class CliApp
                             new ("Status", metadata.Status),
                         });
 
-                        table.MaxWidth = Console.BufferWidth - 10;
+                        table.SetMaxWidthBasedOnColumn(2);
                         table.Write(Format.MarkDown);
                     }
 

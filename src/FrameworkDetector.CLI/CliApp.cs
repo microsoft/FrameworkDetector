@@ -109,7 +109,6 @@ public partial class CliApp
                                      "Version");
 
         table.Options.EnableCount = false;
-        table.MaxWidth = Console.BufferWidth - 2;
 
         var results = Verbosity > VerbosityLevel.Normal ? result.DetectorResults : result.DetectorResults.Where(dr => dr.FrameworkFound);
 
@@ -148,6 +147,8 @@ public partial class CliApp
                 }
             }
         }
+
+        table.SetMaxWidthBasedOnColumn(0);
 
         Console.WriteLine();
         // Using ConsoleTable's "MarkDown" formatting just for the specific effect, it looks worse piped into ConsoleInk
