@@ -6,15 +6,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ConsoleTables;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.CommandLine.Parsing;
+using YamlDotNet.Serialization;
 
 using FrameworkDetector.Engine;
 using FrameworkDetector.Models;
-using YamlDotNet.Serialization;
 
 namespace FrameworkDetector.CLI;
 
@@ -60,7 +61,7 @@ public partial class CliApp
 
             if (string.IsNullOrEmpty(frameworkId))
             {
-                PrintFrameworksById();
+                await PrintFrameworksByIdAsync();
                 return (int)ExitCode.Success;
             }
             else
@@ -84,7 +85,7 @@ public partial class CliApp
                             new ("Source", metadata.Source),
                             new ("Website", metadata.Website),
                             new ("Author", metadata.Author),
-                            new ("Date", string.Format("{0:MM/dd/yyyy}", metadata?.Date)),
+                            new ("Date", string.Format("{0:MM/dd/yyyy}", metadata.Date)),
                             new ("Status", metadata.Status),
                         });
 
@@ -106,7 +107,7 @@ public partial class CliApp
                 
                 PrintError("Unable to find docs for \"{0}\"", frameworkId);
                 PrintError("Available frameworks are:");
-                PrintFrameworksById();
+                await PrintFrameworksByIdAsync();
                 return (int)ExitCode.ArgumentParsingError;
             }
         });
@@ -114,7 +115,7 @@ public partial class CliApp
         return command;
     }
 
-    private void PrintFrameworksById()
+    private async Task PrintFrameworksByIdAsync()
     {
         // TODO: Maybe tailor table display on verbosity?
         var table = new ConsoleTable("DetectorId",
@@ -128,6 +129,7 @@ public partial class CliApp
         foreach (var (detectorId, doc) in DetectorDocsById
             .OrderBy(d => d.Key))
         {
+            await Task.Yield();
             table.AddRow(doc.Metadata.FrameworkId,
                          doc.Metadata.Title,
                          doc.Metadata.Status switch
