@@ -26,6 +26,7 @@ public partial class CliApp
         services.AddSingleton<IDetector, AvaloniaDetector>();
         services.AddSingleton<IDetector, CEFDetector>();
         services.AddSingleton<IDetector, ComCtlDetector>();
+        services.AddSingleton<IDetector, DirectXDetector>();
         services.AddSingleton<IDetector, DotNetDetector>();
         services.AddSingleton<IDetector, DotNetCoreDetector>();
         services.AddSingleton<IDetector, DotNetFrameworkDetector>();
