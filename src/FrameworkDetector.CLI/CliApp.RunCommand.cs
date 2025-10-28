@@ -2,18 +2,12 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 
 using System.CommandLine;
 using System.CommandLine.Parsing;
-
-using Windows.ApplicationModel;
-using Windows.Management.Deployment;
 
 namespace FrameworkDetector.CLI;
 
@@ -38,26 +32,6 @@ public partial class CliApp
         Option<string?> aumidOption = new("--applicationUserModelId", "-aumid")
         {
             Description = "The app user model id of the app to run. Must be available to the current user (unless process is running as admin).",
-        };
-
-        Option<int?> listPackages = new("--listPackages", "-l")
-        {
-            Description = "List of recent packages installed for the current user (or system if admin). Optionally, specify number of packages to return, default 5. 0 or negative for all.",
-            Arity = ArgumentArity.ZeroOrOne, // Note: Flag or number to return
-            CustomParser = result =>
-            {
-                if (result.Tokens.Count == 0)
-                {
-                    return 5; // No value specified, default to 5
-                }
-                else if (int.TryParse(result.Tokens[0].Value, out int value))
-                {
-                    return value;
-                }
-
-                // Invalid, so we'll just act like it wasn't specified and let later validation handle it.
-                return null;
-            },
         };
 
         Option<int?> waitTimeOption = new("--waitTime", "-wait")
@@ -86,7 +60,6 @@ public partial class CliApp
             pathOption,
             packageOption,
             aumidOption,
-            listPackages,
             waitTimeOption,
             outputFileOption,
             processNameOption,
@@ -110,7 +83,6 @@ public partial class CliApp
             var exepath = parseResult.GetValue(pathOption);
             var packageFullName = parseResult.GetValue(packageOption);
             var aumid = parseResult.GetValue(aumidOption);
-            var listPkgs = parseResult.GetValue(listPackages);
             var waitTime = parseResult.GetValue(waitTimeOption) ?? 2000;
             var outputFilename = parseResult.GetValue(outputFileOption);
             var processName = parseResult.GetValue(processNameOption);
@@ -196,39 +168,6 @@ public partial class CliApp
                 }
 
                 return (int)await InspectStartedProcessAsync(process, waitTime, outputFilename, keepAfterInspect, cancellationToken);
-            }
-            else if (listPkgs is not null)
-            {
-                PackageManager packageManager = new();
-
-                IEnumerable<Package> packages = [];
-
-                if (listPkgs.Value > 0)
-                {
-                    Console.WriteLine($"Listing {listPkgs.Value} most recent packages installed:");
-                    packages = (WindowsIdentity.IsRunningAsAdmin ? packageManager.FindPackages() : packageManager.FindPackagesForUser(string.Empty))
-                        .OrderByDescending(p => p.InstalledDate)
-                        .Take(listPkgs.Value);
-                }
-                else
-                {
-                    Console.WriteLine("Listing all packages installed:");
-                    // Weird cast issue with trying to do this later, so just separate out for now.
-                    packages = (WindowsIdentity.IsRunningAsAdmin ? packageManager.FindPackages() : packageManager.FindPackagesForUser(string.Empty))
-                        .OrderByDescending(p => p.InstalledDate);
-                }
-
-                Console.WriteLine();
-
-                foreach (var package in packages)
-                {
-                    Console.WriteLine($"FullName:  {package.Id.FullName}");
-                    Console.WriteLine($"Installed: {package.InstalledDate}");
-                    Console.WriteLine($"Location:  {package.InstalledLocation.Path}");
-                    Console.WriteLine();
-                }
-
-                return (int)ExitCode.Success;
             }
 
             PrintError("Missing command arguments.");

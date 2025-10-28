@@ -70,6 +70,7 @@ public partial class CliApp
             GetDumpCommand(),
             GetInspectAllCommand(),
             GetInspectCommand(),
+            GetListCommand(),
             GetRunCommand(),
         };
 
