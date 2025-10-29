@@ -127,8 +127,24 @@ public partial class CliApp
                 {
                     PrintInfo("Starting \"{0}\" app of package \"{1}\"...", aumid ?? "default", packageFullName);
                     process = await Process.StartByPackageFullNameAsync(packageFullName, aumid, cancellationToken);
+                    if (aumid is null && process is not null && process.TryGetApplicationUserModelId(out var defaultAumid) && defaultAumid is not null)
+                    {
+                        PrintInfo("Started \"{0}\" app of package \"{1}\".", defaultAumid, packageFullName);
+                    }
                 }
                 catch { }
+                
+                if (!string.IsNullOrEmpty(processName))
+                {
+                    var newProcess = await TryReattachAsync(processName, waitTime, cancellationToken);
+                    if (newProcess is null)
+                    {
+                        return (int)ExitCode.ArgumentParsingError;
+                    }
+
+                    process = newProcess;
+                    waitTime = 0; // Don't need to wait twice
+                }
 
                 if (process is null)
                 {

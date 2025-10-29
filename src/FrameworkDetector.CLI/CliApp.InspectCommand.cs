@@ -123,7 +123,9 @@ public partial class CliApp
             }
             else
             {
-                PrintError("Unable to determine which process to inspect.");
+                PrintWarning("Unable to determine a root process, defaulting to the lowest PID.");
+                result = processes.OrderBy(p => p.Id).First();
+                return true;
             }
         }
 
