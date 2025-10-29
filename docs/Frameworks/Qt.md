@@ -8,7 +8,7 @@ category: Framework
 keywords: Framework Detector, UI, Cross-Platform, C++
 ms.date: 10/20/2025
 author: michael-hawker
-status: Placeholder
+status: Experimental
 ---
 
 # Qt (pronounced "cute")
