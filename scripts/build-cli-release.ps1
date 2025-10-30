@@ -1,5 +1,5 @@
 param(
-    [string] $OutputRoot = ".\bld",
+    [string] $OutputRoot = ".\bld\FrameworkDetector",
     [boolean]$Clean = $True
 )
 
@@ -10,15 +10,18 @@ Set-Location -Path $RepoRoot
 
 Write-Host "Build FrameworkDetector.CLI release..."
 try {
-    $TargetOutputDirectory = "FrameworkDetector"
 
-    if ($Clean -and (Test-Path "$OutputRoot\$TargetOutputDirectory")) {
+    $OutputRoot = Resolve-Path $OutputRoot
+
+    if ($Clean -and (Test-Path "$OutputRoot")) {
         Write-Host "Clean output folder..."
-        Remove-Item "$OutputRoot\$TargetOutputDirectory" -Recurse | Out-Null
+        Remove-Item "$OutputRoot" -Recurse | Out-Null
     }
 
-    New-Item -Path "$OutputRoot\$TargetOutputDirectory" -ItemType "directory" | Out-Null
-    dotnet msbuild -target:Publish -p:RuntimeIdentifier=win-x64 -p:PublishSingleFile=true -p:IncludeAllContentForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:SelfContained=true -restore -p:Configuration=Release -p:PublishDir="$RepoRoot\$OutputRoot\$TargetOutputDirectory" "$RepoRoot\src\FrameworkDetector.sln"
+    $GitCommitVersion = & git log -1 --date=format:"%y%j.%H%M" --format="%ad"
+
+    New-Item -Path "$OutputRoot" -ItemType "directory" | Out-Null
+    dotnet msbuild -target:Publish -p:RuntimeIdentifier=win-x64 -p:PublishSingleFile=true -p:IncludeAllContentForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:SelfContained=true -restore -p:Configuration=Release -p:PublishDir="$OutputRoot" -p:GitCommitVersion="$GitCommitVersion" "$RepoRoot\src\FrameworkDetector.sln"
     if (!$?) {
     	throw 'Build failed!'
     }
