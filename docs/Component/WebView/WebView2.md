@@ -56,6 +56,12 @@ Any of the following modules should be loaded by the running process:
 
 The specific version of WebView2 can be gotten by checking the FileVersion of the loaded module.
 
+It is also possible to detect WebView2 by checking for the following modules be loaded by the running process:
+
+1. `EmbeddedBrowserWebView.dll`
+
+however it is not possible to determine the specific version of WebView2 used when detecting these modules.
+
 **Note:** It may be necessary to navigate to WebView2 content in the UI of an app before one of these modules is loaded.
 
 ### Static Detection

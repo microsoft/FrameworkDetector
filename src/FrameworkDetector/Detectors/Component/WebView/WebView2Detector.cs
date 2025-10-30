@@ -35,6 +35,9 @@ public class WebView2Detector : IDetector
             // OR
             .Required("CsWinRT Projection Module", checks => checks
                 .ContainsLoadedModule("Microsoft.Web.WebView2.Core.Projection.dll").GetVersionFromModule())
+            // OR
+            .Required("Embedded Browser WebView", checks => checks
+                .ContainsLoadedModule("EmbeddedBrowserWebView.dll"))
             .Optional("Extra Modules", checks => checks
                 .ContainsLoadedModule("EmbeddedBrowserWebView.dll")
                 .ContainsLoadedModule("Microsoft.Web.WebView2.WPF.dll")
