@@ -15,7 +15,7 @@ Framework Detector is meant to support collaborative, iterative development. The
 ## Setup
 
 1. Make sure you have the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) installed.
-2. If using Visual Studio Stable, enable `Use previews of the .NET SDK (requires restart)` under `Tools->Options->Environment->Preview Features`.
+2. Note, if you intend to use Visual Studio, you'll need Visual Studio 2026 or greater.
 
 ## Build
 
