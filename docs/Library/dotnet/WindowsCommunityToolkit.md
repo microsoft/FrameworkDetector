@@ -31,11 +31,11 @@ A collection of controls, helpers and extension for WinUI 2, WinUI 3, and Uno Pl
 
 ### Dependencies
 
-The Windows Community Toolkit depends on either:
+The Windows Community Toolkit as a whole depends on:
 
 - [.NET](https://dotnet.microsoft.com/download/dotnet)
-- [XAML Behaviors](https://github.com/microsoft/XamlBehaviors)
-- [Win2D](https://github.com/microsoft/Win2D)
+- [XAML Behaviors](https://github.com/microsoft/XamlBehaviors) [Some packages: Behaviors]
+- [Win2D](https://github.com/microsoft/Win2D) [Some packages: Media, ImageCropper]
 
 ### Canonical Apps
 
