@@ -28,7 +28,7 @@ public class WinUI2Detector : IDetector
     {
         return this.Create()
             .Required("Dependent Package", checks => checks
-                .ContainsPackagedDependency("Microsoft.UI.Xaml").GetSpecialFullNameVersionFromPackageIdentity()) //LINK:WindowsAppSDKDetector.cs
+                .ContainsPackagedDependency("Microsoft.UI.Xaml").GetVersionFromPackageFullName())
             .Required("Main Module", checks => checks
                 .ContainsLoadedModule("Microsoft.UI.Xaml.dll", fileVersionRange: ">=2.0 <3.0").GetVersionFromModule())
             .BuildDefinition();
