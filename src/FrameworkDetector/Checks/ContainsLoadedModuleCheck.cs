@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,7 +12,6 @@ using Semver;
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
 using FrameworkDetector.Models;
-using System.Text;
 
 namespace FrameworkDetector.Checks;
 

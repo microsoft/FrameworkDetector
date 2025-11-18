@@ -29,7 +29,7 @@ public class WindowsAppSDKDetector : IDetector
         return this.Create()
             // Use Package Info first if found
             .Required("Dependent Package", checks => checks
-                .ContainsDependentPackage("Microsoft.WindowsAppRuntime").GetVersionFromPackageIdentity(PackageVersionType.FullNameSpecial))
+                .ContainsPackagedDependency("Microsoft.WindowsAppRuntime").GetVersionFromPackageIdentity(PackageVersionType.FullNameSpecial))
             // Otherwise look for key modules
             .Required("Resources Module", checks => checks
                 .ContainsLoadedModule("Microsoft.Windows.ApplicationModel.Resources.dll"))

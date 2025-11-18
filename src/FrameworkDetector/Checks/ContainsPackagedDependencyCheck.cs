@@ -6,26 +6,25 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
 using FrameworkDetector.Models;
-
-using static FrameworkDetector.Checks.ContainsDependentPackageCheck;
 
 namespace FrameworkDetector.Checks;
 
 /// <summary>
 /// CheckDefinition extension for looking for a specific dependent package used within a process.
 /// </summary>
-public static class ContainsDependentPackageCheck
+public static class ContainsPackagedDependencyCheck
 {
     /// <summary>
-    /// Get registration information defining <see cref="ContainsDependentPackageCheck"/>.
+    /// Get registration information defining <see cref="ContainsPackagedDependencyCheck"/>.
     /// </summary>
-    internal static CheckRegistrationInfo<ContainsDependentPackageArgs, ContainsDependentPackageData> GetCheckRegistrationInfo(ContainsDependentPackageArgs args)
+    internal static CheckRegistrationInfo<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> GetCheckRegistrationInfo(ContainsPackagedDependencyArgs args)
     {
         return new(
-            Name: nameof(ContainsDependentPackageCheck),
+            Name: nameof(ContainsPackagedDependencyCheck),
             Description: args.GetDescription(),
             DataSourceIds: [ProcessDataSource.Id],
             PerformCheckAsync
@@ -33,10 +32,10 @@ public static class ContainsDependentPackageCheck
     }
 
     /// <summary>
-    /// Input arguments for <see cref="ContainsDependentPackageCheck"/>.
+    /// Input arguments for <see cref="ContainsPackagedDependencyCheck"/>.
     /// </summary>
     /// <param name="packageFullName">The Package Full Name to look for as an immediate dependency (or in part).</param>
-    public readonly struct ContainsDependentPackageArgs(string? packageFullName = null) : ICheckArgs
+    public readonly struct ContainsPackagedDependencyArgs(string? packageFullName = null) : ICheckArgs
     {
         public string? PackageFullName { get; } = packageFullName;
 
@@ -49,14 +48,14 @@ public static class ContainsDependentPackageCheck
             return descriptionSB.ToString();
         }
 
-        public void Validate() => ArgumentNullException.ThrowIfNull(PackageFullName, nameof(ContainsDependentPackageArgs));
+        public void Validate() => ArgumentNullException.ThrowIfNull(PackageFullName, nameof(ContainsPackagedDependencyArgs));
     }
 
     /// <summary>
-    /// Output data for <see cref="ContainsDependentPackageCheck"/>.
+    /// Output data for <see cref="ContainsPackagedDependencyCheck"/>.
     /// </summary>
     /// <param name="packageFound">The package found.</param>
-    public readonly struct ContainsDependentPackageData(PackageMetadata packageFound)
+    public readonly struct ContainsPackagedDependencyData(PackageMetadata packageFound)
     {
         public PackageMetadata PackageFound { get; } = packageFound;
     }
@@ -65,13 +64,13 @@ public static class ContainsDependentPackageCheck
     /// The type returned by <see cref="ContainsDependentPackage"/> which optionally allows calling <see cref="GetVersionFromPackageIdentity"/>.
     /// </summary>
     /// <param name="idcg">A base <see cref="IDetectorCheckGroup"/> to wrap.</param>
-    public class ContainsDependentPackageDetectorCheckGroup(IDetectorCheckGroup idcg) : DetectorCheckGroupWrapper(idcg)
+    public class ContainsPackagedDependencyDetectorCheckGroup(IDetectorCheckGroup idcg) : DetectorCheckGroupWrapper(idcg)
     {
         public IDetectorCheckGroup GetVersionFromPackageIdentity(PackageVersionType packageVersionSource = PackageVersionType.Version)
         {
             var dcg = this.Get();
 
-            dcg.SetVersionGetter(r => GetVersionFromCheckResult(packageVersionSource, r as DetectorCheckResult<ContainsDependentPackageArgs, ContainsDependentPackageData>));
+            dcg.SetVersionGetter(r => GetVersionFromCheckResult(packageVersionSource, r as DetectorCheckResult<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData>));
 
             return dcg;
         }
@@ -84,29 +83,29 @@ public static class ContainsDependentPackageCheck
         /// </summary>
         /// <param name="packageFullName">All or part of the package full name to search for</param>
         /// <returns></returns>
-        public ContainsDependentPackageDetectorCheckGroup ContainsDependentPackage(string? packageFullName = null)
+        public ContainsPackagedDependencyDetectorCheckGroup ContainsPackagedDependency(string? packageFullName = null)
         {
             var dcg = @this.Get();
 
             // This copies over an entry pointing to this specific check's registration with the metadata requested by the detector.
             // The metadata along with the live data sources (as indicated by the registration)
             // will be passed into the PerformCheckAsync method below to do the actual check.
-            var args = new ContainsDependentPackageArgs(packageFullName);
+            var args = new ContainsPackagedDependencyArgs(packageFullName);
             args.Validate();
 
-            dcg.AddCheck(new CheckDefinition<ContainsDependentPackageArgs, ContainsDependentPackageData>(GetCheckRegistrationInfo(args), args));
+            dcg.AddCheck(new CheckDefinition<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData>(GetCheckRegistrationInfo(args), args));
 
-            return new ContainsDependentPackageDetectorCheckGroup(dcg);
+            return new ContainsPackagedDependencyDetectorCheckGroup(dcg);
         }
     }
 
     /// <summary>
-    /// Helper for extracting the version information from the Package identity. Used by <see cref="ContainsDependentPackageDetectorCheckGroup.GetVersionFromPackageIdentity(PackageVersionType)"/>.
+    /// Helper for extracting the version information from the Package identity. Used by <see cref="ContainsPackagedDependencyDetectorCheckGroup.GetVersionFromPackageIdentity(PackageVersionType)"/>.
     /// </summary>
     /// <param name="moduleVersionSource"></param>
     /// <param name="result"></param>
     /// <returns></returns>
-    public static string GetVersionFromCheckResult(PackageVersionType moduleVersionSource, DetectorCheckResult<ContainsDependentPackageArgs, ContainsDependentPackageData>? result)
+    public static string GetVersionFromCheckResult(PackageVersionType moduleVersionSource, DetectorCheckResult<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData>? result)
     {
         if (result is not null && result.CheckStatus == DetectorCheckStatus.CompletedPassed)
         {
@@ -117,7 +116,7 @@ public static class ContainsDependentPackageCheck
 
                 //// Note: Mostly for WinUI 2: Microsoft.UI.Xaml.2.8_8.2501.31001.0_x64__8wekyb3d8bbwe and Windows App SDK: Microsoft.WindowsAppRuntime.1.8_8000.642.119.0_x64__8wekyb3d8bbwe
                 case PackageVersionType.FullNameSpecial:
-                    if (result.OutputData is not ContainsDependentPackageData output)
+                    if (result.OutputData is not ContainsPackagedDependencyData output)
                     {
                         return string.Empty;
                     }
@@ -146,7 +145,7 @@ public static class ContainsDependentPackageCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsDependentPackageArgs, ContainsDependentPackageData> definition, DataSourceCollection dataSources, DetectorCheckResult<ContainsDependentPackageArgs, ContainsDependentPackageData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> definition, DataSourceCollection dataSources, DetectorCheckResult<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> result, CancellationToken cancellationToken)
     {
         if (dataSources.TryGetSources(ProcessDataSource.Id, out IProcessDataSource[] processes))
         {
@@ -172,7 +171,7 @@ public static class ContainsDependentPackageCheck
 
                         if (packageNameMatch)
                         {
-                            result.OutputData = new ContainsDependentPackageData(package);
+                            result.OutputData = new ContainsPackagedDependencyData(package);
                             result.CheckStatus = DetectorCheckStatus.CompletedPassed;
                             break;
                         }
