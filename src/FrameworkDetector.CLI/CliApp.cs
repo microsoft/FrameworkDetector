@@ -74,10 +74,10 @@ public partial class CliApp
             GetRunCommand(),
         };
 
-        var config = new CommandLineConfiguration(rootCommand);
+        var config = new InvocationConfiguration();
         config.EnableDefaultExceptionHandler = false;
 
-        var result = config.Parse(args);
+        var result = rootCommand.Parse(args);
         // Note: When "-v" specified without a value we get "null" so our default becomes the default value of the property.
         var verbosityString = result.GetValue(verbosityOption);
         IncludeChildren = result.GetValue(includeChildrenOption);
@@ -95,7 +95,7 @@ public partial class CliApp
 
         PrintInfo("Verbosity set to {0} - Running as Admin: {1}", Verbosity, WindowsIdentity.IsRunningAsAdmin);
 
-        return await result.InvokeAsync(cancellationToken);
+        return await result.InvokeAsync(config, cancellationToken);
     }
 
     private void PrintResult(ToolRunResult result)

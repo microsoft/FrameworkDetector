@@ -5,6 +5,7 @@
     <RootNamespace>FrameworkDetector.Test</RootNamespace>
     <IsPackable>false</IsPackable>
     <IsPublishable>false</IsPublishable>
+    <NoWarn>$(NoWarn);MSTEST0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
