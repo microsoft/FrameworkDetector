@@ -14,9 +14,9 @@ public static class PackageExtensions
     /// Helper to be able to get all package metadata recursively for process package and dependencies
     /// </summary>
     /// <param name="pkg">Package to retrieve metadata on.</param>
-    /// <param name="topLevel">When true, includes information about the metadata of dependencies. Defaults to true to include the details of the top-most dependencies of the root/parent package.</param>
-    /// <returns></returns>
-    public static PackageMetadata GetMetadata(this Package pkg, bool topLevel = true)
+    /// <param name="includeTopLevelDependencyInfo">When true, includes information about the metadata of direct dependencies. Defaults to true to include the details of the top-most dependencies of the root/parent package when called without arguments.</param>
+    /// <returns><see cref="PackageMetadata"/> block with available information about a <see cref="Package"/>.</returns>
+    public static PackageMetadata GetMetadata(this Package pkg, bool includeTopLevelDependencyInfo = true)
     {
         // Note: There's a lot of paths, these seem most relevant?
         // Most Path locations only available 19041+, see Version History: https://learn.microsoft.com/uwp/api/windows.applicationmodel.package
@@ -41,10 +41,10 @@ public static class PackageExtensions
         // Get Dependency Info only for the top-level package, not for dependencies of dependencies
         // Note: I don't think we should need to worry about dependencies of dependencies, as we should know what a top-level framework dependency is comprised of.
         PackageMetadata[] dependencies = [];
-        if (topLevel)
+        if (includeTopLevelDependencyInfo)
         {
             dependencies = pkg.Dependencies
-                              .Select(p => p.GetMetadata(false))
+                              .Select(p => p.GetMetadata(false)) // false to not include the information of dependencies of dependencies (can get recursive, so this is just a first-level flag)
                               .ToArray();
         }
 
