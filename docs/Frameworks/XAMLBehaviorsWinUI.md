@@ -6,12 +6,12 @@ website: https://github.com/microsoft/XamlBehaviors/wiki
 source: https://github.com/microsoft/XamlBehaviors
 category: Library
 keywords: Framework Detector, .NET, XAML, WinUI, UWP, Windows App SDK
-ms.date: 10/20/2025
+ms.date: 11/19/2025
 author: michael-hawker
 status: Placeholder
 ---
 
-# XAML Behaviors for WinUI
+# XAML Behaviors for WinUI (XBWinUI)
 
 ## Summary
 

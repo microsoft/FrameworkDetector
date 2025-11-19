@@ -1,11 +1,11 @@
 ---
 id: ComCtl
-title: Microsoft Common Controls (ComCtl)
+title: Microsoft Common Controls
 description: A set of window classes implemented by Comctl32.dll included with Windows.
 website: https://learn.microsoft.com/windows/win32/controls/common-controls-intro
 category: Library
 keywords: Framework Detector, Windows, Common Controls, Comctl32
-ms.date: 10/13/2025
+ms.date: 11/19/2025
 author: jonthysell
 status: Detectable
 ---
@@ -14,7 +14,7 @@ status: Detectable
 
 ## Summary
 
-The Microsoft Common Controls (ComCtl) is a set of windows that are implemented by the common control library, Comctl32.dll, which is a DLL included with the Windows operating system.
+Microsoft Common Controls (ComCtl) is a set of windows that are implemented by the common control library, Comctl32.dll, which is a DLL included with the Windows operating system.
 
 **Website:** [ComCtl Docs](https://learn.microsoft.com/windows/win32/controls/common-controls-intro)
 
@@ -38,7 +38,7 @@ Windows 2000, XP, Vista, 7 SP1, 8, 8.1, 10, and 11
 
 ## How to Detect
 
-**Implementation:** [ComCtlDetector](/src/FrameworkDetector/Detectors/Library/ComCtlDetector.cs)
+**Implementation:** [ComCtlDetector](/src/FrameworkDetector/Detectors/ComCtlDetector.cs)
 
 ### Runtime Detection
 

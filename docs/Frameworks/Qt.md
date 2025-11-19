@@ -1,25 +1,25 @@
 ---
 id: Qt
-title: Qt ("cute")
+title: Qt Framework
 description: A cross-platform UI framework written in C++ which supports running apps on Linux, Windows, macOS, iOS, Android, and embedded systems.
-website: https://www.qt.io/
-source: https://code.qt.io/cgit/qt/qtbase.git/
+website: https://qt.io
+source: https://code.qt.io/cgit/qt/qtbase.git
 category: Framework
 keywords: Framework Detector, UI, Cross-Platform, C++
-ms.date: 10/20/2025
+ms.date: 11/19/2025
 author: michael-hawker
 status: Experimental
 ---
 
-# Qt
+# Qt (Qt)
 
 ## Summary
 
-Qt (pronounced "cute") is a cross-platform UI framework written in C++ which supports running apps on Linux, Windows, macOS, iOS, Android, and embedded systems.
+The Qt Framework (Qt, pronounced "cute") is a cross-platform UI framework written in C++ which supports running apps on Linux, Windows, macOS, iOS, Android, and embedded systems.
 
 It supports various other languages through various language bindings, like Python, Java, JavaScript, Rust, Go, C#, D, and Haskell.
 
-**Website:** [Qt Website](https://www.qt.io/)
+**Website:** [Qt Website](https://qt.io)
 
 ### Languages
 
@@ -41,14 +41,14 @@ TBD
 
 Other well-known applications using Qt:
 
-- [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve)
-- [Krita](https://krita.org/) - [Source Code](https://invent.kde.org/graphics/krita) 
-- [Mathematica](https://www.wolfram.com/mathematica/)
-- [Wireshark](https://www.wireshark.org/) - [Source Code](https://gitlab.com/wireshark/wireshark)
+- [DaVinci Resolve](https://blackmagicdesign.com/products/davinciresolve)
+- [Krita](https://krita.org) - [Source Code](https://invent.kde.org/graphics/krita) 
+- [Mathematica](https://wolfram.com/mathematica)
+- [Wireshark](https://wireshark.org) - [Source Code](https://gitlab.com/wireshark/wireshark)
 
 ## How to Detect
 
-**Implementation:** [QtDetector](/src/FrameworkDetector/Detectors/Frameworks/QtDetector.cs)
+**Implementation:** [QtDetector](/src/FrameworkDetector/Detectors/QtDetector.cs)
 
 TBD
 
@@ -62,6 +62,6 @@ TBD
 
 ## Resources
 
-- [Qt Website](https://www.qt.io/)
-- [Qt Source Repo](https://code.qt.io/cgit/qt/qtbase.git/)
+- [Qt Website](https://qt.io)
+- [Qt Source Repo](https://code.qt.io/cgit/qt/qtbase.git)
 - [Qt Wikipedia Page](https://en.wikipedia.org/wiki/Qt_(software))

@@ -2,22 +2,22 @@
 id: Win2D
 title: Win2D
 description: XAML Behaviors are easy-to-use means of adding common and reusable interactivity to your WinUI applications with minimal code.
-website: https://microsoft.github.io/Win2D/html/Introduction.htm
+website: https://microsoft.github.io/Win2D
 source: https://github.com/microsoft/Win2D
 category: Library
 keywords: Framework Detector, XAML, WinUI, UWP,  Windows App SDK, Direct2D, Win2D
-ms.date: 10/20/2025
+ms.date: 11/19/2025
 author: michael-hawker
 status: Experimental
 ---
 
-# XAML Behaviors for WinUI
+# Win2D (Win2D)
 
 ## Summary
 
 Win2D is an easy-to-use Windows Runtime API for immediate mode 2D graphics rendering with GPU acceleration. It is available to C#, C++ and VB developers writing apps for the Windows Universal Platform (UWP) or Windows App SDK. It utilizes the power of Direct2D, and integrates seamlessly with XAML and CoreWindow.
 
-**Website:** [Win2D Docs](https://microsoft.github.io/Win2D/html/Introduction.htm)
+**Website:** [Win2D Docs](https://microsoft.github.io/Win2D)
 
 ### Languages
 
@@ -44,7 +44,7 @@ Win2D depends on either:
 
 ## How to Detect
 
-**Implementation:** [Win2DDetector](/src/FrameworkDetector/Detectors/Graphics/Win2DDetector.cs)
+**Implementation:** [Win2DDetector](/src/FrameworkDetector/Detectors/Win2DDetector.cs)
 
 TBD
 
@@ -64,6 +64,6 @@ It is not possible to definitively determine the use of Win2D by an app by detec
 
 ## Resources
 
-- [Win2D Docs](https://microsoft.github.io/Win2D/html/Introduction.htm)
+- [Win2D Docs](https://microsoft.github.io/Win2D)
 - [Win2D Github Source](https://github.com/microsoft/Win2D)
 - [Win2D Example Gallery Source](https://github.com/microsoft/Win2D-Samples)

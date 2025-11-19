@@ -8,17 +8,15 @@ using FrameworkDetector.Checks;
 using FrameworkDetector.Engine;
 using FrameworkDetector.Models;
 
-using static FrameworkDetector.Checks.ContainsPackagedDependencyCheck;
-
 namespace FrameworkDetector.Detectors;
 
 /// <summary>
-/// Detector for Windows App SDK (WinAppSDK).
-/// Built according to TODO.
+/// Detector for the Windows App SDK (WinAppSDK).
+/// Built according to docs/Frameworks/WinAppSDK.md.
 /// </summary>
-public class WindowsAppSDKDetector : IDetector
+public class WinAppSDKDetector : IDetector
 {
-    public string Name => nameof(WindowsAppSDKDetector);
+    public string Name => nameof(WinAppSDKDetector);
 
     public string Description => "Windows App SDK";
 
@@ -26,7 +24,7 @@ public class WindowsAppSDKDetector : IDetector
 
     public DetectorCategory Category => DetectorCategory.Framework;
 
-    public WindowsAppSDKDetector()
+    public WinAppSDKDetector()
     {
     }
 

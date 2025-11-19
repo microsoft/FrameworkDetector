@@ -5,7 +5,7 @@ description: A framework for embedding Chromium-based browsers in other applicat
 source: https://bitbucket.org/chromiumembedded/cef
 category: Component
 keywords: Framework Detector, Web, Embedded, Chrome
-ms.date: 10/13/2025 
+ms.date: 11/19/2025
 author: jonthysell
 status: Detectable
 ---

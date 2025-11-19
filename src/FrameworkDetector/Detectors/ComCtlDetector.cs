@@ -8,7 +8,7 @@ namespace FrameworkDetector.Detectors;
 
 /// <summary>
 /// Detector for Common Controls (ComCtl).
-/// Built according to docs/Library/ComCtl.md.
+/// Built according to docs/Frameworks/ComCtl.md.
 /// </summary>
 public class ComCtlDetector : IDetector 
 {

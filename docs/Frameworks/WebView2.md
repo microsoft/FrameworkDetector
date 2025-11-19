@@ -1,11 +1,11 @@
 ---
 id: WebView2
-title: Microsoft Edge WebView2 (WebView2)
+title: Microsoft Edge WebView2
 description: A framework for embedding the Chromium-based Microsoft Edge browser in other applications.
 website: https://developer.microsoft.com/microsoft-edge/webview2
 category: Component
 keywords: Framework Detector, Web, Embedded, Edge, Chromium
-ms.date: 10/13/2025
+ms.date: 11/19/2025
 author: jonthysell
 status: Detectable
 ---

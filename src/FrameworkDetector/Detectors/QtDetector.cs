@@ -7,14 +7,14 @@ using FrameworkDetector.Engine;
 namespace FrameworkDetector.Detectors;
 
 /// <summary>
-/// Detector for Qt ("cute").
+/// Detector for Qt Framework (Qt).
 /// Built according to docs/Frameworks/Qt.md.
 /// </summary>
 public class QtDetector : IDetector 
 {
     public string Name => nameof(QtDetector);
 
-    public string Description => "Qt (\"cute\")";
+    public string Description => "Qt Framework";
 
     public string FrameworkId => "Qt";
 

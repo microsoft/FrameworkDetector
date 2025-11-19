@@ -8,7 +8,7 @@ namespace FrameworkDetector.Detectors;
 
 /// <summary>
 /// Detector for the Win2D library.
-/// Built according to docs/Library/Win2D.md.
+/// Built according to docs/Frameworks/Win2D.md.
 /// </summary>
 public class Win2DDetector : IDetector
 {

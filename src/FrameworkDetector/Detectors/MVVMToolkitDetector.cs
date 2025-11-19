@@ -8,7 +8,7 @@ namespace FrameworkDetector.Detectors;
 
 /// <summary>
 /// Detector for the MVVM Toolkit (MVVMToolkit).
-/// Built according to docs/Library/dotnet/MVVMToolkit.md.
+/// Built according to docs/Frameworks/MVVMToolkit.md.
 /// </summary>
 public class MVVMToolkitDetector : IDetector
 {

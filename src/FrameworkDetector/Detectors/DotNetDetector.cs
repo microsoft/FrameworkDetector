@@ -6,6 +6,10 @@ using FrameworkDetector.Engine;
 
 namespace FrameworkDetector.Detectors;
 
+/// <summary>
+/// Detector for Microsoft .NET (DotNet)
+/// Built according to TODO
+/// </summary>
 public class DotNetDetector : IDetector 
 {
     public string Name => nameof(DotNetDetector);

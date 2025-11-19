@@ -1,12 +1,12 @@
 ---
 id: WinUI2
-title: WinUI 2 for UWP (WinUI2)
+title: WinUI 2 for UWP
 description: An extension library delivering newer controls for UWP apps independent of Windows OS version.
 website: https://learn.microsoft.com/windows/uwp/get-started/winui2
 source: https://github.com/microsoft/microsoft-ui-xaml
 category: Framework
 keywords: Framework Detector, UI, WinUI, UWP, MUX, MUXC, XAML
-ms.date: 10/15/2025
+ms.date: 11/19/2025
 author: jonthysell
 status: Detectable
 ---
@@ -41,7 +41,7 @@ Windows 10, and 11
 
 ## How to Detect
 
-**Implementation:** [WinUI2Detector](/src/FrameworkDetector/Detectors/Frameworks/WinUI2Detector.cs)
+**Implementation:** [WinUI2Detector](/src/FrameworkDetector/Detectors/WinUI2Detector.cs)
 
 ### Runtime Detection
 

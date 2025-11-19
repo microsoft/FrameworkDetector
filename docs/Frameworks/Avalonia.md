@@ -1,12 +1,12 @@
 ---
 id: Avalonia
-title: Avalonia UI (Avalonia)
+title: Avalonia UI
 description: A cross-platform UI framework for .NET supporting Windows, macOS, Linux, iOS, Android, and WebAssembly.
 website: https://avaloniaui.net
 source: https://github.com/AvaloniaUI/Avalonia
 category: Framework
 keywords: Framework Detector, UI, Cross-Platform, XAML, .NET
-ms.date: 10/13/2025
+ms.date: 11/19/2025
 author: jonthysell
 status: Detectable
 ---
@@ -15,9 +15,9 @@ status: Detectable
 
 ## Summary
 
-Avalonia is a cross-platform UI framework for dotnet, providing a flexible styling system and supporting a wide range of platforms such as Windows, macOS, Linux, iOS, Android and WebAssembly.
+Avalonia UI (Avalonia) is a cross-platform UI framework for dotnet, providing a flexible styling system and supporting a wide range of platforms such as Windows, macOS, Linux, iOS, Android and WebAssembly.
 
-**Website:** [Avalonia UI Website](https://avaloniaui.net)
+**Website:** [Avalonia Website](https://avaloniaui.net)
 
 ### Languages
 
@@ -52,7 +52,7 @@ For more information on the differences, see [NET implementations](https://learn
 
 ## How to Detect
 
-**Implementation:** [AvaloniaDetector](/src/FrameworkDetector/Detectors/Frameworks/AvaloniaDetector.cs)
+**Implementation:** [AvaloniaDetector](/src/FrameworkDetector/Detectors/AvaloniaDetector.cs)
 
 ### Runtime Detection
 
@@ -70,5 +70,5 @@ It is not possible to definitively determine the use of Avalonia by an app by de
 
 ## Resources
 
-- [Avalonia UI Website](https://avaloniaui.net)
+- [Avalonia Website](https://avaloniaui.net)
 - [Avalonia GitHub Source](https://github.com/AvaloniaUI/Avalonia)

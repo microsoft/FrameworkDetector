@@ -8,11 +8,11 @@ namespace FrameworkDetector.Detectors;
 
 /// <summary>
 /// Detector for the Windows Community Toolkit (WCT).
-/// Built according to docs/Library/dotnet/WindowsCommunityToolkit.md.
+/// Built according to docs/Frameworks/WindowsCommunityToolkit.md.
 /// </summary>
-public class WindowsCommunityToolkitDetector : IDetector
+public class WCTDetector : IDetector
 {
-    public string Name => nameof(WindowsCommunityToolkitDetector);
+    public string Name => nameof(WCTDetector);
 
     public string Description => "Windows Community Toolkit";
 
@@ -20,7 +20,7 @@ public class WindowsCommunityToolkitDetector : IDetector
 
     public DetectorCategory Category => DetectorCategory.Library;
 
-    public WindowsCommunityToolkitDetector()
+    public WCTDetector()
     {
     }
 

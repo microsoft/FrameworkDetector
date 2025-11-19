@@ -1,12 +1,12 @@
 # Framework Detector
 
-A library and set of tools for detecting the frameworks and components used to build an application. e.g. Is this app a WPF app or a WinUI app? Does it use WebView2?
+A library and set of tools for detecting the frameworks (UI frameworks, runtimes, components, libraries, etc.) used to build an application. e.g. Is this app a WPF app or a WinUI app? Does it use WebView2?
 
 The Windows app eco-system is extraordinarily diverse with a long history, and developers often find very creative ways of using and combining the available app frameworks to meet their needs. As such, it can be a very challenging problem to programmatically detect what frameworks any particular app is using. Existing existing data sources are often plagued with inaccuracies, and lack detailed information as to how they made their determinations.
 
 As such, the primary design goals of Framework Detector are to ensure the most specific, highest-quality, and openly auditable detections of frameworks or component used by applications. This includes:
 
-1. Documenting the expected detection process for each supported framework (see the [docs](./docs/) folder)
+1. Documenting the expected detection process for each supported framework (see the [docs](./docs) folder)
 2. Implementing framework detector definitions which compose common checks using an easy-to-verify, fluent API (i.e. `ContainsLoadedModule("TargetFramework.dll")`)
 3. Capturing all relevant metadata (input data and checks run) alongside results, to ensure a clear paper-trail
 

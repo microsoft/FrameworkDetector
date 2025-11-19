@@ -1,10 +1,10 @@
 ---
 id: DUI
-title: Microsoft DirectUI (DUI)
+title: Microsoft DirectUI
 description: An internal Windows Shell UI framework included with the Windows operating system.
 category: Framework
 keywords: Framework Detector, DirectUI, Windows Shell, Internal
-ms.date: 10/13/2025
+ms.date: 11/19/2025
 author: jonthysell
 status: Detectable
 ---
@@ -38,7 +38,7 @@ Windows 7 SP1, 8, 8.1, 10, and 11
 
 ## How to Detect
 
-**Implementation:** [DUIDetector](/src/FrameworkDetector/Detectors/Frameworks/DUIDetector.cs)
+**Implementation:** [DUIDetector](/src/FrameworkDetector/Detectors/DUIDetector.cs)
 
 ### Runtime Detection
 

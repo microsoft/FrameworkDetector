@@ -118,15 +118,15 @@ public partial class CliApp
     private async Task PrintFrameworksByIdAsync()
     {
         // TODO: Maybe tailor table display on verbosity?
-        var table = new ConsoleTable("DetectorId",
+        var table = new ConsoleTable("FrameworkId",
                                      "Title",
                                      "Status",
-                                     "Doc Updated",
-                                     "Source Repo");
+                                     "Updated",
+                                     "Website");
 
         table.Options.EnableCount = false;
 
-        foreach (var (detectorId, doc) in DetectorDocsById
+        foreach (var (frameworkId, doc) in DetectorDocsById
             .OrderBy(d => d.Key))
         {
             await Task.Yield();
@@ -139,8 +139,8 @@ public partial class CliApp
                              DocStatus.Placeholder => "🟥",
                              _ => "?"
                          },
-                         string.Format("{0:MM/dd/yyyy}", doc.Metadata?.Date),
-                         doc.Metadata?.Source?.Replace("https://", "").Replace("github.com/", ""));
+                         string.Format("{0:MM/dd/yy}", doc.Metadata?.Date),
+                         (doc.Metadata?.Website ?? doc.Metadata?.Source)?.Replace("https://", ""));
         }
 
         Console.WriteLine();
@@ -166,8 +166,7 @@ public partial class CliApp
                 foreach (var resourceName in AssemblyInfo.ToolAssembly.GetManifestResourceNames())
                 {
                     var filename = Path.GetFileName(resourceName);
-                    if (Path.GetExtension(filename) == ".md" 
-                        && !filename.EndsWith("FrameworkDetectionTemplate.md"))
+                    if (Path.GetExtension(filename) == ".md")
                     {
                         var docStream = AssemblyInfo.ToolAssembly.GetManifestResourceStream(resourceName);
 

@@ -1,12 +1,12 @@
 ---
 id: RNW
-title: React Native for Windows (RNW)
+title: React Native for Windows
 description: Enables React Native developers to build native Windows applications.
 website: https://microsoft.github.io/react-native-windows
 source: https://github.com/microsoft/react-native-windows
 category: Framework
 keywords: Framework Detector, React Native, Windows, JavaScript, TypeScript
-ms.date: 10/13/2025
+ms.date: 11/19/2025
 author: jonthysell
 status: Detectable
 ---
@@ -58,7 +58,7 @@ React Native for Windows has two parallel implementations: the *Old Architecture
 
 ## How to Detect
 
-**Implementation:** [RNWDetector](/src/FrameworkDetector/Detectors/Frameworks/RNWDetector.cs)
+**Implementation:** [RNWDetector](/src/FrameworkDetector/Detectors/RNWDetector.cs)
 
 ### Runtime Detection
 

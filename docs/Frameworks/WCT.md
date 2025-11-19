@@ -1,12 +1,12 @@
 ---
 id: WCT
-title: Windows Community Toolkit (WCT)
+title: Windows Community Toolkit
 description: Collection of controls, helpers and extension for WinUI 2, WinUI 3, and Uno Platform developers.
 website: https://learn.microsoft.com/dotnet/communitytoolkit/windows/
 source: https://github.com/CommunityToolkit/windows
 category: Library
 keywords: Framework Detector, WinUI, UWP, Uno, XAML, .NET, Community Toolkit
-ms.date: 10/20/2025
+ms.date: 11/19/2025
 author: michael-hawker
 status: Experimental
 ---

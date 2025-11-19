@@ -1,12 +1,12 @@
 ---
 id: MVVMToolkit
-title: MVVM Toolkit (MVVMToolkit)
+title: MVVM Toolkit
 description: A modern, fast, and modular MVVM library that is part of the .NET Community Toolkit.
 website: https://learn.microsoft.com/dotnet/communitytoolkit/mvvm
 source: https://github.com/CommunityToolkit/dotnet
 category: Library
 keywords: Framework Detector, MVVM, .NET, Community Toolkit
-ms.date: 10/13/2025
+ms.date: 11/19/2025
 author: jonthysell
 status: Detectable
 ---

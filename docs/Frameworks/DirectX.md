@@ -1,20 +1,20 @@
 ---
 id: DirectX
-title: DirectX
+title: Microsoft DirectX
 description: Microsoft DirectX graphics provides a set of APIs that you can use to create games and other high-performance multimedia applications.
 website: https://learn.microsoft.com/windows/win32/directx
 category: Library
 keywords: Framework Detector, DirectX, Win32, UWP, Direct3D, Direct2D
-ms.date: 10/24/2025
+ms.date: 11/19/2025
 author: michael-hawker
 status: Experimental
 ---
 
-# DirectX
+# Microsoft DirectX (DirectX)
 
 ## Summary
 
-Microsoft DirectX graphics provides a set of APIs that you can use to create games and other high-performance multimedia applications. DirectX graphics includes support for high-performance 2-D and 3-D graphics.
+Microsoft DirectX (DirectX) graphics provides a set of APIs that you can use to create games and other high-performance multimedia applications. DirectX graphics includes support for high-performance 2-D and 3-D graphics.
 
 **Website:** [DirectX Win32 Docs](https://learn.microsoft.com/windows/win32/directx)
 
@@ -40,7 +40,7 @@ TBD
 
 ## How to Detect
 
-**Implementation:** [DirectXDetector](/src/FrameworkDetector/Detectors/Graphics/DirectXDetector.cs)
+**Implementation:** [DirectXDetector](/src/FrameworkDetector/Detectors/DirectXDetector.cs)
 
 TBD
 

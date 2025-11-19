@@ -1,12 +1,12 @@
 ---
 id: WinUI3
-title: WinUI 3 for Windows App SDK (WinUI3)
+title: WinUI 3 for Windows App SDK
 description: The native UI platform component shipped with Windows App SDK, extracted from Windows.
 website: https://learn.microsoft.com/windows/apps/winui/winui3
 source: https://github.com/microsoft/microsoft-ui-xaml
 category: Framework
 keywords: Framework Detector, UI, WinUI, Windows App SDK, XAML
-ms.date: 10/15/2025
+ms.date: 11/19/2025
 author: jonthysell
 status: Detectable
 ---
@@ -39,7 +39,7 @@ Windows 10, and 11
 
 ## How to Detect
 
-**Implementation:** [WinUI3Detector](/src/FrameworkDetector/Detectors/Frameworks/WinUI3Detector.cs)
+**Implementation:** [WinUI3Detector](/src/FrameworkDetector/Detectors/WinUI3Detector.cs)
 
 ### Runtime Detection
 

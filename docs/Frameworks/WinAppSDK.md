@@ -1,12 +1,12 @@
 ---
 id: WinAppSDK
-title: Windows App SDK (WinAppSDK)
+title: Windows App SDK
 description: The Windows App SDK empowers all Windows desktop apps with modern Windows UI, APIs, and platform features, including back-compat support, shipped via NuGet.
 website: https://learn.microsoft.com/windows/apps/windows-app-sdk
 source: https://github.com/microsoft/WindowsAppSDK
 category: Component
 keywords: Framework Detector, Windows App SDK, AI
-ms.date: 10/21/2025
+ms.date: 11/19/2025
 author: michael-hawker
 status: Experimental
 ---
@@ -39,7 +39,7 @@ N/A
 
 ## How to Detect
 
-**Implementation:** [WindowsAppSDKDetector](/src/FrameworkDetector/Detectors/Component/WindowsAppSDKDetector.cs)
+**Implementation:** [WindowsAppSDKDetector](/src/FrameworkDetector/Detectors/WindowsAppSDKDetector.cs)
 
 ### Runtime Detection
 

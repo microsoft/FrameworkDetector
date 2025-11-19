@@ -8,7 +8,7 @@ namespace FrameworkDetector.Detectors;
 
 /// <summary>
 /// Detector for Microsoft EdgeHTML (WebView1).
-/// Built according to docs/Component/WebView/WebView1.md.
+/// Built according to docs/Frameworks/WebView1.md.
 /// </summary>
 public class WebView1Detector : IDetector 
 {
