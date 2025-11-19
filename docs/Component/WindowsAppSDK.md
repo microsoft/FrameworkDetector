@@ -47,7 +47,22 @@ TBD
 
 ### Static Detection
 
-It is not possible to definitively determine the use of WinAppSDK by an app by detecting the presence or absence of the aforementioned module file(s) within the app's binaries.
+If given an app package (MSIX), check the package dependencies in the `AppxManifest.xml` for `Microsoft.WindowsAppRuntime*` to detect the WinAppSDK:
+
+```xml
+<PackageDependency Name="Microsoft.WindowsAppRuntime.1.8" MinVersion="8000.616.304.0" Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"/>
+```
+
+Full example of a dependency section:
+
+```xml
+<Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22621.0"/>
+    <PackageDependency Name="Microsoft.WindowsAppRuntime.1.8" MinVersion="8000.616.304.0" Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"/>
+    <PackageDependency Name="Microsoft.VCLibs.140.00.UWPDesktop" MinVersion="14.0.33728.0" Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"/>
+    <PackageDependency Name="Microsoft.VCLibs.140.00" MinVersion="14.0.33519.0" Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"/>
+</Dependencies>
+```
 
 ## Resources
 

@@ -41,9 +41,10 @@ TBD
 
 Other well-known applications using Qt:
 
-- DaVinci Resolve
-- Krita
-- Mathematica
+- [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve)
+- [Krita](https://krita.org/) - [Source Code](https://invent.kde.org/graphics/krita) 
+- [Mathematica](https://www.wolfram.com/mathematica/)
+- [Wireshark](https://www.wireshark.org/) - [Source Code](https://gitlab.com/wireshark/wireshark)
 
 ## How to Detect
 

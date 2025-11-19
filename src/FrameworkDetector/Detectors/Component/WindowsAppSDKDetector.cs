@@ -1,8 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
+using System.Linq;
+
 using FrameworkDetector.Checks;
 using FrameworkDetector.Engine;
+using FrameworkDetector.Models;
+
+using static FrameworkDetector.Checks.ContainsPackagedDependencyCheck;
 
 namespace FrameworkDetector.Detectors;
 
@@ -29,7 +35,7 @@ public class WindowsAppSDKDetector : IDetector
         return this.Create()
             // Use Package Info first if found
             .Required("Dependent Package", checks => checks
-                .ContainsDependentPackage("Microsoft.WindowsAppRuntime").GetVersionFromPackageIdentity(PackageVersionType.FullNameSpecial))
+                .ContainsPackagedDependency("Microsoft.WindowsAppRuntime").GetVersionFromPackageFullName())
             // Otherwise look for key modules
             .Required("Resources Module", checks => checks
                 .ContainsLoadedModule("Microsoft.Windows.ApplicationModel.Resources.dll"))

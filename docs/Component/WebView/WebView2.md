@@ -68,6 +68,22 @@ however it is not possible to determine the specific version of WebView2 used wh
 
 It is not possible to definitively determine the use of WebView2 by an app by detecting the presence or absence of the aforementioned module file(s) within the app's binaries. In the simplest case, any of the aforementioned module(s) could have been included mistakenly.
 
+If the app is packaged, it may register WebView2 activatable classes in its `AppxManifest.xml` as shown below:
+
+```xml
+<Extension Category="windows.activatableClass.inProcessServer">
+    <InProcessServer>
+        <Path>Microsoft.Web.WebView2.Core.dll</Path>
+        <ActivatableClass ActivatableClassId="Microsoft.Web.WebView2.Core.CoreWebView2ControllerWindowReference" ThreadingModel="both"/>
+        <ActivatableClass ActivatableClassId="Microsoft.Web.WebView2.Core.CoreWebView2Environment" ThreadingModel="both"/>
+        <ActivatableClass ActivatableClassId="Microsoft.Web.WebView2.Core.CoreWebView2CompositionController" ThreadingModel="both"/>
+        <ActivatableClass ActivatableClassId="Microsoft.Web.WebView2.Core.CoreWebView2EnvironmentOptions" ThreadingModel="both"/>
+        <ActivatableClass ActivatableClassId="Microsoft.Web.WebView2.Core.CoreWebView2CustomSchemeRegistration" ThreadingModel="both"/>
+        <ActivatableClass ActivatableClassId="Microsoft.Web.WebView2.Core.CoreWebView2Controller" ThreadingModel="both"/>
+    </InProcessServer>
+</Extension>
+```
+
 ## Resources
 
 - [WebView2 Website](https://developer.microsoft.com/microsoft-edge/webview2)

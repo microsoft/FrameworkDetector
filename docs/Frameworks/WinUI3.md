@@ -53,6 +53,8 @@ The specific version of WinUI3 can be gotten by checking the FileVersion of this
 
 It is not possible to definitively determine the use of WinUI3 by an app by detecting the presence or absence of the aforementioned module file(s) within the app's binaries.
 
+The presense of the WinAppSDK as a package dependency may indicate usage of WinUI3, but it is not definitive as WinAppSDK can be used without WinUI3.
+
 ## Resources
 
 - [WinUI3 Docs](https://learn.microsoft.com/windows/apps/winui/winui3)
