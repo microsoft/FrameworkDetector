@@ -9,7 +9,9 @@ Set-Location -Path $RepoRoot
 
 Write-Host "Test FrameworkDetector..."
 try {
-    dotnet test --configuration $Configuration "$RepoRoot\src\FrameworkDetector.sln"
+    $GitCommitVersion = & git log -1 --date=format:"%y%j.%H%M" --format="%ad"
+
+    dotnet test --configuration $Configuration -p:GitCommitVersion="$GitCommitVersion" "$RepoRoot\src\FrameworkDetector.sln"
     if (!$?) {
     	throw 'Tests failed!'
     }

@@ -4,8 +4,10 @@
     <Product>FrameworkDetector</Product>
     <Company>Microsoft</Company>
     <Authors>Microsoft</Authors>
+    <Description>A library and set of tools for detecting the frameworks and components used to build an application.</Description>
     <Copyright>Copyright © Microsoft Corporation</Copyright>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/microsoft/FrameworkDetector</RepositoryUrl>
     <TargetFramework>net10.0-windows10.0.19041</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
@@ -14,6 +16,7 @@
     <AssemblyVersion Condition="'$(GitCommitVersion)' != ''" >$(Version).$(GitCommitVersion)</AssemblyVersion>
     <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">$(Version).0.0</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
+    <PackageVersion>$(AssemblyVersion)</PackageVersion>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <DebugType>embedded</DebugType>
     <LangVersion>preview</LangVersion>
@@ -21,6 +24,10 @@
 
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\README.md">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>

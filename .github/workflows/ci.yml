@@ -27,3 +27,20 @@ jobs:
 
     - name: Test FrameworkDetector
       run: ./scripts/test.ps1 -Configuration ${{ matrix.configuration }}
+
+  ci_package:
+    runs-on: windows-latest
+    needs: ci_build
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Build FrameworkDetector NuGet
+      run: ./scripts/build-nuget-release.ps1
+
+    - name: Build FrameworkDetector.CLI Release
+      run: ./scripts/build-cli-release.ps1
