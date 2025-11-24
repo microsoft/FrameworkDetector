@@ -86,19 +86,13 @@ You can use `--filterWindowProcesses false` to inspect all processes. Some proce
 ### Inspect by Process Id (PID)
 
 ```ps
-FrameworkDetector.CLI.exe inspect --processId ###
-```
-
-*OR*
-
-```ps
-FrameworkDetector.CLI.exe inspect -pid ###
+FrameworkDetector.CLI.exe inspect process -id ###
 ```
 
 ### Inspect by Process Name
 
 ```ps
-FrameworkDetector.CLI.exe inspect --processName ###
+FrameworkDetector.CLI.exe inspect process -name ###
 ```
 
 ### Run a Process and Inspect it
@@ -122,7 +116,7 @@ You can use the PowerShell `Get-AppxPackage` command to find the full package na
 Use the `-o` parameter to specify the output file (or folder for `all`). This will save detailed results in a JSON file format. E.g.
 
 ```ps
-FrameworkDetector.CLI.exe inspect -pid ### -o myresults.json
+FrameworkDetector.CLI.exe inspect process -id ### -o myresults.json
 ```
 
 When using the `all` command, a file will be created for each process in the folder specified by the `-o` parameter. You can use the `--outputFileTemplate` parameter to customize the resulting file names.
