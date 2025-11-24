@@ -18,16 +18,22 @@ public record ToolRunResult
 
     public string ToolVersion { get; }
 
+    /// <summary>
+    /// Optionalally provided information from the tool about the arguments passed into it to record the results.
+    /// </summary>
+    public string? ToolArguments { get; }
+
     public string Timestamp { get; }
 
     public Dictionary<string, List<object?>?> DataSources { get; } 
 
     public List<DetectorResult> DetectorResults { get; set; } = [];
 
-    public ToolRunResult(string toolName, string toolVersion)
+    public ToolRunResult(string toolName, string toolVersion, string toolArguments)
     {
         ToolName = toolName;
         ToolVersion = toolVersion;
+        ToolArguments = toolArguments;
         Timestamp = DateTime.UtcNow.ToString("O");
 
         DataSources = new Dictionary<string, List<object?>?>();

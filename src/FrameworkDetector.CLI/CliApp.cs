@@ -27,10 +27,14 @@ public partial class CliApp
 
     private bool WaitForInputIdle { get; set; }
 
+    private string? ArgumentMetadata { get; set; }
+
     public CliApp() { }
 
     public async Task<int> RunAsync(string[] args, CancellationToken cancellationToken)
     {
+        ArgumentMetadata = string.Join(' ', args.Select(a => a.Contains(' ') ? $"\"{a}\"" : a));
+
         Console.OutputEncoding = Encoding.UTF8;
 
         // TODO: Figure out how to accept the various shortnames, not specified in help:

@@ -152,7 +152,7 @@ public partial class CliApp
 
         DetectionEngine engine = Services.GetRequiredService<DetectionEngine>();
 
-        ToolRunResult result = await engine.DumpAgainstSourcesAsync(sources, cancellationToken);
+        ToolRunResult result = await engine.DumpAgainstSourcesAsync(sources, cancellationToken, ArgumentMetadata);
 
         Console.WriteLine();
 

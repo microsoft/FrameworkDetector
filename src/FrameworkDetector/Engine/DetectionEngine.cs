@@ -41,13 +41,27 @@ public class DetectionEngine
         }
     }
 
-    public async Task<ToolRunResult> DetectAgainstSourcesAsync(DataSourceCollection sources, CancellationToken cancellationToken)
+    /// <summary>
+    /// Runs all configured detectors against the provided data sources asynchronously and returns the aggregated
+    /// detection results.
+    /// </summary>
+    /// <remarks>Detection progress is reported via the DetectionProgressChanged event after each detector
+    /// completes. If the operation is canceled, partial results are returned. This method is thread-safe and executes
+    /// detector checks in parallel for improved performance.</remarks>
+    /// <param name="sources">A collection of data sources to be analyzed by the detectors. Each source must be properly initialized and
+    /// contain the relevant data for detection.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the detection operation before completion.</param>
+    /// <param name="toolArguments">Optional arguments to record as being passed to the tool. null if no arguments metadata was provided.</param>
+    /// <returns>A ToolRunResult containing the results of all detector runs, including metadata and individual detector
+    /// outcomes.</returns>
+    /// <exception cref="ArgumentException">Thrown if any required or optional check group for a detector does not contain at least one check.</exception>
+    public async Task<ToolRunResult> DetectAgainstSourcesAsync(DataSourceCollection sources, CancellationToken cancellationToken, string? toolArguments = null)
     {
         int totalDetectors = _detectors.Count;
         int processedDetectors = 0;
         ConcurrentBag<DetectorResult> allDetectorResults = new();
 
-        var result = new ToolRunResult(AssemblyInfo.ToolName, AssemblyInfo.ToolVersion);
+        var result = new ToolRunResult(AssemblyInfo.ToolName, AssemblyInfo.ToolVersion, toolArguments);
 
         try
         {
@@ -176,11 +190,12 @@ public class DetectionEngine
     /// </summary>
     /// <param name="sources"></param>
     /// <param name="cancellationToken"></param>
+    /// <param name="toolArguments">Metadata to record of arguments used to run the tool.</param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    public async Task<ToolRunResult> DumpAgainstSourcesAsync(DataSourceCollection sources, CancellationToken cancellationToken)
+    public async Task<ToolRunResult> DumpAgainstSourcesAsync(DataSourceCollection sources, CancellationToken cancellationToken, string? toolArguments = null)
     {
-        var result = new ToolRunResult(AssemblyInfo.ToolName, AssemblyInfo.ToolVersion);
+        var result = new ToolRunResult(AssemblyInfo.ToolName, AssemblyInfo.ToolVersion, toolArguments);
 
         try
         {

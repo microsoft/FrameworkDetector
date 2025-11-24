@@ -53,7 +53,7 @@ public partial class CliApp
             }
         };
 
-        ToolRunResult result = await engine.DetectAgainstSourcesAsync(sources, cancellationToken);
+        ToolRunResult result = await engine.DetectAgainstSourcesAsync(sources, cancellationToken, ArgumentMetadata);
 
         if (Verbosity > VerbosityLevel.Quiet)
         {
