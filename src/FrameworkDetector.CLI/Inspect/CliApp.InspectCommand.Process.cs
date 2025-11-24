@@ -163,33 +163,6 @@ public partial class CliApp
 
         DataSourceCollection sources = new(processDataSources.ToArray());
 
-        DetectionEngine engine = Services.GetRequiredService<DetectionEngine>();
-        engine.DetectionProgressChanged += (s, e) =>
-        {
-            if (Verbosity > VerbosityLevel.Quiet)
-            {
-                Console.Write($"\rInspecting {target}: {e.Progress:000.0}%");
-            }
-        };
-
-        ToolRunResult result = await engine.DetectAgainstSourcesAsync(sources, cancellationToken);
-
-        if (Verbosity > VerbosityLevel.Quiet)
-        {
-            Console.WriteLine();
-        }
-
-        if (cancellationToken.IsCancellationRequested)
-        {
-            PrintWarning("Inspection was canceled prior to completion.");
-            Console.WriteLine();
-        }
-
-        PrintResult(result);
-
-        TrySaveOutput(result, outputFilename);
-
-        // TODO: Return false on failure
-        return true;
+        return await RunInspectionAsync(target, sources, outputFilename, cancellationToken);
     }
 }
