@@ -22,7 +22,7 @@ Framework Detector is meant to support collaborative, iterative development. The
 Use the `build.ps1` script to build the project:
 
 ```ps
-pwsh scripts\build.ps1
+pwsh -Command scripts\build.ps1
 ```
 
 Otherwise you can manually build the solution at `src\FrameworkDetector.sln` with Visual Studio or on the command-line:
@@ -42,7 +42,7 @@ dotnet run [parameters]
 Use the `test.ps1` script to run all tests:
 
 ```ps
-pwsh scripts\test.ps1
+pwsh -Command scripts\test.ps1
 ```
 
 Otherwise you can manually test in Visual Studio or on the command-line:
@@ -56,7 +56,17 @@ dotnet test ./src/FrameworkDetector.sln
 Use the `build-cli-release.ps1` script to create a self-contained `FrameworkDetector.CLI.exe` tool:
 
 ```ps
-pwsh scripts\build-cli-release.ps1
+pwsh -Command scripts\build-cli-release.ps1
+```
+
+It will be available in the `bld\` folder.
+
+## Build NuGet Release
+
+Use the `build-nuget-release.ps1` script to create the `FrameworkDetector` NuGet package:
+
+```ps
+pwsh -Command scripts\build-nuget-release.ps1
 ```
 
 It will be available in the `bld\` folder.

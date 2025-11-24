@@ -5,6 +5,7 @@
     <StartupObject>FrameworkDetector.CLI.Program</StartupObject>
     <AssemblyName>FrameworkDetector.CLI</AssemblyName>
     <RootNamespace>FrameworkDetector.CLI</RootNamespace>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

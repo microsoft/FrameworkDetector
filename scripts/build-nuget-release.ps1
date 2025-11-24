@@ -8,7 +8,7 @@ param(
 $StartingLocation = Get-Location
 Set-Location -Path $RepoRoot
 
-Write-Host "Build FrameworkDetector.CLI release..."
+Write-Host "Build FrameworkDetector NuGet..."
 try {
 
     $OutputRoot = Resolve-Path $OutputRoot
@@ -25,7 +25,7 @@ try {
 
     $GitCommitVersion = & git log -1 --date=format:"%y%j.%H%M" --format="%ad"
 
-    dotnet build -restore -target:Publish -p:RuntimeIdentifier=win-x64 -p:PublishSingleFile=true -p:IncludeAllContentForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:SelfContained=true -p:Configuration=Release -p:PublishDir="$OutputRoot" -p:GitCommitVersion="$GitCommitVersion" "$RepoRoot\src\FrameworkDetector.sln"
+    dotnet build -restore -target:pack -p:IncludeSymbols=true -p:PackageOutputPath="$OutputRoot" -p:GitCommitVersion="$GitCommitVersion" "$RepoRoot\src\FrameworkDetector.sln"
     if (!$?) {
     	throw 'Build failed!'
     }
