@@ -1,0 +1,52 @@
+name: FrameworkDetector Publish
+
+trigger: none
+pr: none
+
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    sdl:
+      sourceAnalysisPool:
+        name: Azure-Pipelines-1ESPT-ExDShared
+        image: windows-latest
+        os: windows
+    stages:
+    - stage: Build
+      jobs:
+      - job: Build
+        pool:
+          name: Azure-Pipelines-1ESPT-ExDShared
+          image: windows-latest
+          os: windows
+          hostArchitecture: amd64
+
+        steps:
+          - checkout: self
+          - task: UseDotNet@2
+            displayName: Setup .NET 10
+            inputs:
+              version: 10.0.x
+          - pwsh: |
+              ./scripts/build-nuget-release.ps1 -OutputRoot "$(Build.StagingDirectory)\FrameworkDetector.NuGet"
+            displayName: Build FrameworkDetector NuGet
+          - pwsh: |
+              ./scripts/build-cli-release.ps1 -OutputRoot "$(Build.StagingDirectory)\FrameworkDetector.CLI"
+            displayName: Build FrameworkDetector CLI
+
+        templateContext:
+            outputs:
+              - output: pipelineArtifact
+                displayName: 'Upload FrameworkDetector NuGet Build Artifacts'
+                artifactName: FrameworkDetector.NuGet
+                targetPath: $(Build.StagingDirectory)\FrameworkDetector.NuGet
+            - output: pipelineArtifact
+                displayName: 'Upload FrameworkDetector CLI Build Artifacts'
+                artifactName: FrameworkDetector.CLI
+                targetPath: $(Build.StagingDirectory)\FrameworkDetector.CLI

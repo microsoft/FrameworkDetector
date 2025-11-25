@@ -1,5 +1,5 @@
 param(
-    [string] $OutputRoot = ".\bld\FrameworkDetector",
+    [string]$OutputRoot = ".\bld\FrameworkDetector",
     [switch]$Clean = $False
 )
 
