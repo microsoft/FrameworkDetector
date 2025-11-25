@@ -46,7 +46,7 @@ extends:
                 displayName: 'Upload FrameworkDetector NuGet Build Artifacts'
                 artifactName: FrameworkDetector.NuGet
                 targetPath: $(Build.StagingDirectory)\FrameworkDetector.NuGet
-            - output: pipelineArtifact
+              - output: pipelineArtifact
                 displayName: 'Upload FrameworkDetector CLI Build Artifacts'
                 artifactName: FrameworkDetector.CLI
                 targetPath: $(Build.StagingDirectory)\FrameworkDetector.CLI
