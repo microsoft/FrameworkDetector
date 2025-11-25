@@ -10,9 +10,6 @@ Set-Location -Path $RepoRoot
 
 Write-Host "Build FrameworkDetector NuGet..."
 try {
-
-    $OutputRoot = Resolve-Path $OutputRoot
-
     if ($Clean -and (Test-Path "$OutputRoot")) {
         Write-Host "Clean output folder..."
         Remove-Item "$OutputRoot" -Recurse | Out-Null

@@ -9,7 +9,6 @@ Set-Location -Path $RepoRoot
 
 Write-Host "Build FrameworkDetector..."
 try {
-
     $GitCommitVersion = & git log -1 --date=format:"%y%j.%H%M" --format="%ad"
 
     dotnet build -restore --configuration $Configuration -p:GitCommitVersion="$GitCommitVersion" "$RepoRoot\src\FrameworkDetector.sln"
