@@ -1,5 +1,7 @@
 # Framework Detector
 
+[![CI](https://github.com/microsoft/FrameworkDetector/actions/workflows/ci.yml/badge.svg)](https://github.com/microsoft/FrameworkDetector/actions/workflows/ci.yml)
+
 A library and set of tools for detecting the frameworks (UI frameworks, runtimes, components, libraries, etc.) used to build an application. e.g. Is this app a WPF app or a WinUI app? Does it use WebView2?
 
 The Windows app eco-system is extraordinarily diverse with a long history, and developers often find very creative ways of using and combining the available app frameworks to meet their needs. As such, it can be a very challenging problem to programmatically detect what frameworks any particular app is using. Existing existing data sources are often plagued with inaccuracies, and lack detailed information as to how they made their determinations.
