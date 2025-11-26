@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
+using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
 
 namespace FrameworkDetector.Checks;
@@ -26,7 +28,7 @@ public static class ContainsImportedFunctionCheck
         return new(
             Name: nameof(ContainsImportedFunctionCheck),
             Description: args.GetDescription(),
-            DataSourceIds: [ProcessDataSource.Id],
+            DataSourceInterfaces: [typeof(IImportedFunctionsDataSource)],
             PerformCheckAsync);
     }
 
@@ -81,9 +83,9 @@ public static class ContainsImportedFunctionCheck
     /// Output data for <see cref="ContainsImportedFunctionCheck"/>.
     /// </summary>
     /// <param name="importedFunctionFound">The imported function found.</param>
-    public readonly struct ContainsImportedFunctionData(ProcessImportedFunctionsMetadata importedFunctionFound)
+    public readonly struct ContainsImportedFunctionData(ExecutableImportedFunctionsMetadata importedFunctionFound)
     {
-        public ProcessImportedFunctionsMetadata ImportedFunctionFound { get; } = importedFunctionFound;
+        public ExecutableImportedFunctionsMetadata ImportedFunctionFound { get; } = importedFunctionFound;
     }
 
     extension(IDetectorCheckGroup @this)
@@ -114,64 +116,56 @@ public static class ContainsImportedFunctionCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsImportedFunctionArgs, ContainsImportedFunctionData> definition, DataSourceCollection dataSources, DetectorCheckResult<ContainsImportedFunctionArgs, ContainsImportedFunctionData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsImportedFunctionArgs, ContainsImportedFunctionData> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<ContainsImportedFunctionArgs, ContainsImportedFunctionData> result, CancellationToken cancellationToken)
     {
-        if (dataSources.TryGetSources(ProcessDataSource.Id, out IProcessDataSource[] processes))
+        result.CheckStatus = DetectorCheckStatus.InProgress;
+
+        foreach (var input in inputs)
         {
-            result.CheckStatus = DetectorCheckStatus.InProgress;
-
-            foreach (var process in processes)
+            if (input is IImportedFunctionsDataSource dataSource
+                && dataSource.ImportedFunctions is not null)
             {
-                var importedFunctions = process.ProcessMetadata?.ImportedFunctions;
-                if (importedFunctions is not null)
+                foreach (var importedFunction in dataSource.ImportedFunctions)
                 {
-                    foreach (var importedFunction in importedFunctions)
+                    await Task.Yield();
+
+                    if (cancellationToken.IsCancellationRequested)
                     {
-                        await Task.Yield();
+                        result.CheckStatus = DetectorCheckStatus.Canceled;
+                        break;
+                    }
 
-                        if (cancellationToken.IsCancellationRequested)
+                    var moduleNameMatch = definition.CheckArguments.ModuleName is null || string.Equals(definition.CheckArguments.ModuleName, importedFunction.ModuleName, StringComparison.InvariantCultureIgnoreCase);
+
+                    if (moduleNameMatch)
+                    {
+                        var functionMatch = (definition.CheckArguments.FunctionName is null && definition.CheckArguments.DelayLoaded is null)
+                                            || (importedFunction.Functions is not null && importedFunction.Functions.Any(f =>
                         {
-                            result.CheckStatus = DetectorCheckStatus.Canceled;
+                            return (definition.CheckArguments.FunctionName is null || f.Name.Contains(definition.CheckArguments.FunctionName, StringComparison.InvariantCultureIgnoreCase))
+                                && (definition.CheckArguments.DelayLoaded is null || definition.CheckArguments.DelayLoaded == f.DelayLoaded);
+                        }));
+
+                        if (functionMatch)
+                        {
+                            result.OutputData = new ContainsImportedFunctionData(importedFunction);
+                            result.CheckStatus = DetectorCheckStatus.CompletedPassed;
                             break;
-                        }
-
-                        var moduleNameMatch = definition.CheckArguments.ModuleName is null || string.Equals(definition.CheckArguments.ModuleName, importedFunction.ModuleName, StringComparison.InvariantCultureIgnoreCase);
-
-                        if (moduleNameMatch)
-                        {
-                            var functionMatch = (definition.CheckArguments.FunctionName is null && definition.CheckArguments.DelayLoaded is null)
-                                             || (importedFunction.Functions is not null && importedFunction.Functions.Any(f =>
-                            {
-                                return (definition.CheckArguments.FunctionName is null || f.Name.Contains(definition.CheckArguments.FunctionName, StringComparison.InvariantCultureIgnoreCase))
-                                    && (definition.CheckArguments.DelayLoaded is null || definition.CheckArguments.DelayLoaded == f.DelayLoaded);
-                            }));
-
-                            if (functionMatch)
-                            {
-                                result.OutputData = new ContainsImportedFunctionData(importedFunction);
-                                result.CheckStatus = DetectorCheckStatus.CompletedPassed;
-                                break;
-                            }
                         }
                     }
                 }
-
-                // Stop evaluating other process data sources if we've gotten a pass or cancel
-                if (result.CheckStatus != DetectorCheckStatus.InProgress)
-                {
-                    break;
-                }
             }
 
-            if (result.CheckStatus == DetectorCheckStatus.InProgress)
+            // Stop evaluating other process data sources if we've gotten a pass or cancel
+            if (result.CheckStatus != DetectorCheckStatus.InProgress)
             {
-                result.CheckStatus = DetectorCheckStatus.CompletedFailed;
+                break;
             }
         }
-        else
+
+        if (result.CheckStatus == DetectorCheckStatus.InProgress)
         {
-            // No CheckInput = Error
-            result.CheckStatus = DetectorCheckStatus.Error;
+            result.CheckStatus = DetectorCheckStatus.CompletedFailed;
         }
     }
 }

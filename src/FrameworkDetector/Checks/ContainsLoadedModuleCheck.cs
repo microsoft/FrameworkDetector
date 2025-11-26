@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -12,6 +13,7 @@ using Semver;
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
 using FrameworkDetector.Models;
+using FrameworkDetector.Inputs;
 
 namespace FrameworkDetector.Checks;
 
@@ -28,7 +30,7 @@ public static class ContainsLoadedModuleCheck
         return new(
             Name: nameof(ContainsLoadedModuleCheck),
             Description: args.GetDescription(),
-            DataSourceIds: [ProcessDataSource.Id],
+            DataSourceInterfaces: [typeof(IModulesDataSource)],
             PerformCheckAsync);
     }
 
@@ -41,7 +43,7 @@ public static class ContainsLoadedModuleCheck
     /// <param name="productName">A loaded module's product name must match this text, if specified.</param>
     /// <param name="productVersionRange">A loaded module's product version must match this semver version range sepc, if specified.</param>
     /// <param name="checkForNgenModule">Whether or not to also match NGENed versions (.ni.dll) of the specified filename and/or original filename.</param>
-    public readonly struct ContainsLoadedModuleArgs(string? filename = null, string? originalFilename = null, string? fileVersionRange = null, string? productName = null, string? productVersionRange = null, bool? checkForNgenModule = null) : ICheckArgs
+    public readonly struct ContainsLoadedModuleArgs(string? filename = null, string? originalFilename = null, string? fileVersionRange = null, string? productName = null, string? productVersionRange = null, bool? checkForNgenModule = null, bool? checkIsLoaded = null) : ICheckArgs
     {
         public string? Filename { get; } = filename;
 
@@ -54,6 +56,8 @@ public static class ContainsLoadedModuleCheck
         public string? ProductVersionRange { get; } = productVersionRange;
 
         public bool? CheckForNgenModule { get; } = checkForNgenModule;
+
+        public bool? CheckIsLoaded { get; } = checkIsLoaded;
 
         public string GetDescription()
         {
@@ -154,8 +158,9 @@ public static class ContainsLoadedModuleCheck
         /// <param name="productName">A loaded module's product name must match this text, if specified.</param>
         /// <param name="productVersionRange">A loaded module's product version must match this semver version range sepc, if specified.</param>
         /// <param name="checkForNgenModule">Whether or not to also match NGENed versions (.ni.dll) of the specified filename and/or original filename.</param>
+        /// <param name="checkIsLoaded"></param>Whether or not to check if the module was discovered in use.</param>
         /// <returns></returns>
-        public ContainsLoadedModuleDetectorCheckGroup ContainsLoadedModule(string? filename = null, string? originalFilename = null, string? fileVersionRange = null, string? productName = null, string? productVersionRange = null, bool? checkForNgenModule = null)
+        public ContainsLoadedModuleDetectorCheckGroup ContainsLoadedModule(string? filename = null, string? originalFilename = null, string? fileVersionRange = null, string? productName = null, string? productVersionRange = null, bool? checkForNgenModule = null, bool? checkIsLoaded = null)
         {
             var dcg = @this.Get();
 
@@ -163,7 +168,7 @@ public static class ContainsLoadedModuleCheck
             // The metadata along with the live data sources (as indicated by the registration)
             // will be passed into the PerformCheckAsync method below to do the actual check.
 
-            var args = new ContainsLoadedModuleArgs(filename, originalFilename, fileVersionRange, productName, productVersionRange, checkForNgenModule);
+            var args = new ContainsLoadedModuleArgs(filename, originalFilename, fileVersionRange, productName, productVersionRange, checkForNgenModule, checkIsLoaded);
             args.Validate();
 
             dcg.AddCheck(new CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData>(GetCheckRegistrationInfo(args), args));
@@ -190,72 +195,66 @@ public static class ContainsLoadedModuleCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData> definition, DataSourceCollection dataSources, DetectorCheckResult<ContainsLoadedModuleArgs, ContainsLoadedModuleData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsLoadedModuleArgs, ContainsLoadedModuleData> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<ContainsLoadedModuleArgs, ContainsLoadedModuleData> result, CancellationToken cancellationToken)
     {
-        if (dataSources.TryGetSources(ProcessDataSource.Id, out IProcessDataSource[] processes))
+        result.CheckStatus = DetectorCheckStatus.InProgress;
+
+        string? nGenModuleName = null;
+        string? nGenOriginalModuleName = null;
+        bool checkForNgenModule = definition.CheckArguments.CheckForNgenModule ?? false;
+        if (checkForNgenModule)
         {
-            result.CheckStatus = DetectorCheckStatus.InProgress;
+            nGenModuleName = Path.ChangeExtension(definition.CheckArguments.Filename, ".ni" + Path.GetExtension(definition.CheckArguments.Filename));
+            nGenOriginalModuleName = Path.ChangeExtension(definition.CheckArguments.OriginalFilename, ".ni" + Path.GetExtension(definition.CheckArguments.OriginalFilename));
+        }
 
-            string? nGenModuleName = null;
-            string? nGenOriginalModuleName = null;
-            bool checkForNgenModule = definition.CheckArguments.CheckForNgenModule ?? false;
-            if (checkForNgenModule)
-            {
-                nGenModuleName = Path.ChangeExtension(definition.CheckArguments.Filename, ".ni" + Path.GetExtension(definition.CheckArguments.Filename));
-                nGenOriginalModuleName = Path.ChangeExtension(definition.CheckArguments.OriginalFilename, ".ni" + Path.GetExtension(definition.CheckArguments.OriginalFilename));
-            }
+        var fileVersionRange = definition.CheckArguments.FileVersionRange is not null ? SemVersionRange.Parse(definition.CheckArguments.FileVersionRange, SemVersionRangeOptions.OptionalPatch) : null;
+        var productVersionRange = definition.CheckArguments.ProductVersionRange is not null ? SemVersionRange.Parse(definition.CheckArguments.ProductVersionRange, SemVersionRangeOptions.OptionalPatch) : null;
 
-            var fileVersionRange = definition.CheckArguments.FileVersionRange is not null ? SemVersionRange.Parse(definition.CheckArguments.FileVersionRange, SemVersionRangeOptions.OptionalPatch) : null;
-            var productVersionRange = definition.CheckArguments.ProductVersionRange is not null ? SemVersionRange.Parse(definition.CheckArguments.ProductVersionRange, SemVersionRangeOptions.OptionalPatch) : null;
-
-            foreach (var process in processes)
-            {
-                var loadedModules = process.ProcessMetadata?.LoadedModules;
-                if (loadedModules is not null)
+        foreach (var input in inputs)
+        {
+            if (input is IModulesDataSource dataSource
+                && dataSource.Modules is not null)
+            { 
+                foreach (var module in dataSource.Modules)
                 {
-                    foreach (var module in loadedModules)
+                    await Task.Yield();
+
+                    if (cancellationToken.IsCancellationRequested)
                     {
-                        await Task.Yield();
+                        result.CheckStatus = DetectorCheckStatus.Canceled;
+                        break;
+                    }
 
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            result.CheckStatus = DetectorCheckStatus.Canceled;
-                            break;
-                        }
+                    var filenameMatch = definition.CheckArguments.Filename is null || string.Equals(definition.CheckArguments.Filename, module.Filename, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenModuleName, module.Filename, StringComparison.InvariantCultureIgnoreCase));
+                    var fileVersionMatch = fileVersionRange is null || SemVersion.TryParseCleaned(module.FileVersion, out var fileVersion) && fileVersionRange.Contains(fileVersion);
 
-                        var filenameMatch = definition.CheckArguments.Filename is null || string.Equals(definition.CheckArguments.Filename, module.Filename, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenModuleName, module.Filename, StringComparison.InvariantCultureIgnoreCase));
-                        var fileVersionMatch = fileVersionRange is null || SemVersion.TryParseCleaned(module.FileVersion, out var fileVersion) && fileVersionRange.Contains(fileVersion);
+                    var originalFilenameMatch = definition.CheckArguments.OriginalFilename is null || string.Equals(definition.CheckArguments.OriginalFilename, module.OriginalFilename, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenOriginalModuleName, module.OriginalFilename, StringComparison.InvariantCultureIgnoreCase));
 
-                        var originalFilenameMatch = definition.CheckArguments.OriginalFilename is null || string.Equals(definition.CheckArguments.OriginalFilename, module.OriginalFilename, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenOriginalModuleName, module.OriginalFilename, StringComparison.InvariantCultureIgnoreCase));
+                    var productNameMatch = definition.CheckArguments.ProductName is null || string.Equals(definition.CheckArguments.ProductName, module.ProductName, StringComparison.InvariantCultureIgnoreCase);
+                    var productVersionMatch = productVersionRange is null || SemVersion.TryParseCleaned(module.ProductVersion, out var productVersion) && productVersionRange.Contains(productVersion);
 
-                        var productNameMatch = definition.CheckArguments.ProductName is null || string.Equals(definition.CheckArguments.ProductName, module.ProductName, StringComparison.InvariantCultureIgnoreCase);
-                        var productVersionMatch = productVersionRange is null || SemVersion.TryParseCleaned(module.ProductVersion, out var productVersion) && productVersionRange.Contains(productVersion);
+                    var isLoadedMatch = definition.CheckArguments.CheckIsLoaded is null || module.IsLoaded;
 
-                        if (filenameMatch && fileVersionMatch && originalFilenameMatch && productNameMatch && productVersionMatch)
-                        {
-                            result.OutputData = new ContainsLoadedModuleData(module);
-                            result.CheckStatus = DetectorCheckStatus.CompletedPassed;
-                            break;
-                        }
+                    if (filenameMatch && fileVersionMatch && originalFilenameMatch && productNameMatch && productVersionMatch && isLoadedMatch)
+                    {
+                        result.OutputData = new ContainsLoadedModuleData(module);
+                        result.CheckStatus = DetectorCheckStatus.CompletedPassed;
+                        break;
                     }
                 }
-
-                // Stop evaluating other process data sources if we've gotten a pass or cancel
-                if (result.CheckStatus != DetectorCheckStatus.InProgress)
-                {
-                    break;
-                }
             }
 
-            if (result.CheckStatus == DetectorCheckStatus.InProgress)
+            // Stop evaluating other process data sources if we've gotten a pass or cancel
+            if (result.CheckStatus != DetectorCheckStatus.InProgress)
             {
-                result.CheckStatus = DetectorCheckStatus.CompletedFailed;
+                break;
             }
         }
-        else
+
+        if (result.CheckStatus == DetectorCheckStatus.InProgress)
         {
-            // No CheckInput = Error
-            result.CheckStatus = DetectorCheckStatus.Error;
+            result.CheckStatus = DetectorCheckStatus.CompletedFailed;
         }
     }
 }

@@ -2,12 +2,14 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
+using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
 
 namespace FrameworkDetector.Checks;
@@ -25,7 +27,7 @@ public static class ContainsExportedFunctionCheck
         return new(
             Name: nameof(ContainsExportedFunctionCheck),
             Description: args.GetDescription(),
-            DataSourceIds: [ProcessDataSource.Id],
+            DataSourceInterfaces: [typeof(IExportedFunctionsDataSource)],
             PerformCheckAsync);
     }
 
@@ -56,9 +58,9 @@ public static class ContainsExportedFunctionCheck
     /// Output data for <see cref="ContainsExportedFunctionCheck"/>.
     /// </summary>
     /// <param name="exportedFunctionFound">The exported function found.</param>
-    public readonly struct ContainsExportedFunctionData(ProcessExportedFunctionsMetadata exportedFunctionFound)
+    public readonly struct ContainsExportedFunctionData(ExecutableExportedFunctionsMetadata exportedFunctionFound)
     {
-        public ProcessExportedFunctionsMetadata ExportedFunctionFound { get; } = exportedFunctionFound;
+        public ExecutableExportedFunctionsMetadata ExportedFunctionFound { get; } = exportedFunctionFound;
     }
 
     extension(IDetectorCheckGroup @this)
@@ -87,54 +89,46 @@ public static class ContainsExportedFunctionCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsExportedFunctionArgs, ContainsExportedFunctionData> definition, DataSourceCollection dataSources, DetectorCheckResult<ContainsExportedFunctionArgs, ContainsExportedFunctionData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsExportedFunctionArgs, ContainsExportedFunctionData> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<ContainsExportedFunctionArgs, ContainsExportedFunctionData> result, CancellationToken cancellationToken)
     {
-        if (dataSources.TryGetSources(ProcessDataSource.Id, out IProcessDataSource[] processes))
+        result.CheckStatus = DetectorCheckStatus.InProgress;
+
+        foreach (var input in inputs)
         {
-            result.CheckStatus = DetectorCheckStatus.InProgress;
-
-            foreach (var process in processes)
+            if (input is IExportedFunctionsDataSource dataSource
+                && dataSource.ExportedFunctions is not null)
             {
-                var exportedFunctions = process.ProcessMetadata?.ExportedFunctions;
-                if (exportedFunctions is not null)
+                foreach (var exportedFunction in dataSource.ExportedFunctions)
                 {
-                    foreach (var exportedFunction in exportedFunctions)
+                    await Task.Yield();
+
+                    if (cancellationToken.IsCancellationRequested)
                     {
-                        await Task.Yield();
+                        result.CheckStatus = DetectorCheckStatus.Canceled;
+                        break;
+                    }
 
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            result.CheckStatus = DetectorCheckStatus.Canceled;
-                            break;
-                        }
+                    var nameMatch = definition.CheckArguments.Name is null || exportedFunction.Name is null || exportedFunction.Name.Contains(definition.CheckArguments.Name, StringComparison.InvariantCultureIgnoreCase);
 
-                        var nameMatch = definition.CheckArguments.Name is null || exportedFunction.Name is null || exportedFunction.Name.Contains(definition.CheckArguments.Name, StringComparison.InvariantCultureIgnoreCase);
-
-                        if (nameMatch)
-                        {
-                            result.OutputData = new ContainsExportedFunctionData(exportedFunction);
-                            result.CheckStatus = DetectorCheckStatus.CompletedPassed;
-                            break;
-                        }
+                    if (nameMatch)
+                    {
+                        result.OutputData = new ContainsExportedFunctionData(exportedFunction);
+                        result.CheckStatus = DetectorCheckStatus.CompletedPassed;
+                        break;
                     }
                 }
-
-                // Stop evaluating other process data sources if we've gotten a pass or cancel
-                if (result.CheckStatus != DetectorCheckStatus.InProgress)
-                {
-                    break;
-                }
             }
 
-            if (result.CheckStatus == DetectorCheckStatus.InProgress)
+            // Stop evaluating other process data sources if we've gotten a pass or cancel
+            if (result.CheckStatus != DetectorCheckStatus.InProgress)
             {
-                result.CheckStatus = DetectorCheckStatus.CompletedFailed;
+                break;
             }
         }
-        else
+
+        if (result.CheckStatus == DetectorCheckStatus.InProgress)
         {
-            // No CheckInput = Error
-            result.CheckStatus = DetectorCheckStatus.Error;
+            result.CheckStatus = DetectorCheckStatus.CompletedFailed;
         }
     }
 }

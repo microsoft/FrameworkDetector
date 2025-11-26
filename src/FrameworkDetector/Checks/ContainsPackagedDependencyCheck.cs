@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
+using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
 
 namespace FrameworkDetector.Checks;
@@ -26,7 +28,7 @@ public static class ContainsPackagedDependencyCheck
         return new(
             Name: nameof(ContainsPackagedDependencyCheck),
             Description: args.GetDescription(),
-            DataSourceIds: [ProcessDataSource.Id],
+            DataSourceInterfaces: [typeof(IPackageMetadataDataSource)],
             PerformCheckAsync
             );
     }
@@ -174,55 +176,47 @@ public static class ContainsPackagedDependencyCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> definition, DataSourceCollection dataSources, DetectorCheckResult<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> result, CancellationToken cancellationToken)
     {
-        if (dataSources.TryGetSources(ProcessDataSource.Id, out IProcessDataSource[] processes))
+        result.CheckStatus = DetectorCheckStatus.InProgress;
+
+        foreach (var input in inputs)
         {
-            result.CheckStatus = DetectorCheckStatus.InProgress;
-
-            foreach (var process in processes)
+            if (input is IPackageMetadataDataSource dataSource
+                && dataSource.PackageMetadata is not null)
             {
-                var packageMetadata = process.ProcessMetadata?.AppPackageMetadata;
-                if (packageMetadata is not null && packageMetadata.PackageMetadata is not null)
+                var dependentPackages = dataSource.PackageMetadata.Dependencies;
+                foreach (var package in dependentPackages)
                 {
-                    var dependentPackages = packageMetadata.PackageMetadata.Dependencies;
-                    foreach (var package in dependentPackages)
+                    await Task.Yield();
+
+                    if (cancellationToken.IsCancellationRequested)
                     {
-                        await Task.Yield();
+                        result.CheckStatus = DetectorCheckStatus.Canceled;
+                        break;
+                    }
 
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            result.CheckStatus = DetectorCheckStatus.Canceled;
-                            break;
-                        }
+                    var packageNameMatch = definition.CheckArguments.PackageFullName is null || package.PackageDisplayName is null || package.Id.FullName.Contains(definition.CheckArguments.PackageFullName, StringComparison.InvariantCultureIgnoreCase);
 
-                        var packageNameMatch = definition.CheckArguments.PackageFullName is null || package.PackageDisplayName is null || package.Id.FullName.Contains(definition.CheckArguments.PackageFullName, StringComparison.InvariantCultureIgnoreCase);
-
-                        if (packageNameMatch)
-                        {
-                            result.OutputData = new ContainsPackagedDependencyData(package);
-                            result.CheckStatus = DetectorCheckStatus.CompletedPassed;
-                            break;
-                        }
+                    if (packageNameMatch)
+                    {
+                        result.OutputData = new ContainsPackagedDependencyData(package);
+                        result.CheckStatus = DetectorCheckStatus.CompletedPassed;
+                        break;
                     }
                 }
-
-                // Stop evaluating other process data sources if we've gotten a pass or cancel
-                if (result.CheckStatus != DetectorCheckStatus.InProgress)
-                {
-                    break;
-                }
             }
 
-            if (result.CheckStatus == DetectorCheckStatus.InProgress)
+            // Stop evaluating other process data sources if we've gotten a pass or cancel
+            if (result.CheckStatus != DetectorCheckStatus.InProgress)
             {
-                result.CheckStatus = DetectorCheckStatus.CompletedFailed;
+                break;
             }
         }
-        else
+
+        if (result.CheckStatus == DetectorCheckStatus.InProgress)
         {
-            // No CheckInput = Error
-            result.CheckStatus = DetectorCheckStatus.Error;
+            result.CheckStatus = DetectorCheckStatus.CompletedFailed;
         }
     }
 }

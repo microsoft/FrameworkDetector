@@ -1,0 +1,12 @@
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+namespace FrameworkDetector.DataSources;
+
+/// <summary>
+/// Provides metadata about imported functions from an executable.
+/// </summary>
+public interface IImportedFunctionsDataSource : IDataSource
+{
+    ExecutableImportedFunctionsMetadata[] ImportedFunctions { get; }
+}

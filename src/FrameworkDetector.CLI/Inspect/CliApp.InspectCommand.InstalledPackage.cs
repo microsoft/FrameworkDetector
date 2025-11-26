@@ -3,35 +3,41 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 using System.CommandLine;
 using System.CommandLine.Parsing;
-
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Security.Principal;
+using System.Threading;
+using System.Threading.Tasks;
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
-using System.IO;
+using FrameworkDetector.Inputs;
+using FrameworkDetector.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Windows.ApplicationModel;
+using Windows.Management.Deployment;
 
 namespace FrameworkDetector.CLI;
 
 public partial class CliApp
 {
     /// <summary>
-    /// A command which inspects a single loose executable file on the system.
+    /// A command which inspects a single installed application package on the system.
     /// </summary>
     /// <returns><see cref="Command"/></returns>
-    private Command GetInspectExeSubCommand(Option<string?> outputFileOption)
+    private Command GetInspectInstalledPackageSubCommand(Option<string?> outputFileOption)
     {
-        Argument<string?> pathToExeArgument = new("path")
+        Argument<string?> packageFullNameArgument = new("packageFullName")
         {
-            Description = "The full path to the executable file on disk to inspect.",
+            Description = "The Package Full Name of the application to inspect.",
             Arity = ArgumentArity.ExactlyOne,
         };
         
-        Command exeCommand = new("exe", "Inspect an executable file on disk")
+        Command exeCommand = new("app", "Inspect an installed application package")
         {
-            pathToExeArgument
+            packageFullNameArgument
         };
 
         exeCommand.SetAction(async (ParseResult parseResult, CancellationToken cancellationToken) =>
@@ -47,18 +53,22 @@ public partial class CliApp
                 return (int)ExitCode.ArgumentParsingError;
             }
 
-            var pathToExe = parseResult.GetValue(pathToExeArgument);
+            var packageFullName = parseResult.GetValue(packageFullNameArgument);
             var outputFilename = parseResult.GetValue(outputFileOption);
 
-            if (pathToExe is not null)
+            if (packageFullName is not null)
             {
-                if (!File.Exists(pathToExe))
+                PackageManager packageManager = new();
+
+                var package = WindowsIdentity.IsRunningAsAdmin ? packageManager.FindPackage(packageFullName) : packageManager.FindPackageForUser(string.Empty, packageFullName);
+
+                if (package is null)
                 {
-                    PrintError("Could not location file at path: {0}", pathToExe);
+                    PrintError("Could not find installed package with full name: {0}", packageFullName);
                     return (int)ExitCode.ArgumentParsingError;
                 }
 
-                if (await InspectExeAsync(pathToExe, outputFilename, cancellationToken))
+                if (await InspectPackageAsync(package, outputFilename, cancellationToken))
                 {
                     return (int)ExitCode.Success;
                 }
@@ -74,10 +84,9 @@ public partial class CliApp
     }
 
     /// Encapsulation of initializing datasource and grabbing engine reference to kick-off a detection against all registered detectors (see ConfigureServices)
-    private async Task<bool> InspectExeAsync(string pathToExe, string? outputFilename, CancellationToken cancellationToken)
+    private async Task<bool> InspectPackageAsync(Package package, string? outputFilename, CancellationToken cancellationToken)
     {
-        // TODO: Probably have this elsewhere to be called
-        var target = $"exe {pathToExe}";
+        var target = $"app {package.DisplayName}";
 
         PrintInfo("Preparing to inspect {0}...", target);
 
@@ -86,8 +95,8 @@ public partial class CliApp
             Console.Write($"Inspecting {target}:");
         }
 
-        // TODO: Inputs
+        var inputs = await InputHelper.GetInputsFromPackageAsync(package, cancellationToken);
 
-        return await RunInspectionAsync(target, [], outputFilename, cancellationToken);
+        return await RunInspectionAsync(target, inputs, outputFilename, cancellationToken);
     }
 }

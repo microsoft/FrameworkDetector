@@ -16,10 +16,11 @@ using PeNet;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Core;
 using Windows.Management.Deployment;
-using Windows.System;
 using Windows.System.Diagnostics;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+
+using FrameworkDetector.Inputs;
 
 namespace FrameworkDetector;
 
@@ -399,9 +400,9 @@ public static class ProcessExtensions
     /// </summary>
     /// <param name="process">The target process.</param>
     /// <returns>The metadata from each imported function.</returns>
-    public static IEnumerable<ProcessImportedFunctionsMetadata> ProcessImportedFunctionsMetadata(this Process process)
+    public static IEnumerable<ExecutableImportedFunctionsMetadata> ProcessImportedFunctionsMetadata(this Process process)
     {
-        var importedFunctions = new HashSet<ProcessImportedFunctionsMetadata>();
+        var importedFunctions = new HashSet<ExecutableImportedFunctionsMetadata>();
 
         if (process.MainModule is not null && process.MainModule.FileName is not null)
         {
@@ -447,7 +448,7 @@ public static class ProcessExtensions
 
                     foreach (var kvp in tempMap)
                     {
-                        importedFunctions.Add(new ProcessImportedFunctionsMetadata(kvp.Key, kvp.Value.ToArray()));
+                        importedFunctions.Add(new ExecutableImportedFunctionsMetadata(kvp.Key, kvp.Value.ToArray()));
                     }
                 }
             }
@@ -461,9 +462,9 @@ public static class ProcessExtensions
     /// </summary>
     /// <param name="process">The target process.</param>
     /// <returns>The metadata from each exported function.</returns>
-    public static IEnumerable<ProcessExportedFunctionsMetadata> ProcessExportedFunctionsMetadata(this Process process)
+    public static IEnumerable<ExecutableExportedFunctionsMetadata> ProcessExportedFunctionsMetadata(this Process process)
     {
-        var exportedFunctions = new HashSet<ProcessExportedFunctionsMetadata>();
+        var exportedFunctions = new HashSet<ExecutableExportedFunctionsMetadata>();
 
         if (process.MainModule is not null && process.MainModule.FileName is not null)
         {
@@ -477,7 +478,7 @@ public static class ProcessExtensions
                         {
                             if (exportedFunction is not null && exportedFunction.Name is not null)
                             {
-                                exportedFunctions.Add(new ProcessExportedFunctionsMetadata(exportedFunction.Name));
+                                exportedFunctions.Add(new ExecutableExportedFunctionsMetadata(exportedFunction.Name));
                             }
                         }
                     }
@@ -488,7 +489,12 @@ public static class ProcessExtensions
         return exportedFunctions;
     }
 
-    public static async Task<ProcessPackagedAppMetadata?> ProcessPackageMetadataAsync(this Process process)
+    /// <summary>
+    /// Gets a <see cref="Package"/> from a <see cref="Process"/>, used to help create a <see cref="InstalledPackageInput"/> from a <see cref="Process"/>.
+    /// </summary>
+    /// <param name="process"><see cref="Process"/> object to inspect.</param>
+    /// <returns><see cref="Package"/> corresponding to that process, if available. Otherwise null.</returns>
+    public static async Task<Package?> GetPackageFromProcess(this Process process)
     {
         var processInfo = ProcessDiagnosticInfo.TryGetForProcessId((uint)process.Id);
         if (processInfo is null || !processInfo.IsPackaged)
@@ -496,65 +502,37 @@ public static class ProcessExtensions
             return null;
         }
 
-        AppInfo? appInfo = null;
-        if (process.TryGetPackageFamilyName(out var packageFamilyName))
+        if (process.TryGetPackageFamilyName(out var packageFamilyName)
+            && !string.IsNullOrWhiteSpace(packageFamilyName))
         {
-            var packageInfo = await AppDiagnosticInfo.RequestInfoAsync();
-            foreach (var package in packageInfo)
-            {
-                if (package.AppInfo.PackageFamilyName == packageFamilyName)
-                {
-                    appInfo = package.AppInfo;
-                    break;
-                }
-            }
+            // Fallback for older windows versions
+            TryGetPackageFullName(process, out var packageFullName);
+
+            PackageManager packageManager = new();
+
+            var package = WindowsIdentity.IsRunningAsAdmin ? packageManager.FindPackage(packageFullName) : packageManager.FindPackageForUser(string.Empty, packageFullName);
+
+            return package;
+        }
+
+        return null;
+    }
+
+    public static async Task<PackagedAppMetadata?> ProcessPackageMetadataAsync(this Process process)
+    {
+        var processInfo = ProcessDiagnosticInfo.TryGetForProcessId((uint)process.Id);
+        if (processInfo is null || !processInfo.IsPackaged)
+        {
+            return null;
+        }
+
+        if (process.TryGetPackageFamilyName(out var packageFamilyName)
+            && !string.IsNullOrWhiteSpace(packageFamilyName))
+        {
+            // Fallback for older windows versions
+            TryGetPackageFullName(process, out var packageFullName);
             
-            if (appInfo is not null)
-            {
-                Package? package = null;
-
-                // Package property introduced 19041: https://learn.microsoft.com/uwp/api/windows.applicationmodel.appinfo.package
-                if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
-                {
-                    package = appInfo.Package;
-                }
-                else
-                {
-                    // Fallback for older windows versions
-                    if (TryGetPackageFullName(process, out var packageFullName))
-                    {
-
-                        PackageManager packageManager = new();
-
-                        // 1. Find package by full name
-                        if (WindowsIdentity.IsRunningAsAdmin)
-                        {
-
-                            // https://learn.microsoft.com/uwp/api/windows.management.deployment.packagemanager.findpackage
-                            package = packageManager.FindPackage(packageFullName);
-                        }
-                        else
-                        {
-                            // Empty string == current user
-                            // https://learn.microsoft.com/uwp/api/windows.management.deployment.packagemanager.findpackageforuser
-                            package = packageManager.FindPackageForUser(string.Empty, packageFullName);
-                        }
-                    }
-                    else
-                    {
-                        // TODO: How do we bubble up warnings?
-                        // We can't find package, so we don't have extra info needed...
-                        return null;
-                    }
-                }
-
-                var packageMetadata = package is not null ? package.GetMetadata() : null;
-
-                return new ProcessPackagedAppMetadata(appInfo.DisplayInfo.DisplayName,
-                                                    appInfo.DisplayInfo.Description,
-                                                    appInfo.PackageFamilyName,
-                                                    packageMetadata);
-            }
+            return await PackageExtensions.GetPackagedAppMetadataAsync(packageFamilyName, packageFullName);
         }
 
         return null;
@@ -585,9 +563,9 @@ public record ProcessWindowMetadata(string? ClassName = null, string? Text = nul
 
 public record ProcessFunctionMetadata(string Name, bool? DelayLoaded = null);
 
-public record ProcessImportedFunctionsMetadata(string ModuleName, ProcessFunctionMetadata[]? Functions = null) { }
+public record ExecutableImportedFunctionsMetadata(string ModuleName, ProcessFunctionMetadata[]? Functions = null) { }
 
-public record ProcessExportedFunctionsMetadata(string Name) : ProcessFunctionMetadata(Name);
+public record ExecutableExportedFunctionsMetadata(string Name) : ProcessFunctionMetadata(Name);
 
 /// <summary>
 /// Wrapper around <see cref="PackageId"/>.
@@ -598,4 +576,4 @@ public record PackageFlags(bool IsBundle, bool IsDevelopmentMode, bool IsFramewo
 
 public record PackageMetadata(PackageIdentity Id, string PackagePublisherDisplayName, string PackageDisplayName, string PackageDescription, string InstalledPath, string PackageEffectiveExternalPath, string PackageEffectivePath, DateTimeOffset InstalledDate, PackageFlags Flags, PackageMetadata[] Dependencies) { }
 
-public record ProcessPackagedAppMetadata(string AppDisplayName, string AppDescription, string AppPackageFamilyName, PackageMetadata? PackageMetadata) { }
+public record PackagedAppMetadata(string AppDisplayName, string AppDescription, string AppPackageFamilyName, PackageMetadata? PackageMetadata) { }

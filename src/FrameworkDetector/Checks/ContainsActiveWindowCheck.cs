@@ -2,12 +2,14 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
+using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
 
 namespace FrameworkDetector.Checks;
@@ -25,7 +27,7 @@ public static class ContainsActiveWindowCheck
         return new(
             Name: nameof(ContainsActiveWindowCheck),
             Description: args.GetDescription(),
-            DataSourceIds: [ProcessDataSource.Id],
+            DataSourceInterfaces: [typeof(IActiveWindowsDataSource)],
             PerformCheckAsync
             );
     }
@@ -102,55 +104,47 @@ public static class ContainsActiveWindowCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsActiveWindowArgs, ContainsActiveWindowData> definition, DataSourceCollection dataSources, DetectorCheckResult<ContainsActiveWindowArgs, ContainsActiveWindowData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsActiveWindowArgs, ContainsActiveWindowData> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<ContainsActiveWindowArgs, ContainsActiveWindowData> result, CancellationToken cancellationToken)
     {
-        if (dataSources.TryGetSources(ProcessDataSource.Id, out IProcessDataSource[] processes))
+        result.CheckStatus = DetectorCheckStatus.InProgress;
+
+        foreach (var input in inputs)
         {
-            result.CheckStatus = DetectorCheckStatus.InProgress;
-
-            foreach (var process in processes)
+            if (input is IActiveWindowsDataSource dataSource
+                && dataSource.ActiveWindows is not null)
             {
-                var activeWindows = process.ProcessMetadata?.ActiveWindows;
-                if (activeWindows is not null)
+                foreach (var window in dataSource.ActiveWindows)
                 {
-                    foreach (var window in activeWindows)
+                    await Task.Yield();
+
+                    if (cancellationToken.IsCancellationRequested)
                     {
-                        await Task.Yield();
+                        result.CheckStatus = DetectorCheckStatus.Canceled;
+                        break;
+                    }
 
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            result.CheckStatus = DetectorCheckStatus.Canceled;
-                            break;
-                        }
+                    var classNameMatch = definition.CheckArguments.ClassName is null || window.ClassName is null || window.ClassName.Contains(definition.CheckArguments.ClassName, StringComparison.InvariantCultureIgnoreCase);
+                    var textMatch = definition.CheckArguments.Text is null || window.Text is null || window.Text.Contains(definition.CheckArguments.Text, StringComparison.InvariantCultureIgnoreCase);
 
-                        var classNameMatch = definition.CheckArguments.ClassName is null || window.ClassName is null || window.ClassName.Contains(definition.CheckArguments.ClassName, StringComparison.InvariantCultureIgnoreCase);
-                        var textMatch = definition.CheckArguments.Text is null || window.Text is null || window.Text.Contains(definition.CheckArguments.Text, StringComparison.InvariantCultureIgnoreCase);
-
-                        if (classNameMatch && textMatch)
-                        {
-                            result.OutputData = new ContainsActiveWindowData(window);
-                            result.CheckStatus = DetectorCheckStatus.CompletedPassed;
-                            break;
-                        }
+                    if (classNameMatch && textMatch)
+                    {
+                        result.OutputData = new ContainsActiveWindowData(window);
+                        result.CheckStatus = DetectorCheckStatus.CompletedPassed;
+                        break;
                     }
                 }
-
-                // Stop evaluating other process data sources if we've gotten a pass or cancel
-                if (result.CheckStatus != DetectorCheckStatus.InProgress)
-                {
-                    break;
-                }
             }
 
-            if (result.CheckStatus == DetectorCheckStatus.InProgress)
+            // Stop evaluating other process data sources if we've gotten a pass or cancel
+            if (result.CheckStatus != DetectorCheckStatus.InProgress)
             {
-                result.CheckStatus = DetectorCheckStatus.CompletedFailed;
+                break;
             }
         }
-        else
+
+        if (result.CheckStatus == DetectorCheckStatus.InProgress)
         {
-            // No CheckInput = Error
-            result.CheckStatus = DetectorCheckStatus.Error;
+            result.CheckStatus = DetectorCheckStatus.CompletedFailed;
         }
     }
 }

@@ -16,6 +16,7 @@ using System.CommandLine.Parsing;
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
 using FrameworkDetector.Models;
+using FrameworkDetector.Inputs;
 
 namespace FrameworkDetector.CLI;
 
@@ -155,14 +156,8 @@ public partial class CliApp
             Console.Write($"Inspecting {target}:");
         }
 
-        var processDataSources = new List<ProcessDataSource>() { new ProcessDataSource(process) };
-        if (IncludeChildren)
-        {
-            processDataSources.AddRange(process.GetChildProcesses().Select(p => new ProcessDataSource(p)));
-        }
+        var inputs = await InputHelper.GetInputsFromProcessAsync(process, IncludeChildren, cancellationToken);
 
-        DataSourceCollection sources = new(processDataSources.ToArray());
-
-        return await RunInspectionAsync(target, sources, outputFilename, cancellationToken);
+        return await RunInspectionAsync(target, inputs, outputFilename, cancellationToken);
     }
 }

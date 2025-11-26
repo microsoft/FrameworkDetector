@@ -2,9 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,8 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 
-using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
+using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
 
 namespace FrameworkDetector.CLI;
@@ -142,17 +140,11 @@ public partial class CliApp
             }
         }
 
-        var processDataSources = new List<ProcessDataSource>() { new ProcessDataSource(process) };
-        if (IncludeChildren)
-        {
-            processDataSources.AddRange(process.GetChildProcesses().Select(p => new ProcessDataSource(p)));
-        }
-
-        DataSourceCollection sources = new(processDataSources.ToArray());
+        var inputs = await InputHelper.GetInputsFromProcessAsync(process, IncludeChildren, cancellationToken);
 
         DetectionEngine engine = Services.GetRequiredService<DetectionEngine>();
 
-        ToolRunResult result = await engine.DumpAgainstSourcesAsync(sources, cancellationToken, ArgumentMetadata);
+        ToolRunResult result = await engine.DumpAllDataFromInputsAsync(inputs, cancellationToken, ArgumentMetadata);
 
         Console.WriteLine();
 

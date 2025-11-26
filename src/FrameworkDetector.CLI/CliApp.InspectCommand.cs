@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,6 +11,7 @@ using System.CommandLine;
 
 using FrameworkDetector.Engine;
 using FrameworkDetector.Models;
+using FrameworkDetector.Inputs;
 
 namespace FrameworkDetector.CLI;
 
@@ -37,12 +39,13 @@ public partial class CliApp
         // Add all subcommands for processing different input types
         // TODO: Not sure if better way to handle global options for now, at least we have one currently...
         command.Subcommands.Add(GetInspectExeSubCommand(outputFileOption));
+        command.Subcommands.Add(GetInspectInstalledPackageSubCommand(outputFileOption));
         command.Subcommands.Add(GetInspectProcessSubCommand(outputFileOption));
 
         return command;
     }
 
-    private async Task<bool> RunInspectionAsync(string label, DataSources.DataSourceCollection sources, string? outputFilename, CancellationToken cancellationToken)
+    private async Task<bool> RunInspectionAsync(string label, IReadOnlyList<IInputType> inputs, string? outputFilename, CancellationToken cancellationToken)
     {
         DetectionEngine engine = Services.GetRequiredService<DetectionEngine>();
         engine.DetectionProgressChanged += (s, e) =>
@@ -53,7 +56,7 @@ public partial class CliApp
             }
         };
 
-        ToolRunResult result = await engine.DetectAgainstSourcesAsync(sources, cancellationToken, ArgumentMetadata);
+        ToolRunResult result = await engine.DetectAgainstInputsAsync(inputs, cancellationToken, ArgumentMetadata);
 
         if (Verbosity > VerbosityLevel.Quiet)
         {

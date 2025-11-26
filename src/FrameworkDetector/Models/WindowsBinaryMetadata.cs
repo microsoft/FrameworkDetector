@@ -13,9 +13,10 @@ public record WindowsBinaryMetadata(string Filename,
                                     string? OriginalFilename = null, 
                                     string? FileVersion = null, 
                                     string? ProductName = null, 
-                                    string? ProductVersion = null) : FileMetadata(Filename)
+                                    string? ProductVersion = null,
+                                    bool IsLoaded = false) : FileMetadata(Filename, IsLoaded)
 {
-    public static new async Task<WindowsBinaryMetadata?> GetMetadataAsync(string? filename, CancellationToken cancellationToken)
+    public static new async Task<WindowsBinaryMetadata?> GetMetadataAsync(string? filename, bool isLoaded, CancellationToken cancellationToken) // TODO: Do we want isLoaded to be optional?
     {
         if (filename is null)
         {
@@ -57,7 +58,8 @@ public record WindowsBinaryMetadata(string Filename,
             fileVersionInfo.OriginalFilename, 
             fileVersionInfo.FileVersion, 
             fileVersionInfo.ProductName, 
-            fileVersionInfo.ProductVersion);
+            fileVersionInfo.ProductVersion,
+            isLoaded);
     }
 
     private static bool TryFindRedirectedFile(string filename, Environment.SpecialFolder fromRoot, Environment.SpecialFolder toRoot, out string? newFilename)

@@ -4,8 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using System.Text.Json;
-using FrameworkDetector.DataSources;
+
+using FrameworkDetector.Inputs;
 
 namespace FrameworkDetector.Models;
 
@@ -25,34 +27,35 @@ public record ToolRunResult
 
     public string Timestamp { get; }
 
-    public Dictionary<string, List<object?>?> DataSources { get; } 
+    public Dictionary<string, List<object?>?> Inputs { get; } 
 
     public List<DetectorResult> DetectorResults { get; set; } = [];
 
-    public ToolRunResult(string toolName, string toolVersion, string toolArguments)
+    public ToolRunResult(string toolName, string toolVersion, string? toolArguments)
     {
         ToolName = toolName;
         ToolVersion = toolVersion;
         ToolArguments = toolArguments;
         Timestamp = DateTime.UtcNow.ToString("O");
 
-        DataSources = new Dictionary<string, List<object?>?>();
+        Inputs = new Dictionary<string, List<object?>?>();
     }
 
-    public void AddDataSources(DataSourceCollection sources)
+    public void AddInputs(IReadOnlyList<IInputType> inputs)
     {
-        foreach (var kvp in sources)
+        // Transform each input into a dictionary of lists based on the input type name.
+        // i.e. all processes would be together in a "processes" bucket
+        foreach (var inputKey in inputs.Select(i => i.Name).Distinct())
         {
-            if (kvp.Value is not null && kvp.Value.Length > 0)
+            foreach (var input in inputs)
             {
-                var list = new List<object?>();
-                foreach (var dataSource in kvp.Value)
+                if (input.Name == inputKey)
                 {
-                    list.Add(dataSource.Data);
-                }
-                if (list.Count > 0)
-                {
-                    DataSources[kvp.Key] = list;
+                    if (!Inputs.ContainsKey(inputKey))
+                    {
+                        Inputs[inputKey] = new List<object?>();
+                    }
+                    Inputs[inputKey]?.Add(input);
                 }
             }
         }

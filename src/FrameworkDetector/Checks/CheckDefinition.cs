@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
+using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
 
 
@@ -20,9 +23,9 @@ public interface ICheckDefinition
 {
     // TODO: Wondering if this is actually required to define by the check as currently we're just passing through all the data sources we have anyway... The check author has to grab the specific one they need anyway which they do through the IDataSource.Id right now anyway, so this is just more of a goodfaith declaration. It could be an extra check we do where if the data source is missing we throw an error or warning and don't run the check?
     /// <summary>
-    /// Gets the list of required datasources this check expects to access to be able to run.
+    /// Gets a list of required datasource interface type names this check expects to access to be able to run.
     /// </summary>
-    public string[] DataSourceIds { get; }
+    public string[] DataSources { get; }
 
     /// <summary>
     /// Gets the description to be used as a ToString format with the ProcessMetadata.ToString() as a parameter.
@@ -46,13 +49,13 @@ public interface ICheckDefinition
     public string? GroupName { get; set; }
 
     /// <summary>
-    /// Performs the defined check against the provided <see cref="DataSourceCollection"/>.
+    /// Performs the defined check against the provided <see cref="IInputType"/> collection.
     /// </summary>
     /// <param name="detector">The detector requesting the check.</param>
-    /// <param name="dataSources">Complete <see cref="DataSourceCollection"/> for an application.</param>
+    /// <param name="inputs">Complete set of <see cref="IInputType"/> to process for analysis.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns></returns>
-    public Task<IDetectorCheckResult> PerformCheckAsync(IDetector detector, DataSourceCollection dataSources, CancellationToken cancellationToken);
+    public Task<IDetectorCheckResult> PerformCheckAsync(IDetector detector, IReadOnlyList<IInputType> inputs, CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -76,7 +79,7 @@ public record CheckDefinition<TInput,TOutput>(
     public string Description => CheckRegistration.Description;
 
     /// <inheritdoc/>
-    public string[] DataSourceIds => CheckRegistration.DataSourceIds;
+    public string[] DataSources => CheckRegistration.DataSourceInterfaces.Select(t => t.Name).ToArray();
 
     private CheckFunction<TInput,TOutput> PerformCheckAsync => CheckRegistration.PerformCheckAsync;
 
@@ -88,7 +91,7 @@ public record CheckDefinition<TInput,TOutput>(
 
     //// Used to translate between the strongly-typed definition written by check extension author passed in as a delegate and the concreate generalized version the engine will call on the check.
     /// <inheritdoc/>
-    async Task<IDetectorCheckResult> ICheckDefinition.PerformCheckAsync(IDetector detector, DataSourceCollection dataSources, CancellationToken cancellationToken)
+    async Task<IDetectorCheckResult> ICheckDefinition.PerformCheckAsync(IDetector detector, IReadOnlyList<IInputType> inputs, CancellationToken cancellationToken)
     {
         // Create initial result holder linking the detector to this check being performed.
         // Auto includes the additional arguments required by the check defined by the detector (and used by the check).
@@ -98,7 +101,7 @@ public record CheckDefinition<TInput,TOutput>(
         };
 
         // Call the check extension to perform calculation and update result.
-        await PerformCheckAsync.Invoke(this, dataSources, result, cancellationToken);
+        await PerformCheckAsync.Invoke(this, inputs, result, cancellationToken);
 
         return result;
     }

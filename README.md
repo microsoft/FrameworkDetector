@@ -95,6 +95,8 @@ FrameworkDetector.CLI.exe inspect process -id ###
 FrameworkDetector.CLI.exe inspect process -name ###
 ```
 
+// TODO: <File, package inspect examples>
+
 ### Run a Process and Inspect it
 
 ```ps
