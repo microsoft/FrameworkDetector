@@ -25,7 +25,7 @@ try {
 
     $GitCommitVersion = & git log -1 --date=format:"%y%j.%H%M" --format="%ad"
 
-    dotnet build -restore -target:pack -p:IncludeSymbols=true -p:PackageOutputPath="$OutputRoot" -p:GitCommitVersion="$GitCommitVersion" "$RepoRoot\src\FrameworkDetector.sln"
+    dotnet build -restore -target:pack -p:PackageOutputPath="$OutputRoot" -p:GitCommitVersion="$GitCommitVersion" "$RepoRoot\src\FrameworkDetector.sln"
     if (!$?) {
     	throw 'Build failed!'
     }
