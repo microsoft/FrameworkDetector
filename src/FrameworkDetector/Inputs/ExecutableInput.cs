@@ -13,7 +13,8 @@ namespace FrameworkDetector.Inputs;
 /// <summary>
 /// An <see cref="IInputType"/> which represents a loose exectuable of an application binary to analyze.
 /// </summary>
-public record ExecutableInput(ExecutableImportedFunctionsMetadata[] ImportedFunctions,
+public record ExecutableInput(string Filename,
+                              ExecutableImportedFunctionsMetadata[] ImportedFunctions,
                               ExecutableExportedFunctionsMetadata[] ExportedFunctions) 
     : IImportedFunctionsDataSource, IExportedFunctionsDataSource, // TODO: IModulesDataSource
       IInputType<FileInfo>
@@ -23,14 +24,15 @@ public record ExecutableInput(ExecutableImportedFunctionsMetadata[] ImportedFunc
     public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(FileInfo executable, CancellationToken cancellationToken)
     {
         // Get functions from the executable
-        ExecutableImportedFunctionsMetadata[] importedFunctions = []; // process.ProcessImportedFunctionsMetadata(); // TODO: Move to new extensions on FileInfo
+        ExecutableImportedFunctionsMetadata[] importedFunctions = (ExecutableImportedFunctionsMetadata[])executable.GetImportedFunctionsMetadata();
 
-        ExecutableExportedFunctionsMetadata[] exportedFunctions = []; // process.ProcessExportedFunctionsMetadata();
+        ExecutableExportedFunctionsMetadata[] exportedFunctions = (ExecutableExportedFunctionsMetadata[])executable.GetExportedFunctionsMetadata();
 
         // TODO: Loop over Imported Functions to Produce Modules Data Source
 
         // No async initialization needed here yet, so just construct
-        return new ExecutableInput(importedFunctions.OrderBy(f => f.ModuleName).ToArray(),
+        return new ExecutableInput(executable.FullName,
+                                   importedFunctions.OrderBy(f => f.ModuleName).ToArray(),
                                    exportedFunctions.OrderBy(f => f.Name).ToArray());
     }
 }

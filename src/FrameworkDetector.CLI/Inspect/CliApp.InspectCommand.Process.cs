@@ -2,20 +2,16 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 
-using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
-using FrameworkDetector.Models;
 using FrameworkDetector.Inputs;
 
 namespace FrameworkDetector.CLI;

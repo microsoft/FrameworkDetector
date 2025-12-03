@@ -39,10 +39,10 @@ public class ContainsImportedFunctionCheckTest() : CheckTestBase<ContainsImporte
 
     private async Task RunFunctionNameCheck(string actualModuleName, string[] actualFunctionNames, string moduleNameToCheck, string functionNameToCheck, DetectorCheckStatus expectedCheckStatus, string? expectedModuleName, string? expectedFunctionName)
     {
-        var actualImportedFunctions = new ExecutableImportedFunctionsMetadata(actualModuleName, actualFunctionNames.Select(afn => new ProcessFunctionMetadata(afn)).ToArray());
+        var actualImportedFunctions = new ExecutableImportedFunctionsMetadata(actualModuleName, actualFunctionNames.Select(afn => new FunctionMetadata(afn)).ToArray());
         var args = new ContainsImportedFunctionArgs(moduleNameToCheck, functionNameToCheck);
 
-        ContainsImportedFunctionData? expectedOutput = expectedModuleName is not null && expectedFunctionName is not null ? new ContainsImportedFunctionData(new ExecutableImportedFunctionsMetadata(expectedModuleName, [new ProcessFunctionMetadata(expectedFunctionName)])) : null;
+        ContainsImportedFunctionData? expectedOutput = expectedModuleName is not null && expectedFunctionName is not null ? new ContainsImportedFunctionData(new ExecutableImportedFunctionsMetadata(expectedModuleName, [new FunctionMetadata(expectedFunctionName)])) : null;
 
         var cts = new CancellationTokenSource();
 
@@ -51,7 +51,8 @@ public class ContainsImportedFunctionCheckTest() : CheckTestBase<ContainsImporte
 
     private async Task RunTest(ExecutableImportedFunctionsMetadata[]? actualImportedFunctions, ContainsImportedFunctionArgs args, DetectorCheckStatus expectedCheckStatus, ContainsImportedFunctionData? expectedOutput, CancellationToken cancellationToken)
     {
-        ExecutableInput input = new(ImportedFunctions: actualImportedFunctions ?? Array.Empty<ExecutableImportedFunctionsMetadata>(),
+        ExecutableInput input = new(nameof(ContainsImportedFunctionCheckTest),
+                                    ImportedFunctions: actualImportedFunctions ?? Array.Empty<ExecutableImportedFunctionsMetadata>(),
                                     ExportedFunctions: []);
 
         await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput, cancellationToken);

@@ -62,10 +62,10 @@ public static class InputHelper
         }
 
         // Get Executable Binary Info
-        string? exePath = process.MainModule?.FileName;
-        if (File.Exists(exePath))
+        FileInfo? mainModuleFileInfo = process.GetMainModuleFileInfo();
+        if (mainModuleFileInfo?.Exists == true)
         {
-            inputs.AddRange(await GetInputsFromExecutableAsync(new FileInfo(exePath), cancellationToken));
+            inputs.AddRange(await GetInputsFromExecutableAsync(mainModuleFileInfo, cancellationToken));
         }
 
         return inputs;

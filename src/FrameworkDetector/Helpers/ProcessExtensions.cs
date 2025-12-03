@@ -2,16 +2,15 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 
 using System.Management;
-using PeNet;
 
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Core;
@@ -396,98 +395,34 @@ public static class ProcessExtensions
     }
 
     /// <summary>
+    /// Gets a <see cref="FileInfo"/> object representing the <see cref="Process.MainModule"/> location of the process.
+    /// </summary>
+    /// <param name="process">The target process.</param>
+    /// <returns>FileInfo location of Main Module or null.</returns>
+    public static FileInfo? GetMainModuleFileInfo(this Process process)
+    {
+        if (process.MainModule is not null 
+            && process.MainModule.FileName is not null)
+        {
+            return new FileInfo(process.MainModule.FileName);
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Gets the metadata for the functions imported by the main module of the given process.
     /// </summary>
     /// <param name="process">The target process.</param>
     /// <returns>The metadata from each imported function.</returns>
-    public static IEnumerable<ExecutableImportedFunctionsMetadata> ProcessImportedFunctionsMetadata(this Process process)
-    {
-        var importedFunctions = new HashSet<ExecutableImportedFunctionsMetadata>();
-
-        if (process.MainModule is not null && process.MainModule.FileName is not null)
-        {
-            if (TryGetCachedPeFile(process.MainModule.FileName, out var peFile) && peFile is not null)
-            {
-                lock (peFile)
-                {
-                    var tempMap = new Dictionary<string, List<ProcessFunctionMetadata>>();
-
-                    if (peFile.ImportedFunctions is not null)
-                    {
-                        foreach (var importedFunction in peFile.ImportedFunctions)
-                        {
-                            if (!tempMap.TryGetValue(importedFunction.DLL, out var functions))
-                            {
-                                functions = new List<ProcessFunctionMetadata>();
-                                tempMap[importedFunction.DLL] = functions;
-                            }
-
-                            if (importedFunction.Name is not null)
-                            {
-                                tempMap[importedFunction.DLL].Add(new ProcessFunctionMetadata(importedFunction.Name, false));
-                            }
-                        }
-                    }
-
-                    if (peFile.DelayImportedFunctions is not null)
-                    {
-                        foreach (var delayImportedFunction in peFile.DelayImportedFunctions)
-                        {
-                            if (!tempMap.TryGetValue(delayImportedFunction.DLL, out var functions))
-                            {
-                                functions = new List<ProcessFunctionMetadata>();
-                                tempMap[delayImportedFunction.DLL] = functions;
-                            }
-
-                            if (delayImportedFunction.Name is not null)
-                            {
-                                tempMap[delayImportedFunction.DLL].Add(new ProcessFunctionMetadata(delayImportedFunction.Name, true));
-                            }
-                        }
-                    }
-
-                    foreach (var kvp in tempMap)
-                    {
-                        importedFunctions.Add(new ExecutableImportedFunctionsMetadata(kvp.Key, kvp.Value.ToArray()));
-                    }
-                }
-            }
-        }
-
-        return importedFunctions;
-    }
+    public static IEnumerable<ExecutableImportedFunctionsMetadata> GetImportedFunctionsMetadata(this Process process) => process.GetMainModuleFileInfo()?.GetImportedFunctionsMetadata() ?? [];
 
     /// <summary>
     /// Gets the metadata for the functions exported by the main module of the given process.
     /// </summary>
     /// <param name="process">The target process.</param>
     /// <returns>The metadata from each exported function.</returns>
-    public static IEnumerable<ExecutableExportedFunctionsMetadata> ProcessExportedFunctionsMetadata(this Process process)
-    {
-        var exportedFunctions = new HashSet<ExecutableExportedFunctionsMetadata>();
-
-        if (process.MainModule is not null && process.MainModule.FileName is not null)
-        {
-            if (TryGetCachedPeFile(process.MainModule.FileName, out var peFile) && peFile is not null)
-            {
-                lock (peFile)
-                {
-                    if (peFile.ExportedFunctions is not null)
-                    {
-                        foreach (var exportedFunction in peFile.ExportedFunctions)
-                        {
-                            if (exportedFunction is not null && exportedFunction.Name is not null)
-                            {
-                                exportedFunctions.Add(new ExecutableExportedFunctionsMetadata(exportedFunction.Name));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return exportedFunctions;
-    }
+    public static IEnumerable<ExecutableExportedFunctionsMetadata> GetExportedFunctionsMetadata(this Process process) => process.GetMainModuleFileInfo()?.GetExportedFunctionsMetadata() ?? [];
 
     /// <summary>
     /// Gets a <see cref="Package"/> from a <see cref="Process"/>, used to help create a <see cref="InstalledPackageInput"/> from a <see cref="Process"/>.
@@ -537,35 +472,9 @@ public static class ProcessExtensions
 
         return null;
     }
-
-    private static bool TryGetCachedPeFile(string filename, out PeFile? peFile)
-    {
-        PeFile? result = null;
-        lock (_cachedPeFiles)
-        {
-            if (!_cachedPeFiles.TryGetValue(filename, out result))
-            {
-                // Cache whatever PeFile.TryParse gets, so we don't ever waste time reparsing a file
-                PeFile.TryParse(filename, out var newPeFile);
-                _cachedPeFiles.TryAdd(filename, newPeFile);
-                result = newPeFile;
-            }
-
-            peFile = result;
-            return result is not null;
-        }
-    }
-
-    private static readonly ConcurrentDictionary<string, PeFile?> _cachedPeFiles = new ConcurrentDictionary<string, PeFile?>();
 }
 
 public record ProcessWindowMetadata(string? ClassName = null, string? Text = null, bool? IsVisible = null) { }
-
-public record ProcessFunctionMetadata(string Name, bool? DelayLoaded = null);
-
-public record ExecutableImportedFunctionsMetadata(string ModuleName, ProcessFunctionMetadata[]? Functions = null) { }
-
-public record ExecutableExportedFunctionsMetadata(string Name) : ProcessFunctionMetadata(Name);
 
 /// <summary>
 /// Wrapper around <see cref="PackageId"/>.

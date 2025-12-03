@@ -2,16 +2,13 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
+using System.CommandLine;
+using System.CommandLine.Parsing;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using System.CommandLine;
-using System.CommandLine.Parsing;
-
-using FrameworkDetector.DataSources;
-using FrameworkDetector.Engine;
-using System.IO;
+using FrameworkDetector.Inputs;
 
 namespace FrameworkDetector.CLI;
 
@@ -52,13 +49,14 @@ public partial class CliApp
 
             if (pathToExe is not null)
             {
-                if (!File.Exists(pathToExe))
+                FileInfo fileInfo = new FileInfo(pathToExe);
+                if (!fileInfo.Exists)
                 {
                     PrintError("Could not location file at path: {0}", pathToExe);
                     return (int)ExitCode.ArgumentParsingError;
                 }
 
-                if (await InspectExeAsync(pathToExe, outputFilename, cancellationToken))
+                if (await InspectExeAsync(fileInfo, outputFilename, cancellationToken))
                 {
                     return (int)ExitCode.Success;
                 }
@@ -74,10 +72,10 @@ public partial class CliApp
     }
 
     /// Encapsulation of initializing datasource and grabbing engine reference to kick-off a detection against all registered detectors (see ConfigureServices)
-    private async Task<bool> InspectExeAsync(string pathToExe, string? outputFilename, CancellationToken cancellationToken)
+    private async Task<bool> InspectExeAsync(FileInfo fileInfo, string? outputFilename, CancellationToken cancellationToken)
     {
         // TODO: Probably have this elsewhere to be called
-        var target = $"exe {pathToExe}";
+        var target = $"exe {fileInfo.FullName}";
 
         PrintInfo("Preparing to inspect {0}...", target);
 
@@ -86,8 +84,8 @@ public partial class CliApp
             Console.Write($"Inspecting {target}:");
         }
 
-        // TODO: Inputs
+        var inputs = await InputHelper.GetInputsFromExecutableAsync(fileInfo, cancellationToken);
 
-        return await RunInspectionAsync(target, [], outputFilename, cancellationToken);
+        return await RunInspectionAsync(target, inputs, outputFilename, cancellationToken);
     }
 }
