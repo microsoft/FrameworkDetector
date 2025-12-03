@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using static FrameworkDetector.Checks.ContainsActiveWindowCheck;
+using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
 
 namespace FrameworkDetector.Test.Checks;
@@ -50,7 +51,10 @@ public class ContainsActiveWindowCheckTest() : CheckTestBase<ContainsActiveWindo
 
     private async Task RunTest(ProcessWindowMetadata[]? actualWindows, ContainsActiveWindowArgs args, DetectorCheckStatus expectedCheckStatus, ContainsActiveWindowData? expectedOutput, CancellationToken cancellationToken)
     {
-        var dataSources = GetTestProcessDataSource(new ProcessMetadata(nameof(ContainsActiveWindowCheckTest), ActiveWindows: actualWindows));
-        await RunCheck_ValidArgsAsync(dataSources, args, expectedCheckStatus, expectedOutput, cancellationToken);
+        ProcessInput input = new(nameof(ContainsActiveWindowCheckTest),
+                                 ActiveWindows: actualWindows ?? Array.Empty<ProcessWindowMetadata>(),
+                                 []);
+
+        await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput, cancellationToken);
     }
 }

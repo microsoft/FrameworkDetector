@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using static FrameworkDetector.Checks.ContainsExportedFunctionCheck;
+using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
 
 namespace FrameworkDetector.Test.Checks;
@@ -39,19 +40,21 @@ public class ContainsExportedFunctionCheckTest() : CheckTestBase<ContainsExporte
 
     private async Task RunFunctionNameCheck(string[] actualFunctionNames, string functionNameToCheck, DetectorCheckStatus expectedCheckStatus, string? expectedFunctionName)
     {
-        var actualExportedFunctions = actualFunctionNames.Select(name => new ProcessExportedFunctionsMetadata(name)).ToArray();
+        var actualExportedFunctions = actualFunctionNames.Select(name => new ExecutableExportedFunctionsMetadata(name)).ToArray();
         var args = new ContainsExportedFunctionArgs(functionNameToCheck);
 
-        ContainsExportedFunctionData? expectedOutput = expectedFunctionName is not null ? new ContainsExportedFunctionData(new ProcessExportedFunctionsMetadata(expectedFunctionName)) : null;
+        ContainsExportedFunctionData? expectedOutput = expectedFunctionName is not null ? new ContainsExportedFunctionData(new ExecutableExportedFunctionsMetadata(expectedFunctionName)) : null;
 
         var cts = new CancellationTokenSource();
 
         await RunTest(actualExportedFunctions, args, expectedCheckStatus, expectedOutput, cts.Token);
     }
 
-    private async Task RunTest(ProcessExportedFunctionsMetadata[]? actualExportedFunctions, ContainsExportedFunctionArgs args, DetectorCheckStatus expectedCheckStatus, ContainsExportedFunctionData? expectedOutput, CancellationToken cancellationToken)
+    private async Task RunTest(ExecutableExportedFunctionsMetadata[]? actualExportedFunctions, ContainsExportedFunctionArgs args, DetectorCheckStatus expectedCheckStatus, ContainsExportedFunctionData? expectedOutput, CancellationToken cancellationToken)
     {
-        var dataSources = GetTestProcessDataSource(new ProcessMetadata(nameof(ContainsExportedFunctionCheckTest), ExportedFunctions: actualExportedFunctions));
-        await RunCheck_ValidArgsAsync(dataSources, args, expectedCheckStatus, expectedOutput, cancellationToken);
+        ExecutableInput input = new(ImportedFunctions: [],
+                                    ExportedFunctions: actualExportedFunctions ?? Array.Empty<ExecutableExportedFunctionsMetadata>());
+
+        await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput, cancellationToken);
     }
 }

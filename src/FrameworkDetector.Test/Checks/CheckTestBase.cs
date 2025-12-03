@@ -2,15 +2,15 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using FrameworkDetector.Checks;
-using FrameworkDetector.DataSources;
+using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
-using FrameworkDetector.Test.DataSources;
 using FrameworkDetector.Test.Detectors;
 
 namespace FrameworkDetector.Test.Checks;
@@ -20,7 +20,7 @@ public abstract class CheckTestBase<TInput, TOutput>(
 ) where TInput : ICheckArgs
   where TOutput : struct
 {
-    public async Task RunCheck_ValidArgsAsync(DataSourceCollection dataSources, TInput args, DetectorCheckStatus expectedCheckStatus, TOutput? expectedOutput, CancellationToken cancellationToken)
+    public async Task RunCheck_ValidArgsAsync(IReadOnlyList<IInputType> inputs, TInput args, DetectorCheckStatus expectedCheckStatus, TOutput? expectedOutput, CancellationToken cancellationToken)
     {
         args.Validate();
 
@@ -29,18 +29,12 @@ public abstract class CheckTestBase<TInput, TOutput>(
         var checkDefinition = new CheckDefinition<TInput, TOutput>(checkRegistration, args);
         var actualResult = new DetectorCheckResult<TInput, TOutput>(new TestDetector(), checkDefinition);
 
-        await checkRegistration.PerformCheckAsync(checkDefinition, dataSources, actualResult, cancellationToken);
+        await checkRegistration.PerformCheckAsync(checkDefinition, inputs, actualResult, cancellationToken);
 
         Assert.AreEqual(expectedCheckStatus, actualResult.CheckStatus);
         Assert.AreEqual(expectedOutput is null, actualResult.CheckOutput is null, "Expected and actual outputs are both defined or not.");
 
         ValidateOutputData(expectedOutput, actualResult?.OutputData);
-    }
-
-    protected static DataSourceCollection GetTestProcessDataSource(ProcessMetadata? processMetadata = null)
-    {
-        var processDataSource = new TestProcessDataSource(processMetadata);
-        return new DataSourceCollection([processDataSource]);
     }
 
     protected virtual void ValidateOutputData(TOutput? expected, TOutput? actual)

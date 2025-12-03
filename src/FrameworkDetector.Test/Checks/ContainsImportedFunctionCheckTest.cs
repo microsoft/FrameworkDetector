@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using static FrameworkDetector.Checks.ContainsImportedFunctionCheck;
+using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
 
 namespace FrameworkDetector.Test.Checks;
@@ -38,20 +39,22 @@ public class ContainsImportedFunctionCheckTest() : CheckTestBase<ContainsImporte
 
     private async Task RunFunctionNameCheck(string actualModuleName, string[] actualFunctionNames, string moduleNameToCheck, string functionNameToCheck, DetectorCheckStatus expectedCheckStatus, string? expectedModuleName, string? expectedFunctionName)
     {
-        var actualImportedFunctions = new ProcessImportedFunctionsMetadata(actualModuleName, actualFunctionNames.Select(afn => new ProcessFunctionMetadata(afn)).ToArray());
+        var actualImportedFunctions = new ExecutableImportedFunctionsMetadata(actualModuleName, actualFunctionNames.Select(afn => new ProcessFunctionMetadata(afn)).ToArray());
         var args = new ContainsImportedFunctionArgs(moduleNameToCheck, functionNameToCheck);
 
-        ContainsImportedFunctionData? expectedOutput = expectedModuleName is not null && expectedFunctionName is not null ? new ContainsImportedFunctionData(new ProcessImportedFunctionsMetadata(expectedModuleName, [new ProcessFunctionMetadata(expectedFunctionName)])) : null;
+        ContainsImportedFunctionData? expectedOutput = expectedModuleName is not null && expectedFunctionName is not null ? new ContainsImportedFunctionData(new ExecutableImportedFunctionsMetadata(expectedModuleName, [new ProcessFunctionMetadata(expectedFunctionName)])) : null;
 
         var cts = new CancellationTokenSource();
 
         await RunTest([actualImportedFunctions], args, expectedCheckStatus, expectedOutput, cts.Token);
     }
 
-    private async Task RunTest(ProcessImportedFunctionsMetadata[]? actualImportedFunctions, ContainsImportedFunctionArgs args, DetectorCheckStatus expectedCheckStatus, ContainsImportedFunctionData? expectedOutput, CancellationToken cancellationToken)
+    private async Task RunTest(ExecutableImportedFunctionsMetadata[]? actualImportedFunctions, ContainsImportedFunctionArgs args, DetectorCheckStatus expectedCheckStatus, ContainsImportedFunctionData? expectedOutput, CancellationToken cancellationToken)
     {
-        var dataSources = GetTestProcessDataSource(new ProcessMetadata(nameof(ContainsImportedFunctionCheckTest), ImportedFunctions: actualImportedFunctions));
-        await RunCheck_ValidArgsAsync(dataSources, args, expectedCheckStatus, expectedOutput, cancellationToken);
+        ExecutableInput input = new(ImportedFunctions: actualImportedFunctions ?? Array.Empty<ExecutableImportedFunctionsMetadata>(),
+                                    ExportedFunctions: []);
+
+        await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput, cancellationToken);
     }
 
     protected override void ValidateOutputData(ContainsImportedFunctionData? expected, ContainsImportedFunctionData? actual)

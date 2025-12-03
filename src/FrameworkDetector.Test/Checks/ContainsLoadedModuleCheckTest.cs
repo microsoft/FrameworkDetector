@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using static FrameworkDetector.Checks.ContainsLoadedModuleCheck;
+using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
 
 namespace FrameworkDetector.Test.Checks;
@@ -34,19 +35,22 @@ public class ContainsLoadedModuleCheckTest() : CheckTestBase<ContainsLoadedModul
 
     private async Task RunFilenameCheck(string[] actualFilenames, string filenameToCheck, DetectorCheckStatus expectedCheckStatus, string? expectedFilename)
     {
-        var actualLoadedModules = actualFilenames.Select(filename => new WindowsBinaryMetadata(filename)).ToArray();
+        var actualLoadedModules = actualFilenames.Select(filename => new WindowsModuleMetadata(filename)).ToArray();
         var args = new ContainsLoadedModuleArgs(filenameToCheck);
 
-        ContainsLoadedModuleData? expectedOutput = expectedFilename is not null ? new ContainsLoadedModuleData(new WindowsBinaryMetadata(expectedFilename)) : null;
+        ContainsLoadedModuleData? expectedOutput = expectedFilename is not null ? new ContainsLoadedModuleData(new WindowsModuleMetadata(expectedFilename)) : null;
 
         var cts = new CancellationTokenSource();
 
         await RunTest(actualLoadedModules, args, expectedCheckStatus, expectedOutput, cts.Token);
     }
 
-    private async Task RunTest(WindowsBinaryMetadata[]? actualLoadedModules, ContainsLoadedModuleArgs args, DetectorCheckStatus expectedCheckStatus, ContainsLoadedModuleData? expectedOutput, CancellationToken cancellationToken)
+    private async Task RunTest(WindowsModuleMetadata[]? actualLoadedModules, ContainsLoadedModuleArgs args, DetectorCheckStatus expectedCheckStatus, ContainsLoadedModuleData? expectedOutput, CancellationToken cancellationToken)
     {
-        var dataSources = GetTestProcessDataSource(new ProcessMetadata(nameof(ContainsLoadedModuleCheckTest), LoadedModules: actualLoadedModules));
-        await RunCheck_ValidArgsAsync(dataSources, args, expectedCheckStatus, expectedOutput, cancellationToken);
+        ProcessInput input = new(nameof(ContainsLoadedModuleCheckTest), 
+                                 ActiveWindows: [],
+                                 Modules: actualLoadedModules ?? Array.Empty<WindowsModuleMetadata>());
+
+        await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput, cancellationToken);
     }
 }
