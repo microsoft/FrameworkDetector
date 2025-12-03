@@ -126,9 +126,9 @@ public static class ContainsLoadedModuleCheck
     /// Output data for <see cref="ContainsLoadedModuleCheck"/>.
     /// </summary>
     /// <param name="moduleFound">The module found.</param>
-    public readonly struct ContainsLoadedModuleData(WindowsBinaryMetadata moduleFound)
+    public readonly struct ContainsLoadedModuleData(WindowsModuleMetadata moduleFound)
     {
-        public WindowsBinaryMetadata ModuleFound { get; } = moduleFound;
+        public WindowsModuleMetadata ModuleFound { get; } = moduleFound;
     }
 
     /// <summary>

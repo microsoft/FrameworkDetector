@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 namespace FrameworkDetector.Models;
 
-public record WindowsBinaryMetadata(string Filename, 
+public record WindowsModuleMetadata(string Filename, 
                                     string? OriginalFilename = null, 
                                     string? FileVersion = null, 
                                     string? ProductName = null, 
                                     string? ProductVersion = null,
                                     bool IsLoaded = false) : FileMetadata(Filename, IsLoaded)
 {
-    public static new async Task<WindowsBinaryMetadata?> GetMetadataAsync(string filename, bool isLoaded, CancellationToken cancellationToken) // TODO: Do we want isLoaded to be optional?
+    public static new async Task<WindowsModuleMetadata?> GetMetadataAsync(string filename, bool isLoaded, CancellationToken cancellationToken) // TODO: Do we want isLoaded to be optional?
     {
         if (string.IsNullOrWhiteSpace(filename))
         {
@@ -48,13 +48,13 @@ public record WindowsBinaryMetadata(string Filename,
             else
             {
                 // Give up, just return the filename since we can't find the actual file on disk
-                return new WindowsBinaryMetadata(Path.GetFileName(filename));
+                return new WindowsModuleMetadata(Path.GetFileName(filename));
             }
         }
 
         var fileVersionInfo = FileVersionInfo.GetVersionInfo(filename);
 
-        return new WindowsBinaryMetadata(Path.GetFileName(fileVersionInfo.FileName), 
+        return new WindowsModuleMetadata(Path.GetFileName(fileVersionInfo.FileName), 
             fileVersionInfo.OriginalFilename, 
             fileVersionInfo.FileVersion, 
             fileVersionInfo.ProductName, 

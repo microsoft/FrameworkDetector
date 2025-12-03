@@ -11,7 +11,7 @@ using FrameworkDetector.DataSources;
 namespace FrameworkDetector.Inputs;
 
 /// <summary>
-/// An <see cref="IInputType"/> which represents a package retrieved from the installed package store on the system.
+/// An <see cref="IInputType"/> which represents a loose exectuable of an application binary to analyze.
 /// </summary>
 public record ExecutableInput(ExecutableImportedFunctionsMetadata[] ImportedFunctions,
                               ExecutableExportedFunctionsMetadata[] ExportedFunctions) 
@@ -26,6 +26,8 @@ public record ExecutableInput(ExecutableImportedFunctionsMetadata[] ImportedFunc
         ExecutableImportedFunctionsMetadata[] importedFunctions = []; // process.ProcessImportedFunctionsMetadata(); // TODO: Move to new extensions on FileInfo
 
         ExecutableExportedFunctionsMetadata[] exportedFunctions = []; // process.ProcessExportedFunctionsMetadata();
+
+        // TODO: Loop over Imported Functions to Produce Modules Data Source
 
         // No async initialization needed here yet, so just construct
         return new ExecutableInput(importedFunctions.OrderBy(f => f.ModuleName).ToArray(),

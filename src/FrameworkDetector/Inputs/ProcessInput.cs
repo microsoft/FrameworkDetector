@@ -14,9 +14,24 @@ using FrameworkDetector.Models;
 
 namespace FrameworkDetector.Inputs;
 
-public record ProcessInput(string Filename,
+/// <summary>
+/// An <see cref="IInputType"/> that represents a running process on the system, including its active windows and loaded modules.
+/// </summary>
+/// <param name="Filename">Name of the process executable.</param>
+/// <param name="ActiveWindows"><see cref="ProcessWindowMetadata"/> about Active Windows of the application.</param>
+/// <param name="Modules"><see cref="WindowsModuleMetadata"/> about the processes modules loaded in memory (more accurate than <see cref="ExecutableInput"/>'s Modules, TODO: Link directly to that property when we add it</param>
+/// <param name="OriginalFilename"></param>
+/// <param name="FileVersion"></param>
+/// <param name="ProductName"></param>
+/// <param name="ProductVersion"></param>
+/// <param name="ProcessId"></param>
+/// <param name="MainWindowHandle"></param>
+/// <param name="MainWindowTitle"></param>
+/// <param name="PackageFullName"></param>
+/// <param name="ApplicationUserModelId"></param>
+public record ProcessInput(string Filename, // TODO: Change to FileInfo like Executable
                            ProcessWindowMetadata[] ActiveWindows,
-                           WindowsBinaryMetadata[] Modules,
+                           WindowsModuleMetadata[] Modules,
                            string? OriginalFilename = null,
                            string? FileVersion = null,
                            string? ProductName = null,
@@ -26,7 +41,7 @@ public record ProcessInput(string Filename,
                            string? MainWindowTitle = null,
                            string? PackageFullName = null,
                            string? ApplicationUserModelId = null)
-    : WindowsBinaryMetadata(Filename, OriginalFilename, FileVersion, ProductName, ProductVersion),
+    : WindowsModuleMetadata(Filename, OriginalFilename, FileVersion, ProductName, ProductVersion),
       IActiveWindowsDataSource, IModulesDataSource, 
       IInputType<Process>
 {
@@ -45,7 +60,7 @@ public record ProcessInput(string Filename,
         var activeWindows = process.GetActiveWindowMetadata();
 
         // Get modules loaded in memory by the process.
-        var loadedModules = new HashSet<WindowsBinaryMetadata>();
+        var loadedModules = new HashSet<WindowsModuleMetadata>();
         foreach (var module in process.Modules.Cast<ProcessModule>())
         {
             if (cancellationToken.IsCancellationRequested)
@@ -54,7 +69,7 @@ public record ProcessInput(string Filename,
                 return null;
             }
 
-            var moduleMetadata = await WindowsBinaryMetadata.GetMetadataAsync(module.FileName, isLoaded: true, cancellationToken);
+            var moduleMetadata = await WindowsModuleMetadata.GetMetadataAsync(module.FileName, isLoaded: true, cancellationToken);
             if (moduleMetadata is not null)
             {
                 loadedModules.Add(moduleMetadata);

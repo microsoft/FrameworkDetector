@@ -8,5 +8,5 @@ namespace FrameworkDetector.DataSources;
 public interface IModulesDataSource : IDataSource
 {
     // TODO: Do we want IReadOnlyList here too, or do we want to ensure baked by IInputType ahead of time?
-    WindowsBinaryMetadata[] Modules { get; }
+    WindowsModuleMetadata[] Modules { get; }
 }
