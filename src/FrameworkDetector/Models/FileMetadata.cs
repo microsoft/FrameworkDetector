@@ -16,7 +16,7 @@ namespace FrameworkDetector.Models;
 public record FileMetadata(string Filename, 
                            bool IsLoaded = false)
 {
-    public static async Task<FileMetadata?> GetMetadataAsync(string? filename, bool isLoaded, CancellationToken cancellationToken)
+    public static async Task<FileMetadata?> GetMetadataAsync(string filename, bool isLoaded, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(filename))
         {
@@ -30,6 +30,6 @@ public record FileMetadata(string Filename,
             return null;
         }
 
-        return new FileMetadata(Path.GetFileName(filename));
+        return new FileMetadata(Path.GetFileName(filename), isLoaded);
     }
 }

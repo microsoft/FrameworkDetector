@@ -16,9 +16,9 @@ public record WindowsBinaryMetadata(string Filename,
                                     string? ProductVersion = null,
                                     bool IsLoaded = false) : FileMetadata(Filename, IsLoaded)
 {
-    public static new async Task<WindowsBinaryMetadata?> GetMetadataAsync(string? filename, bool isLoaded, CancellationToken cancellationToken) // TODO: Do we want isLoaded to be optional?
+    public static new async Task<WindowsBinaryMetadata?> GetMetadataAsync(string filename, bool isLoaded, CancellationToken cancellationToken) // TODO: Do we want isLoaded to be optional?
     {
-        if (filename is null)
+        if (string.IsNullOrWhiteSpace(filename))
         {
             throw new ArgumentNullException(nameof(filename));
         }
