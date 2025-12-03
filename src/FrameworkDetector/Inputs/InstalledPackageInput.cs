@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel;
 
 using FrameworkDetector.DataSources;
+using FrameworkDetector.Models;
 
 namespace FrameworkDetector.Inputs;
 

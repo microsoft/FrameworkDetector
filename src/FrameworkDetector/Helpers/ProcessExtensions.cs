@@ -20,6 +20,7 @@ using Windows.Win32;
 using Windows.Win32.Foundation;
 
 using FrameworkDetector.Inputs;
+using FrameworkDetector.Models;
 
 namespace FrameworkDetector;
 
@@ -473,16 +474,3 @@ public static class ProcessExtensions
         return null;
     }
 }
-
-public record ProcessWindowMetadata(string? ClassName = null, string? Text = null, bool? IsVisible = null) { }
-
-/// <summary>
-/// Wrapper around <see cref="PackageId"/>.
-/// </summary>
-public record PackageIdentity(string Architecture, string Name, string FamilyName, string FullName, string Publisher, string PublisherId, string ResourceId, string Version) { }
-
-public record PackageFlags(bool IsBundle, bool IsDevelopmentMode, bool IsFramework, bool IsOptional, bool IsResourcePackage, bool? IsStub) { }
-
-public record PackageMetadata(PackageIdentity Id, string PackagePublisherDisplayName, string PackageDisplayName, string PackageDescription, string InstalledPath, string PackageEffectiveExternalPath, string PackageEffectivePath, DateTimeOffset InstalledDate, PackageFlags Flags, PackageMetadata[] Dependencies) { }
-
-public record PackagedAppMetadata(string AppDisplayName, string AppDescription, string AppPackageFamilyName, PackageMetadata? PackageMetadata) { }

@@ -3,10 +3,11 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 
 using PeNet;
 
-using System.IO;
+using FrameworkDetector.Models;
 
 namespace FrameworkDetector;
 
@@ -123,9 +124,3 @@ public static class FileInfoExtensions
 
     private static readonly ConcurrentDictionary<string, PeFile?> _cachedPeFiles = new ConcurrentDictionary<string, PeFile?>();
 }
-
-public record FunctionMetadata(string Name, bool? DelayLoaded = null);
-
-public record ExecutableImportedFunctionsMetadata(string ModuleName, FunctionMetadata[]? Functions = null) { }
-
-public record ExecutableExportedFunctionsMetadata(string Name) : FunctionMetadata(Name);

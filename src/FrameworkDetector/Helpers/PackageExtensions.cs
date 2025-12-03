@@ -10,6 +10,8 @@ using Windows.ApplicationModel;
 using Windows.Management.Deployment;
 using Windows.System;
 
+using FrameworkDetector.Models;
+
 namespace FrameworkDetector;
 
 public static class PackageExtensions

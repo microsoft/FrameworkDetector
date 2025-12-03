@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FrameworkDetector.DataSources;
+using FrameworkDetector.Models;
 
 namespace FrameworkDetector.Inputs;
 
