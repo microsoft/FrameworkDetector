@@ -54,6 +54,7 @@ extends:
                 artifactName: FrameworkDetector.CLI
                 targetPath: $(Build.StagingDirectory)\FrameworkDetector.CLI
     - stage: PublishStage
+      dependsOn: BuildStage
       jobs:
       - job: PublishFrameworkDetectorNuGetToInternalAdoJob
         displayName: Publish FrameworkDetector.NuGet to ADO
