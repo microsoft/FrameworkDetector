@@ -21,7 +21,7 @@ public record InstalledPackageInput(string DisplayName,
 {
     public string Name => "installedPackages";
 
-    public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(Package package, CancellationToken cancellationToken)
+    public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(Package package, bool? isLoaded, CancellationToken cancellationToken)
     {
         // No async initialization needed here yet, so just construct
         return new InstalledPackageInput(package.DisplayName,

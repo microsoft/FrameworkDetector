@@ -17,40 +17,32 @@ namespace FrameworkDetector.Inputs;
 /// <summary>
 /// An <see cref="IInputType"/> that represents a running process on the system, including its active windows and loaded modules.
 /// </summary>
-/// <param name="Filename">Name of the process executable.</param>
+/// <param name="MainModule">Name of the process' executable.</param>
 /// <param name="ActiveWindows"><see cref="ProcessWindowMetadata"/> about Active Windows of the application.</param>
 /// <param name="Modules"><see cref="WindowsModuleMetadata"/> about the processes modules loaded in memory (more accurate than <see cref="ExecutableInput"/>'s Modules, TODO: Link directly to that property when we add it</param>
-/// <param name="OriginalFilename"></param>
-/// <param name="FileVersion"></param>
-/// <param name="ProductName"></param>
-/// <param name="ProductVersion"></param>
 /// <param name="ProcessId"></param>
 /// <param name="MainWindowHandle"></param>
 /// <param name="MainWindowTitle"></param>
 /// <param name="PackageFullName"></param>
 /// <param name="ApplicationUserModelId"></param>
-public record ProcessInput(string Filename, // TODO: Change to FileInfo like Executable
+public record ProcessInput(FileMetadata MainModule,
                            ProcessWindowMetadata[] ActiveWindows,
                            WindowsModuleMetadata[] Modules,
-                           string? OriginalFilename = null,
-                           string? FileVersion = null,
-                           string? ProductName = null,
-                           string? ProductVersion = null,
                            int? ProcessId = null,
                            long? MainWindowHandle = default, // IntPtr is long on 64-bit, int on 32-bit (so use long here)
                            string? MainWindowTitle = null,
                            string? PackageFullName = null,
                            string? ApplicationUserModelId = null)
-    : WindowsModuleMetadata(Filename, OriginalFilename, FileVersion, ProductName, ProductVersion),
-      IActiveWindowsDataSource, IModulesDataSource, 
+    : IActiveWindowsDataSource,
+      IModulesDataSource, 
       IInputType<Process>
 {
     public string Name => "processes";
 
-    public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(Process process, CancellationToken cancellationToken)
+    public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(Process process, bool? isLoaded, CancellationToken cancellationToken)
     {
         // Get Process Metadata
-        var fileVersionInfo = process.MainModule?.FileVersionInfo ?? throw new ArgumentNullException(nameof(process.MainModule)); // TODO: Does any of this belong on ExecutableInput?
+        var fileVersionInfo = process.MainModule?.FileVersionInfo ?? throw new ArgumentNullException(nameof(process.MainModule));
 
         process.TryGetPackageFullName(out var packageFullName);
 
@@ -69,22 +61,17 @@ public record ProcessInput(string Filename, // TODO: Change to FileInfo like Exe
                 return null;
             }
 
-            var moduleMetadata = await WindowsModuleMetadata.GetMetadataAsync(module.FileName, isLoaded: true, cancellationToken);
+            var moduleMetadata = WindowsModuleMetadata.GetMetadata(module.FileName, isLoaded: true);
             if (moduleMetadata is not null)
             {
                 loadedModules.Add(moduleMetadata);
             }
         }
 
-        return new ProcessInput(Path.GetFileName(fileVersionInfo.FileName),
+        return new ProcessInput(new FileMetadata(fileVersionInfo.FileName, IsLoaded: true),
                                 // Data Sources First so we don't have to make them null.
                                 activeWindows.OrderBy(aw => aw.ClassName ?? "").ToArray(),
                                 loadedModules.OrderBy(pm => pm.Filename).ToArray(),
-                                // Extra Metadata
-                                fileVersionInfo.OriginalFilename,
-                                fileVersionInfo.FileVersion,
-                                fileVersionInfo.ProductName,
-                                fileVersionInfo.ProductVersion,
                                 process.Id,
                                 process.MainWindowHandle,
                                 process.MainWindowTitle,

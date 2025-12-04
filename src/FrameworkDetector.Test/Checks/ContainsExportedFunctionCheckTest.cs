@@ -52,9 +52,10 @@ public class ContainsExportedFunctionCheckTest() : CheckTestBase<ContainsExporte
 
     private async Task RunTest(ExecutableExportedFunctionsMetadata[]? actualExportedFunctions, ContainsExportedFunctionArgs args, DetectorCheckStatus expectedCheckStatus, ContainsExportedFunctionData? expectedOutput, CancellationToken cancellationToken)
     {
-        ExecutableInput input = new(nameof(ContainsExportedFunctionCheckTest),
+        ExecutableInput input = new(new(nameof(ContainsExportedFunctionCheckTest)),
                                     ImportedFunctions: [],
-                                    ExportedFunctions: actualExportedFunctions ?? Array.Empty<ExecutableExportedFunctionsMetadata>());
+                                    ExportedFunctions: actualExportedFunctions ?? Array.Empty<ExecutableExportedFunctionsMetadata>(),
+                                    Modules: []);
 
         await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput, cancellationToken);
     }

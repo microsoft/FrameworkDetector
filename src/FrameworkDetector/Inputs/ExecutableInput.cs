@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -14,26 +15,45 @@ namespace FrameworkDetector.Inputs;
 /// <summary>
 /// An <see cref="IInputType"/> which represents a loose exectuable of an application binary to analyze.
 /// </summary>
-public record ExecutableInput(string Filename,
+public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
                               ExecutableImportedFunctionsMetadata[] ImportedFunctions,
-                              ExecutableExportedFunctionsMetadata[] ExportedFunctions) 
-    : IImportedFunctionsDataSource, IExportedFunctionsDataSource, // TODO: IModulesDataSource
+                              ExecutableExportedFunctionsMetadata[] ExportedFunctions,
+                              WindowsModuleMetadata[] Modules) 
+    : IImportedFunctionsDataSource, 
+      IExportedFunctionsDataSource,
+      IModulesDataSource,
       IInputType<FileInfo>
 {
     public string Name => "executables";
 
-    public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(FileInfo executable, CancellationToken cancellationToken)
+    public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(FileInfo executable, bool? isLoaded, CancellationToken cancellationToken)
     {
+        // Get Metadata
+        var metadata = WindowsModuleMetadata.GetMetadata(executable.FullName, isLoaded == true);
+
+        await Task.Yield();
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            // TODO: Throw OperationCanceledException instead? Feel like we need to figure out how to make handling cancellation during initialization easier for the implementors down here and how that flows back up to the CLI.
+            return null!;
+        }
+
         // Get functions from the executable
-        ExecutableImportedFunctionsMetadata[] importedFunctions = (ExecutableImportedFunctionsMetadata[])executable.GetImportedFunctionsMetadata();
+        var importedFunctions = executable.GetImportedFunctionsMetadata();
 
-        ExecutableExportedFunctionsMetadata[] exportedFunctions = (ExecutableExportedFunctionsMetadata[])executable.GetExportedFunctionsMetadata();
-
-        // TODO: Loop over Imported Functions to Produce Modules Data Source
+        // Loop over Imported Functions to Produce Modules Data Source
+        HashSet<WindowsModuleMetadata> modules = new();
+        foreach (var function in importedFunctions)
+        {
+            var moduleMetadata = WindowsModuleMetadata.GetMetadata(function.ModuleName, false);
+            modules.Add(moduleMetadata);
+        }
 
         // No async initialization needed here yet, so just construct
-        return new ExecutableInput(executable.FullName,
+        return new ExecutableInput(metadata,
                                    importedFunctions.OrderBy(f => f.ModuleName).ToArray(),
-                                   exportedFunctions.OrderBy(f => f.Name).ToArray());
+                                   executable.GetExportedFunctionsMetadata().OrderBy(f => f.Name).ToArray(),
+                                   modules.ToArray());
     }
 }

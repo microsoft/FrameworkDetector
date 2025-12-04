@@ -4,8 +4,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace FrameworkDetector.Models;
 
@@ -16,20 +14,8 @@ public record WindowsModuleMetadata(string Filename,
                                     string? ProductVersion = null,
                                     bool IsLoaded = false) : FileMetadata(Filename, IsLoaded)
 {
-    public static new async Task<WindowsModuleMetadata?> GetMetadataAsync(string filename, bool isLoaded, CancellationToken cancellationToken) // TODO: Do we want isLoaded to be optional?
+    public static WindowsModuleMetadata GetMetadata(string filename, bool isLoaded)
     {
-        if (string.IsNullOrWhiteSpace(filename))
-        {
-            throw new ArgumentNullException(nameof(filename));
-        }
-
-        await Task.Yield();
-
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return null;
-        }
-
         if (!Path.Exists(filename))
         {
             // Try to see if we're looking for a binary under a redirected path, i.e. C:\Windows\System32 but really it's under C:\Windows\SysWOW64

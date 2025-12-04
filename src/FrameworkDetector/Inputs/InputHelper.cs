@@ -16,15 +16,15 @@ namespace FrameworkDetector.Inputs;
 /// </summary>
 public static class InputHelper
 {
-    public static async Task<IReadOnlyList<IInputType>> GetInputsFromExecutableAsync(FileInfo fileInfo, CancellationToken cancellationToken)
+    public static async Task<IReadOnlyList<IInputType>> GetInputsFromExecutableAsync(FileInfo fileInfo, bool isLoaded, CancellationToken cancellationToken)
     {
         // TODO: Any other inputs this can provide? Can we get package from exe?
         // Need to be careful about loops though, maybe these should all be independent?
 
-        return [await ExecutableInput.CreateAndInitializeDataSourcesAsync(fileInfo, cancellationToken)];
+        return [await ExecutableInput.CreateAndInitializeDataSourcesAsync(fileInfo, isLoaded, cancellationToken)];
     }
 
-    public static async Task<IReadOnlyList<IInputType>> GetInputsFromPackageAsync(Package package, CancellationToken cancellationToken)
+    public static async Task<IReadOnlyList<IInputType>> GetInputsFromPackageAsync(Package package, bool isLoaded, CancellationToken cancellationToken)
     {
         // Get Main Package Info
         var path = package.InstalledLocation.Path;
@@ -36,7 +36,7 @@ public static class InputHelper
             // Read manifest and extract relevant info for manifest data source (shared with MSIX)...
         }
 
-        return [await InstalledPackageInput.CreateAndInitializeDataSourcesAsync(package, cancellationToken)];
+        return [await InstalledPackageInput.CreateAndInitializeDataSourcesAsync(package, isLoaded, cancellationToken)];
     }
 
     public static async Task<IReadOnlyList<IInputType>> GetInputsFromProcessAsync(Process process, bool includeChildProcesses, CancellationToken cancellationToken)
@@ -44,28 +44,28 @@ public static class InputHelper
         List<IInputType> inputs = [];
 
         // Get Main Process Info
-        inputs.Add(await ProcessInput.CreateAndInitializeDataSourcesAsync(process, cancellationToken));
+        inputs.Add(await ProcessInput.CreateAndInitializeDataSourcesAsync(process, true,cancellationToken));
 
         // Get Child process info
         if (includeChildProcesses)
         {
             foreach (var child in process.GetChildProcesses())
             {
-                inputs.Add(await ProcessInput.CreateAndInitializeDataSourcesAsync(child, cancellationToken));
+                inputs.Add(await ProcessInput.CreateAndInitializeDataSourcesAsync(child, true, cancellationToken));
             }
         }
 
         // Get Installed Packaged App Info
         if (await process.GetPackageFromProcess() is Package package)
         {
-            inputs.AddRange(await GetInputsFromPackageAsync(package, cancellationToken));
+            inputs.AddRange(await GetInputsFromPackageAsync(package, true, cancellationToken));
         }
 
         // Get Executable Binary Info
         FileInfo? mainModuleFileInfo = process.GetMainModuleFileInfo();
         if (mainModuleFileInfo?.Exists == true)
         {
-            inputs.AddRange(await GetInputsFromExecutableAsync(mainModuleFileInfo, cancellationToken));
+            inputs.AddRange(await GetInputsFromExecutableAsync(mainModuleFileInfo, true, cancellationToken));
         }
 
         return inputs;

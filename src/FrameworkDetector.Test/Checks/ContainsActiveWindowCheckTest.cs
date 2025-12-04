@@ -51,7 +51,7 @@ public class ContainsActiveWindowCheckTest() : CheckTestBase<ContainsActiveWindo
 
     private async Task RunTest(ProcessWindowMetadata[]? actualWindows, ContainsActiveWindowArgs args, DetectorCheckStatus expectedCheckStatus, ContainsActiveWindowData? expectedOutput, CancellationToken cancellationToken)
     {
-        ProcessInput input = new(nameof(ContainsActiveWindowCheckTest),
+        ProcessInput input = new(new(nameof(ContainsActiveWindowCheckTest)),
                                  ActiveWindows: actualWindows ?? Array.Empty<ProcessWindowMetadata>(),
                                  []);
 

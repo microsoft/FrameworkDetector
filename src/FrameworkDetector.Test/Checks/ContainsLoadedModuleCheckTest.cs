@@ -47,7 +47,7 @@ public class ContainsLoadedModuleCheckTest() : CheckTestBase<ContainsLoadedModul
 
     private async Task RunTest(WindowsModuleMetadata[]? actualLoadedModules, ContainsLoadedModuleArgs args, DetectorCheckStatus expectedCheckStatus, ContainsLoadedModuleData? expectedOutput, CancellationToken cancellationToken)
     {
-        ProcessInput input = new(nameof(ContainsLoadedModuleCheckTest), 
+        ProcessInput input = new(new(nameof(ContainsLoadedModuleCheckTest)), 
                                  ActiveWindows: [],
                                  Modules: actualLoadedModules ?? Array.Empty<WindowsModuleMetadata>());
 

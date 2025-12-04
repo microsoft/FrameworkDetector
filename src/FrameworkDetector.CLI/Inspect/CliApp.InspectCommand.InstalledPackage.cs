@@ -89,7 +89,7 @@ public partial class CliApp
             Console.Write($"Inspecting {target}:");
         }
 
-        var inputs = await InputHelper.GetInputsFromPackageAsync(package, cancellationToken);
+        var inputs = await InputHelper.GetInputsFromPackageAsync(package, isLoaded: false, cancellationToken);
 
         return await RunInspectionAsync(target, inputs, outputFilename, cancellationToken);
     }
