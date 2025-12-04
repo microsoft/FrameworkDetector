@@ -76,9 +76,7 @@ extends:
           displayName: 'Use NuGet '
         - task: NuGetAuthenticate@1
           displayName: NuGet Authentication for ADO
-        - task: CmdLine@2
-          displayName: NuGet push
-          inputs:
-            pwsh: |
+        - pwsh: |
               nuget.exe push *.nupkg -ApiKey AzureArtifacts -Source $(INTERNAL_PUBLISH_AZURE_ARTIFACTS_FEED) -NonInteractive -Verbosity Detailed -SkipDuplicate -NoSymbols
-            workingDirectory: '$(Pipeline.Workspace)/FrameworkDetector.NuGet'
+          displayName: NuGet Push to ADO
+          workingDirectory: '$(Pipeline.Workspace)/FrameworkDetector.NuGet'
