@@ -28,7 +28,7 @@ public class WebView1Detector : IDetector
     {
         return this.Create()
             .Required("", checks => checks
-                .ContainsLoadedModule("edgehtml.dll").GetVersionFromModule())
+                .ContainsModule("edgehtml.dll").GetVersionFromModule())
             // OR
             .Optional("Windows", checks => checks
                 .ContainsActiveWindow("XAMLWebViewHostWindowClass"))

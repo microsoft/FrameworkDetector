@@ -28,13 +28,13 @@ public class DotNetFrameworkDetector : IDetector
     {
         return this.Create()
             .Required("CLR Module", checks => checks
-                .ContainsLoadedModule("clr.dll", productName: "Microsoft® .NET Framework").GetVersionFromModule())
+                .ContainsModule("clr.dll", productName: "Microsoft® .NET Framework").GetVersionFromModule())
             // OR
             .Required("mscorlib Module", checks => checks
-                .ContainsLoadedModule("mscorlib.dll", productName: "Microsoft® .NET Framework", checkForNgenModule: true).GetVersionFromModule())
+                .ContainsModule("mscorlib.dll", productName: "Microsoft® .NET Framework", checkForNgenModule: true).GetVersionFromModule())
             .Optional("Extra Modules", checks => checks
-                .ContainsLoadedModule("clrjit.dll", productName: "Microsoft® .NET Framework")
-                .ContainsLoadedModule("mscorjit.dll", productName: "Microsoft® .NET Framework"))
+                .ContainsModule("clrjit.dll", productName: "Microsoft® .NET Framework")
+                .ContainsModule("mscorjit.dll", productName: "Microsoft® .NET Framework"))
             .BuildDefinition();
     }
 }

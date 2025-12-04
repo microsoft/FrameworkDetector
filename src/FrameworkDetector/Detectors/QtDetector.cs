@@ -29,9 +29,9 @@ public class QtDetector : IDetector
         // TODO: Need to look at older versions and if this is the most common dll in all apps... (e.g. there's also 'Qt5Gui.dll')
         return this.Create()
             .Required("Qt5", checks => checks
-                .ContainsLoadedModule("Qt5Core.dll").GetVersionFromModule())
+                .ContainsModule("Qt5Core.dll").GetVersionFromModule())
             .Optional("Gui", checks => checks
-                .ContainsLoadedModule("Qt5Gui.dll").GetVersionFromModule())
+                .ContainsModule("Qt5Gui.dll").GetVersionFromModule())
             .BuildDefinition();
     }
 }

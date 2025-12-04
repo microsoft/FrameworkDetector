@@ -30,7 +30,7 @@ public class Win2DDetector : IDetector
         return this.Create()
             // Note: Like a WebView this can be delay loaded, so app may need to be exercised to detect it.
             .Required("", checks => checks
-                .ContainsLoadedModule("Microsoft.Graphics.Canvas.dll", checkForNgenModule: true).GetVersionFromModule())
+                .ContainsModule("Microsoft.Graphics.Canvas.dll", checkForNgenModule: true).GetVersionFromModule())
             .BuildDefinition();
     }
 }

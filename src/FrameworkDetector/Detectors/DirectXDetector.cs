@@ -31,13 +31,13 @@ public class DirectXDetector : IDetector
         return this.Create()
             // Note: Version is just host OS version?
             .Required("DirectX 12", checks => checks
-                .ContainsLoadedModule("D3D12.dll", checkForNgenModule: true).GetVersionFromModule(ModuleVersionType.ProductVersion))
+                .ContainsModule("D3D12.dll", checkForNgenModule: true).GetVersionFromModule(ModuleVersionType.ProductVersion))
             .Required("DirectX 11", checks => checks
-                .ContainsLoadedModule("D3D11.dll", checkForNgenModule: true).GetVersionFromModule(ModuleVersionType.ProductVersion))
+                .ContainsModule("D3D11.dll", checkForNgenModule: true).GetVersionFromModule(ModuleVersionType.ProductVersion))
             .Required("DirectX 10", checks => checks
-                .ContainsLoadedModule("D3D10.dll", checkForNgenModule: true).GetVersionFromModule(ModuleVersionType.ProductVersion))
+                .ContainsModule("D3D10.dll", checkForNgenModule: true).GetVersionFromModule(ModuleVersionType.ProductVersion))
             .Required("DirectX 9", checks => checks
-                .ContainsLoadedModule("D3D9.dll", checkForNgenModule: true).GetVersionFromModule(ModuleVersionType.ProductVersion))
+                .ContainsModule("D3D9.dll", checkForNgenModule: true).GetVersionFromModule(ModuleVersionType.ProductVersion))
             .BuildDefinition();
     }
 }

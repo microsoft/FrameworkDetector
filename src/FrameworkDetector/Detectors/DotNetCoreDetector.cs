@@ -28,10 +28,10 @@ public class DotNetCoreDetector : IDetector
     {
         return this.Create()
             .Required("", checks => checks
-                .ContainsLoadedModule("CoreClr.dll", productName: "Microsoft® .NET Core")
-                .ContainsLoadedModule("System.Runtime.dll", productName: "Microsoft® .NET Core").GetVersionFromModule(ModuleVersionType.ProductVersion))
+                .ContainsModule("CoreClr.dll", productName: "Microsoft® .NET Core")
+                .ContainsModule("System.Runtime.dll", productName: "Microsoft® .NET Core").GetVersionFromModule(ModuleVersionType.ProductVersion))
             .Optional("Extra Modules", checks => checks
-                .ContainsLoadedModule("clrjit.dll", productName: "Microsoft® .NET Core"))
+                .ContainsModule("clrjit.dll", productName: "Microsoft® .NET Core"))
             .BuildDefinition();
     }
 }

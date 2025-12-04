@@ -13,7 +13,7 @@ namespace FrameworkDetector.Engine;
 //// TODO: Added Name as a property here, but we don't use it as we have them defined in CheckDefinition.GroupName... Probably depends on if we aggregate or use it within the results in another way.
 
 /// <summary>
-/// General collection of <see cref="ICheckDefinition"/> checks. Extension point for any checks to hook into Fluent API surface. e.g. <see cref="ContainsLoadedModuleCheck"/>.
+/// General collection of <see cref="ICheckDefinition"/> checks. Extension point for any checks to hook into Fluent API surface. e.g. <see cref="ContainsModuleCheck"/>.
 /// </summary>
 public class DetectorCheckGroup(string Name) : IDetectorCheckGroup,
                                                IReadOnlyCollection<ICheckDefinition>

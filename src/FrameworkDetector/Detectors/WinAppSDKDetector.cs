@@ -36,9 +36,9 @@ public class WinAppSDKDetector : IDetector
                 .ContainsPackagedDependency("Microsoft.WindowsAppRuntime").GetVersionFromPackageFullName())
             // Otherwise look for key modules
             .Required("Resources Module", checks => checks
-                .ContainsLoadedModule("Microsoft.Windows.ApplicationModel.Resources.dll"))
+                .ContainsModule("Microsoft.Windows.ApplicationModel.Resources.dll"))
             .Required("Framework Package", checks => checks
-                .ContainsLoadedModule("Microsoft.WindowsAppRuntime.Bootstrap.dll"))
+                .ContainsModule("Microsoft.WindowsAppRuntime.Bootstrap.dll"))
             // TODO: There's a number of modules here that we could check for...
             .BuildDefinition();
     }

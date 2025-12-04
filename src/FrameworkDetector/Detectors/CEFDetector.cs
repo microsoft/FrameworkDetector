@@ -28,11 +28,11 @@ public class CEFDetector : IDetector
     {
         return this.Create()
             .Required("", checks => checks
-                .ContainsLoadedModule("libcef.dll").GetVersionFromModule())
+                .ContainsModule("libcef.dll").GetVersionFromModule())
             .Optional("CefGlue (.NET)", checks => checks
-                .ContainsLoadedModule("Xilium.CefGlue.dll")
-                .ContainsLoadedModule("Xilium.CefGlue.Avalonia.dll")
-                .ContainsLoadedModule("Xilium.CefGlue.WPF.dll"))
+                .ContainsModule("Xilium.CefGlue.dll")
+                .ContainsModule("Xilium.CefGlue.Avalonia.dll")
+                .ContainsModule("Xilium.CefGlue.WPF.dll"))
             .Optional("Window Classes", checks => checks
                 .ContainsActiveWindow("CefBrowserWindow"))
             .BuildDefinition();

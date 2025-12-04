@@ -36,7 +36,7 @@ public class ElectronDetector : IDetector
                 .ContainsActiveWindow("Electron_PowerMonitorHostWindow")
                 .ContainsActiveWindow("Electron_NotifyIconHostWindow"))
             .Optional("Renamed electron.exe", checks => checks
-                .ContainsLoadedModule(originalFilename: "electron.exe"))
+                .ContainsModule(originalFilename: "electron.exe"))
             .BuildDefinition();
     }
 }

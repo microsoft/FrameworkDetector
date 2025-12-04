@@ -28,7 +28,7 @@ public class DUIDetector : IDetector
     {
         return this.Create()
             .Required("", checks => checks
-                .ContainsLoadedModule("dui70.dll"))
+                .ContainsModule("dui70.dll"))
             .BuildDefinition();
     }
 }

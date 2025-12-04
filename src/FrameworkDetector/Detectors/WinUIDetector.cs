@@ -28,7 +28,7 @@ public class WinUIDetector : IDetector
     {
         return this.Create()
             .Required("", checks => checks
-                .ContainsLoadedModule("Windows.UI.Xaml.dll"))
+                .ContainsModule("Windows.UI.Xaml.dll"))
             .Optional("Windows", checks => checks
                 .ContainsActiveWindow("Windows.UI.Core.CoreWindow")
                 .ContainsActiveWindow("ApplicationFrameInputSinkWindow"))

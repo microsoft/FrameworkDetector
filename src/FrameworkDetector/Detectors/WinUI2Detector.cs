@@ -30,7 +30,7 @@ public class WinUI2Detector : IDetector
             .Required("Dependent Package", checks => checks
                 .ContainsPackagedDependency("Microsoft.UI.Xaml").GetVersionFromPackageFullName())
             .Required("Main Module", checks => checks
-                .ContainsLoadedModule("Microsoft.UI.Xaml.dll", fileVersionRange: ">=2.0 <3.0").GetVersionFromModule())
+                .ContainsModule("Microsoft.UI.Xaml.dll", fileVersionRange: ">=2.0 <3.0").GetVersionFromModule())
             .BuildDefinition();
     }
 }

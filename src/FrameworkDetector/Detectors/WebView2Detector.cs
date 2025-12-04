@@ -28,20 +28,20 @@ public class WebView2Detector : IDetector
     {
         return this.Create()
             .Required("Loader Module", checks => checks
-                .ContainsLoadedModule("WebView2Loader.dll").GetVersionFromModule())
+                .ContainsModule("WebView2Loader.dll").GetVersionFromModule())
             // OR
             .Required("Core Module", checks => checks
-                .ContainsLoadedModule("Microsoft.Web.WebView2.Core.dll").GetVersionFromModule())
+                .ContainsModule("Microsoft.Web.WebView2.Core.dll").GetVersionFromModule())
             // OR
             .Required("CsWinRT Projection Module", checks => checks
-                .ContainsLoadedModule("Microsoft.Web.WebView2.Core.Projection.dll").GetVersionFromModule())
+                .ContainsModule("Microsoft.Web.WebView2.Core.Projection.dll").GetVersionFromModule())
             // OR
             .Required("Embedded Browser WebView", checks => checks
-                .ContainsLoadedModule("EmbeddedBrowserWebView.dll"))
+                .ContainsModule("EmbeddedBrowserWebView.dll"))
             .Optional("Extra Modules", checks => checks
-                .ContainsLoadedModule("EmbeddedBrowserWebView.dll")
-                .ContainsLoadedModule("Microsoft.Web.WebView2.WPF.dll")
-                .ContainsLoadedModule("Microsoft.Web.WebView2.Winforms.dll"))
+                .ContainsModule("EmbeddedBrowserWebView.dll")
+                .ContainsModule("Microsoft.Web.WebView2.WPF.dll")
+                .ContainsModule("Microsoft.Web.WebView2.Winforms.dll"))
             .BuildDefinition();
     }
 }
