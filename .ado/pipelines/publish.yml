@@ -33,6 +33,8 @@ extends:
             displayName: Setup .NET 10
             inputs:
               version: 10.0.x
+          - task: NuGetAuthenticate@1
+            displayName: NuGet Authentication for ADO
           - pwsh: |
               ./scripts/build-nuget-release.ps1 -OutputRoot "$(Build.StagingDirectory)\FrameworkDetector.NuGet"
             displayName: Build FrameworkDetector NuGet
