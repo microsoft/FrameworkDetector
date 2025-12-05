@@ -27,38 +27,21 @@ public record ToolRunResult
 
     public string Timestamp { get; }
 
-    public Dictionary<string, List<object?>?> Inputs { get; } 
+    public IReadOnlyDictionary<string, List<object?>> Inputs { get; private set; } 
 
     public List<DetectorResult> DetectorResults { get; set; } = [];
 
-    public ToolRunResult(string toolName, string toolVersion, string? toolArguments)
+    public ToolRunResult(string toolName, string toolVersion, string? toolArguments, IReadOnlyList<IInputType> inputs)
     {
         ToolName = toolName;
         ToolVersion = toolVersion;
         ToolArguments = toolArguments;
         Timestamp = DateTime.UtcNow.ToString("O");
 
-        Inputs = new Dictionary<string, List<object?>?>();
-    }
-
-    public void AddInputs(IReadOnlyList<IInputType> inputs)
-    {
         // Transform each input into a dictionary of lists based on the input type name.
         // i.e. all processes would be together in a "processes" bucket
-        foreach (var inputKey in inputs.Select(i => i.Name).Distinct())
-        {
-            foreach (var input in inputs)
-            {
-                if (input.Name == inputKey)
-                {
-                    if (!Inputs.ContainsKey(inputKey))
-                    {
-                        Inputs[inputKey] = new List<object?>();
-                    }
-                    Inputs[inputKey]?.Add(input);
-                }
-            }
-        }
+        Inputs = inputs.GroupBy(i => i.Name)
+                       .ToDictionary(g => g.Key, g => g.Cast<object?>().ToList()).AsReadOnly();
     }
 
     public override string ToString()

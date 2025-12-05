@@ -62,12 +62,10 @@ public class DetectionEngine
         int processedDetectors = 0;
         ConcurrentBag<DetectorResult> allDetectorResults = new();
 
-        var result = new ToolRunResult(AssemblyInfo.ToolName, AssemblyInfo.ToolVersion, toolArguments);
+        var result = new ToolRunResult(AssemblyInfo.ToolName, AssemblyInfo.ToolVersion, toolArguments, inputs);
 
         try
         {
-            result.AddInputs(inputs);
-
             // Step 1. Run all the detectors against the data sources.
             await Parallel.ForEachAsync(_detectors, cancellationToken, async (detector, cancellationToken) =>
             {
@@ -189,12 +187,10 @@ public class DetectionEngine
     /// <exception cref="ArgumentException"></exception>
     public async Task<ToolRunResult> DumpAllDataFromInputsAsync(IReadOnlyList<IInputType> inputs, CancellationToken cancellationToken, string? toolArguments = null)
     {
-        var result = new ToolRunResult(AssemblyInfo.ToolName, AssemblyInfo.ToolVersion, toolArguments);
+        var result = new ToolRunResult(AssemblyInfo.ToolName, AssemblyInfo.ToolVersion, toolArguments, inputs);
 
         try
         {
-            result.AddInputs(inputs);
-
             // TODO: Is there more we have to do here atm?
         }
         catch (TaskCanceledException) { } // If it gets canceled, return what we found anyway
