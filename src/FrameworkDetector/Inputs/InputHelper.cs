@@ -44,7 +44,7 @@ public static class InputHelper
         List<IInputType> inputs = [];
 
         // Get Main Process Info
-        inputs.Add(await ProcessInput.CreateAndInitializeDataSourcesAsync(process, true,cancellationToken));
+        inputs.Add(await ProcessInput.CreateAndInitializeDataSourcesAsync(process, true, cancellationToken));
 
         // Get Child process info
         if (includeChildProcesses)
