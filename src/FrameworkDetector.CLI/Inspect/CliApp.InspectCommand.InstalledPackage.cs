@@ -29,12 +29,12 @@ public partial class CliApp
             Arity = ArgumentArity.ExactlyOne,
         };
         
-        Command exeCommand = new("app", "Inspect an installed application package")
+        Command appCommand = new("app", "Inspect an installed application package")
         {
             packageFullNameArgument
         };
 
-        exeCommand.SetAction(async (ParseResult parseResult, CancellationToken cancellationToken) =>
+        appCommand.SetAction(async (ParseResult parseResult, CancellationToken cancellationToken) =>
         {
             if (parseResult.Errors.Count > 0)
             {
@@ -69,12 +69,12 @@ public partial class CliApp
             }
 
             PrintError("Missing command arguments.");
-            await exeCommand.Parse("-h").InvokeAsync();
+            await appCommand.Parse("-h").InvokeAsync();
 
             return (int)ExitCode.ArgumentParsingError;
         });
 
-        return exeCommand;
+        return appCommand;
     }
 
     /// Encapsulation of initializing datasource and grabbing engine reference to kick-off a detection against all registered detectors (see ConfigureServices)
