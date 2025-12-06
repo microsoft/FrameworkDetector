@@ -40,21 +40,21 @@ public class ContainsExportedFunctionCheckTest() : CheckTestBase<ContainsExporte
 
     private async Task RunFunctionNameCheck(string[] actualFunctionNames, string functionNameToCheck, DetectorCheckStatus expectedCheckStatus, string? expectedFunctionName)
     {
-        var actualExportedFunctions = actualFunctionNames.Select(name => new ExecutableExportedFunctionsMetadata(name)).ToArray();
+        var actualExportedFunctions = actualFunctionNames.Select(name => new ExportedFunctionsMetadata(name)).ToArray();
         var args = new ContainsExportedFunctionArgs(functionNameToCheck);
 
-        ContainsExportedFunctionData? expectedOutput = expectedFunctionName is not null ? new ContainsExportedFunctionData(new ExecutableExportedFunctionsMetadata(expectedFunctionName)) : null;
+        ContainsExportedFunctionData? expectedOutput = expectedFunctionName is not null ? new ContainsExportedFunctionData(new ExportedFunctionsMetadata(expectedFunctionName)) : null;
 
         var cts = new CancellationTokenSource();
 
         await RunTest(actualExportedFunctions, args, expectedCheckStatus, expectedOutput, cts.Token);
     }
 
-    private async Task RunTest(ExecutableExportedFunctionsMetadata[]? actualExportedFunctions, ContainsExportedFunctionArgs args, DetectorCheckStatus expectedCheckStatus, ContainsExportedFunctionData? expectedOutput, CancellationToken cancellationToken)
+    private async Task RunTest(ExportedFunctionsMetadata[]? actualExportedFunctions, ContainsExportedFunctionArgs args, DetectorCheckStatus expectedCheckStatus, ContainsExportedFunctionData? expectedOutput, CancellationToken cancellationToken)
     {
         ExecutableInput input = new(new(nameof(ContainsExportedFunctionCheckTest)),
                                     ImportedFunctions: [],
-                                    ExportedFunctions: actualExportedFunctions ?? Array.Empty<ExecutableExportedFunctionsMetadata>(),
+                                    ExportedFunctions: actualExportedFunctions ?? Array.Empty<ExportedFunctionsMetadata>(),
                                     Modules: []);
 
         await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput, cancellationToken);

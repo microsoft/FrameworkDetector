@@ -10,5 +10,5 @@ namespace FrameworkDetector.DataSources;
 /// </summary>
 public interface IImportedFunctionsDataSource : IDataSource
 {
-    ExecutableImportedFunctionsMetadata[] ImportedFunctions { get; }
+    ImportedFunctionsMetadata[] ImportedFunctions { get; }
 }

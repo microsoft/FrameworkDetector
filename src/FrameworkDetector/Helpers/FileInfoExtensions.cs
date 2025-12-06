@@ -20,9 +20,9 @@ public static class FileInfoExtensions
         /// </summary>
         /// <param name="process">The target process.</param>
         /// <returns>The metadata from each imported function.</returns>
-        public IEnumerable<ExecutableImportedFunctionsMetadata> GetImportedFunctionsMetadata()
+        public IEnumerable<ImportedFunctionsMetadata> GetImportedFunctionsMetadata()
         {
-            var importedFunctions = new HashSet<ExecutableImportedFunctionsMetadata>();
+            var importedFunctions = new HashSet<ImportedFunctionsMetadata>();
 
             if (TryGetCachedPeFile(@this.FullName, out var peFile) && peFile is not null)
             {
@@ -66,7 +66,7 @@ public static class FileInfoExtensions
 
                     foreach (var kvp in tempMap)
                     {
-                        importedFunctions.Add(new ExecutableImportedFunctionsMetadata(kvp.Key, kvp.Value.ToArray()));
+                        importedFunctions.Add(new ImportedFunctionsMetadata(kvp.Key, kvp.Value.ToArray()));
                     }
                 }
             }
@@ -79,9 +79,9 @@ public static class FileInfoExtensions
         /// </summary>
         /// <param name="process">The target process.</param>
         /// <returns>The metadata from each exported function.</returns>
-        public IEnumerable<ExecutableExportedFunctionsMetadata> GetExportedFunctionsMetadata()
+        public IEnumerable<ExportedFunctionsMetadata> GetExportedFunctionsMetadata()
         {
-            var exportedFunctions = new HashSet<ExecutableExportedFunctionsMetadata>();
+            var exportedFunctions = new HashSet<ExportedFunctionsMetadata>();
 
             if (TryGetCachedPeFile(@this.FullName, out var peFile) && peFile is not null)
             {
@@ -93,7 +93,7 @@ public static class FileInfoExtensions
                         {
                             if (exportedFunction is not null && exportedFunction.Name is not null)
                             {
-                                exportedFunctions.Add(new ExecutableExportedFunctionsMetadata(exportedFunction.Name));
+                                exportedFunctions.Add(new ExportedFunctionsMetadata(exportedFunction.Name));
                             }
                         }
                     }

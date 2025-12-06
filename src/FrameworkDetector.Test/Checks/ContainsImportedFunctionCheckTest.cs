@@ -39,20 +39,20 @@ public class ContainsImportedFunctionCheckTest() : CheckTestBase<ContainsImporte
 
     private async Task RunFunctionNameCheck(string actualModuleName, string[] actualFunctionNames, string moduleNameToCheck, string functionNameToCheck, DetectorCheckStatus expectedCheckStatus, string? expectedModuleName, string? expectedFunctionName)
     {
-        var actualImportedFunctions = new ExecutableImportedFunctionsMetadata(actualModuleName, actualFunctionNames.Select(afn => new FunctionMetadata(afn)).ToArray());
+        var actualImportedFunctions = new ImportedFunctionsMetadata(actualModuleName, actualFunctionNames.Select(afn => new FunctionMetadata(afn)).ToArray());
         var args = new ContainsImportedFunctionArgs(moduleNameToCheck, functionNameToCheck);
 
-        ContainsImportedFunctionData? expectedOutput = expectedModuleName is not null && expectedFunctionName is not null ? new ContainsImportedFunctionData(new ExecutableImportedFunctionsMetadata(expectedModuleName, [new FunctionMetadata(expectedFunctionName)])) : null;
+        ContainsImportedFunctionData? expectedOutput = expectedModuleName is not null && expectedFunctionName is not null ? new ContainsImportedFunctionData(new ImportedFunctionsMetadata(expectedModuleName, [new FunctionMetadata(expectedFunctionName)])) : null;
 
         var cts = new CancellationTokenSource();
 
         await RunTest([actualImportedFunctions], args, expectedCheckStatus, expectedOutput, cts.Token);
     }
 
-    private async Task RunTest(ExecutableImportedFunctionsMetadata[]? actualImportedFunctions, ContainsImportedFunctionArgs args, DetectorCheckStatus expectedCheckStatus, ContainsImportedFunctionData? expectedOutput, CancellationToken cancellationToken)
+    private async Task RunTest(ImportedFunctionsMetadata[]? actualImportedFunctions, ContainsImportedFunctionArgs args, DetectorCheckStatus expectedCheckStatus, ContainsImportedFunctionData? expectedOutput, CancellationToken cancellationToken)
     {
         ExecutableInput input = new(new(nameof(ContainsImportedFunctionCheckTest)),
-                                    ImportedFunctions: actualImportedFunctions ?? Array.Empty<ExecutableImportedFunctionsMetadata>(),
+                                    ImportedFunctions: actualImportedFunctions ?? Array.Empty<ImportedFunctionsMetadata>(),
                                     ExportedFunctions: [],
                                     Modules: []);
 

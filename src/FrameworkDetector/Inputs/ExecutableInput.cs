@@ -16,8 +16,8 @@ namespace FrameworkDetector.Inputs;
 /// An <see cref="IInputType"/> which represents a loose exectuable of an application binary to analyze.
 /// </summary>
 public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
-                              ExecutableImportedFunctionsMetadata[] ImportedFunctions,
-                              ExecutableExportedFunctionsMetadata[] ExportedFunctions,
+                              ImportedFunctionsMetadata[] ImportedFunctions,
+                              ExportedFunctionsMetadata[] ExportedFunctions,
                               WindowsModuleMetadata[] Modules) 
     : IImportedFunctionsDataSource, 
       IExportedFunctionsDataSource,

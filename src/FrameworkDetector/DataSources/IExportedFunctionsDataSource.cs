@@ -10,5 +10,5 @@ namespace FrameworkDetector.DataSources;
 /// </summary>
 public interface IExportedFunctionsDataSource : IDataSource
 {
-    ExecutableExportedFunctionsMetadata[] ExportedFunctions { get; }
+    ExportedFunctionsMetadata[] ExportedFunctions { get; }
 }

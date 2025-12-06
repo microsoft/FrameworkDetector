@@ -83,9 +83,9 @@ public static class ContainsImportedFunctionCheck
     /// Output data for <see cref="ContainsImportedFunctionCheck"/>.
     /// </summary>
     /// <param name="importedFunctionFound">The imported function found.</param>
-    public readonly struct ContainsImportedFunctionData(ExecutableImportedFunctionsMetadata importedFunctionFound)
+    public readonly struct ContainsImportedFunctionData(ImportedFunctionsMetadata importedFunctionFound)
     {
-        public ExecutableImportedFunctionsMetadata ImportedFunctionFound { get; } = importedFunctionFound;
+        public ImportedFunctionsMetadata ImportedFunctionFound { get; } = importedFunctionFound;
     }
 
     extension(IDetectorCheckGroup @this)

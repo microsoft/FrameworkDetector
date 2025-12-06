@@ -58,9 +58,9 @@ public static class ContainsExportedFunctionCheck
     /// Output data for <see cref="ContainsExportedFunctionCheck"/>.
     /// </summary>
     /// <param name="exportedFunctionFound">The exported function found.</param>
-    public readonly struct ContainsExportedFunctionData(ExecutableExportedFunctionsMetadata exportedFunctionFound)
+    public readonly struct ContainsExportedFunctionData(ExportedFunctionsMetadata exportedFunctionFound)
     {
-        public ExecutableExportedFunctionsMetadata ExportedFunctionFound { get; } = exportedFunctionFound;
+        public ExportedFunctionsMetadata ExportedFunctionFound { get; } = exportedFunctionFound;
     }
 
     extension(IDetectorCheckGroup @this)

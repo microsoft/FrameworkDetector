@@ -416,14 +416,14 @@ public static class ProcessExtensions
     /// </summary>
     /// <param name="process">The target process.</param>
     /// <returns>The metadata from each imported function.</returns>
-    public static IEnumerable<ExecutableImportedFunctionsMetadata> GetImportedFunctionsMetadata(this Process process) => process.GetMainModuleFileInfo()?.GetImportedFunctionsMetadata() ?? [];
+    public static IEnumerable<ImportedFunctionsMetadata> GetImportedFunctionsMetadata(this Process process) => process.GetMainModuleFileInfo()?.GetImportedFunctionsMetadata() ?? [];
 
     /// <summary>
     /// Gets the metadata for the functions exported by the main module of the given process.
     /// </summary>
     /// <param name="process">The target process.</param>
     /// <returns>The metadata from each exported function.</returns>
-    public static IEnumerable<ExecutableExportedFunctionsMetadata> GetExportedFunctionsMetadata(this Process process) => process.GetMainModuleFileInfo()?.GetExportedFunctionsMetadata() ?? [];
+    public static IEnumerable<ExportedFunctionsMetadata> GetExportedFunctionsMetadata(this Process process) => process.GetMainModuleFileInfo()?.GetExportedFunctionsMetadata() ?? [];
 
     /// <summary>
     /// Gets a <see cref="Package"/> from a <see cref="Process"/>, used to help create a <see cref="InstalledPackageInput"/> from a <see cref="Process"/>.
