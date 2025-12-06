@@ -35,7 +35,8 @@ public record ProcessInput(FileMetadata MainModule,
                            string? ApplicationUserModelId = null)
     : IActiveWindowsDataSource,
       IModulesDataSource, 
-      IInputType<Process>
+      IInputTypeFactory<Process>,
+      IInputType
 {
     public string Name => "processes";
 

@@ -17,7 +17,9 @@ public record InstalledPackageInput(string DisplayName,
                                     string Description,
                                     string FamilyName,
                                     PackageMetadata PackageMetadata) 
-    : IPackageMetadataDataSource, IInputType<Package>
+    : IPackageMetadataDataSource,
+      IInputTypeFactory<Package>,
+      IInputType
 {
     public string Name => "installedPackages";
 

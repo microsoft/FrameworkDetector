@@ -8,12 +8,17 @@ namespace FrameworkDetector.Inputs;
 
 /// <summary>
 /// Base interface for all input types based into the <see cref="DetectionEngine"/>. Used to group inputs within a <see cref="ToolRunResult"/>.
-/// Input types should implement <see cref="I"/>
+/// Inputs wrap and provide Data Sources for the target type they wrap only. It may be possible for an input source to reach other types of inputs,
+/// but that is handled by the parent application to create multiple base inputs as needed. Data Sources from the input type should be what is
+/// only accessible solely from that input type.
 /// </summary>
+/// <remarks>
+/// Input types should also implement <see cref="IInputTypeFactory{T}"/>.
+/// </remarks>
 public interface IInputType
 {
     /// <summary>
-    /// Gets the name of the input type. This will be used as the bucket for inputs when grouping within a <see cref="ToolRunResult"/>.
+    /// Gets the name of the input type. This will be used as a key name for similar inputs when grouping within a <see cref="ToolRunResult"/>.
     /// </summary>
     public string Name { get; }
 }

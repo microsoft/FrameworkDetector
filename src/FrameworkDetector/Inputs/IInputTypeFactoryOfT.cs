@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 namespace FrameworkDetector.Inputs;
 
 /// <summary>
-/// Inputs wrap and provide Data Sources for the type they wrap only. It may be possible for an input source to reach other types of inputs,
-/// but that is handled by the parent application to create multiple base inputs as needed. Data Sources from the input type should be what is
-/// only accessible solely from that input type.
+/// Interface definining a common static helper factory method for creating and initializing an <see cref="IInputType"/> implementation from a raw type T.
 /// </summary>
 /// <typeparam name="T">Raw type wrapped at providing data to data source interfaces implemented by the implementation.</typeparam>
-public interface IInputType<T> : IInputType
+/// <remarks>
+/// Any class implementing <see cref="IInputType"/> should also implement this interface to provide a common factory method for creating and initializing the input type from the raw type T.
+/// </remarks>
+public interface IInputTypeFactory<T>
 {
     /// <summary>
     /// Static factory initialization method used to initialize this input and gather all data sources it can provide.

@@ -22,7 +22,8 @@ public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
     : IImportedFunctionsDataSource, 
       IExportedFunctionsDataSource,
       IModulesDataSource,
-      IInputType<FileInfo>
+      IInputTypeFactory<FileInfo>,
+      IInputType
 {
     public string Name => "executables";
 
