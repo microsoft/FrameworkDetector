@@ -73,9 +73,9 @@ public static class ContainsActiveWindowCheck
     /// Output data for <see cref="ContainsActiveWindowCheck"/>.
     /// </summary>
     /// <param name="windowFound">The window found.</param>
-    public readonly struct ContainsActiveWindowData(ProcessWindowMetadata windowFound)
+    public readonly struct ContainsActiveWindowData(ActiveWindowMetadata windowFound)
     {
-        public ProcessWindowMetadata WindowFound { get; } = windowFound;
+        public ActiveWindowMetadata WindowFound { get; } = windowFound;
     }
 
     extension(IDetectorCheckGroup @this)

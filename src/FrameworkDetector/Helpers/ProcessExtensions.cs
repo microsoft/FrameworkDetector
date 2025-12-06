@@ -318,9 +318,9 @@ public static class ProcessExtensions
     /// </summary>
     /// <param name="process">The target process.</param>
     /// <returns>The metadata for each active window.</returns>
-    public static IEnumerable<ProcessWindowMetadata> GetActiveWindowMetadata(this Process process)
+    public static IEnumerable<ActiveWindowMetadata> GetActiveWindowMetadata(this Process process)
     {
-        var windows = new HashSet<ProcessWindowMetadata>();
+        var windows = new HashSet<ActiveWindowMetadata>();
 
         // The HWNDs for UWP apps are hidden as children under ApplicationFrameHost's top-level HWND,
         // so we'll need to make sure we check there if the target process is UWP (which we don't know)
@@ -336,7 +336,7 @@ public static class ProcessExtensions
 
                 if (className is not null || windowText is not null)
                 {
-                    windows.Add(new ProcessWindowMetadata(className,
+                    windows.Add(new ActiveWindowMetadata(className,
                                                           windowText,
                                                           hwnd.IsWindowVisible()));
                 }

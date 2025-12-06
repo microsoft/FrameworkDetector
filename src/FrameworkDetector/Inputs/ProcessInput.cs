@@ -18,7 +18,7 @@ namespace FrameworkDetector.Inputs;
 /// An <see cref="IInputType"/> that represents a running process on the system, including its active windows and loaded modules.
 /// </summary>
 /// <param name="MainModule">Name of the process' executable.</param>
-/// <param name="ActiveWindows"><see cref="ProcessWindowMetadata"/> about Active Windows of the application.</param>
+/// <param name="ActiveWindows"><see cref="ActiveWindowMetadata"/> about Active Windows of the application.</param>
 /// <param name="Modules"><see cref="WindowsModuleMetadata"/> about the processes modules loaded in memory (more accurate than <see cref="ExecutableInput"/>'s Modules, TODO: Link directly to that property when we add it</param>
 /// <param name="ProcessId"></param>
 /// <param name="MainWindowHandle"></param>
@@ -26,7 +26,7 @@ namespace FrameworkDetector.Inputs;
 /// <param name="PackageFullName"></param>
 /// <param name="ApplicationUserModelId"></param>
 public record ProcessInput(FileMetadata MainModule,
-                           ProcessWindowMetadata[] ActiveWindows,
+                           ActiveWindowMetadata[] ActiveWindows,
                            WindowsModuleMetadata[] Modules,
                            int? ProcessId = null,
                            long? MainWindowHandle = default, // IntPtr is long on 64-bit, int on 32-bit (so use long here)

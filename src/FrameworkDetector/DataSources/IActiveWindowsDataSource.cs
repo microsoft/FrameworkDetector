@@ -10,5 +10,5 @@ namespace FrameworkDetector.DataSources;
 /// </summary>
 public interface IActiveWindowsDataSource : IDataSource
 {
-    ProcessWindowMetadata[] ActiveWindows { get; }
+    ActiveWindowMetadata[] ActiveWindows { get; }
 }
