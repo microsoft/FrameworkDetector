@@ -39,7 +39,7 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
-    - name: Build FrameworkDetector NuGet
+    - name: Build FrameworkDetector NuGets
       run: ./scripts/build-nuget-release.ps1
 
     - name: Build FrameworkDetector.CLI Release

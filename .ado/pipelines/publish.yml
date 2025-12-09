@@ -20,8 +20,8 @@ extends:
     stages:
     - stage: BuildStage
       jobs:
-      - job: BuildFrameworkDetectorJob
-        displayName: Build FrameworkDetector NuGet and CLI
+      - job: BuildFrameworkDetectorNuGetsJob
+        displayName: Build FrameworkDetector NuGets
         pool:
           name: Azure-Pipelines-1ESPT-ExDShared
           image: windows-latest
@@ -38,7 +38,30 @@ extends:
             displayName: NuGet Authentication for ADO
           - pwsh: |
               ./scripts/build-nuget-release.ps1 -OutputRoot "$(Build.StagingDirectory)\FrameworkDetector.NuGet"
-            displayName: Build FrameworkDetector NuGet
+            displayName: Build FrameworkDetector NuGets
+
+        templateContext:
+            outputs:
+              - output: pipelineArtifact
+                displayName: 'Upload FrameworkDetector NuGets to Pipeline Artifacts'
+                artifactName: FrameworkDetector.NuGet
+                targetPath: $(Build.StagingDirectory)\FrameworkDetector.NuGet
+      - job: BuildFrameworkDetectorCliJob
+        displayName: Build FrameworkDetector.CLI (Self-Contained)
+        pool:
+          name: Azure-Pipelines-1ESPT-ExDShared
+          image: windows-latest
+          os: windows
+          hostArchitecture: amd64
+
+        steps:
+          - checkout: self
+          - task: UseDotNet@2
+            displayName: Setup .NET 10
+            inputs:
+              version: 10.0.x
+          - task: NuGetAuthenticate@1
+            displayName: NuGet Authentication for ADO
           - pwsh: |
               ./scripts/build-cli-release.ps1 -OutputRoot "$(Build.StagingDirectory)\FrameworkDetector.CLI"
             displayName: Build FrameworkDetector CLI
@@ -46,18 +69,14 @@ extends:
         templateContext:
             outputs:
               - output: pipelineArtifact
-                displayName: 'Upload FrameworkDetector NuGet Build Artifacts'
-                artifactName: FrameworkDetector.NuGet
-                targetPath: $(Build.StagingDirectory)\FrameworkDetector.NuGet
-              - output: pipelineArtifact
-                displayName: 'Upload FrameworkDetector CLI Build Artifacts'
+                displayName: 'Upload FrameworkDetector CLI to Pipeline Artifacts'
                 artifactName: FrameworkDetector.CLI
                 targetPath: $(Build.StagingDirectory)\FrameworkDetector.CLI
     - stage: PublishStage
       dependsOn: BuildStage
       jobs:
-      - job: PublishFrameworkDetectorNuGetToInternalAdoJob
-        displayName: Publish FrameworkDetector.NuGet to ADO
+      - job: PublishFrameworkDetectorNuGetsToInternalAdoJob
+        displayName: Publish FrameworkDetector NuGets to ADO
         pool:
           name: Azure-Pipelines-1ESPT-ExDShared
           image: windows-latest
