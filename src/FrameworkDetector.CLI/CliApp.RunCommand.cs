@@ -21,7 +21,7 @@ public partial class CliApp
     {
         Option<string?> pathOption = new("--exePath", "-exe")
         {
-            Description = "The full path of the program to run.",
+            Description = "The full path of the executable to run.",
         };
 
         Option<string?> packageOption = new("--packageFullName", "-pkg")
@@ -39,11 +39,6 @@ public partial class CliApp
             Description = "The time in milliseconds to wait after starting the program before inspecting it. Default is 2000.",
         };
 
-        Option<string?> outputFileOption = new("--outputFile", "-o")
-        {
-            Description = "Save the inspection report as JSON to the given filename.",
-        };
-
         Option<string?> processNameOption = new("--processName")
         {
             Description = "The name of the process to inspect after launching (useful if different from the entry process).",
@@ -55,15 +50,17 @@ public partial class CliApp
             Arity = ArgumentArity.Zero, // Note: Flag only, no value
         };
 
-        var command = new Command("run", "Inspect a process/package provided to run first")
+        var command = new Command("run", "Run a given a process/package and inspect it")
         {
             pathOption,
             packageOption,
             aumidOption,
             waitTimeOption,
-            outputFileOption,
+            OutputFileOption,
             processNameOption,
             keepAfterInspectOption,
+            IncludeChildrenOption,
+            WaitForInputIdleOption,
         };
         command.TreatUnmatchedTokensAsErrors = true;
 
@@ -84,9 +81,11 @@ public partial class CliApp
             var packageFullName = parseResult.GetValue(packageOption);
             var aumid = parseResult.GetValue(aumidOption);
             var waitTime = parseResult.GetValue(waitTimeOption) ?? 2000;
-            var outputFilename = parseResult.GetValue(outputFileOption);
+            TryParseOutputFile(parseResult);
             var processName = parseResult.GetValue(processNameOption);
             var keepAfterInspect = parseResult.GetValue(keepAfterInspectOption);
+            TryParseIncludeChildren(parseResult);
+            TryParseWaitForInputIdle(parseResult);
 
             if (exepath is not null)
             {
@@ -117,7 +116,7 @@ public partial class CliApp
                     waitTime = 0; // Don't need to wait twice
                 }
 
-                return (int)await InspectStartedProcessAsync(process, waitTime, outputFilename, keepAfterInspect, cancellationToken);
+                return (int)await InspectStartedProcessAsync(process, waitTime, OutputFile, keepAfterInspect, cancellationToken);
             }
             else if (!string.IsNullOrWhiteSpace(packageFullName))
             {
@@ -152,7 +151,7 @@ public partial class CliApp
                     return (int)ExitCode.ArgumentParsingError;
                 }
 
-                return (int)await InspectStartedProcessAsync(process, waitTime, outputFilename, keepAfterInspect,cancellationToken);
+                return (int)await InspectStartedProcessAsync(process, waitTime, OutputFile, keepAfterInspect,cancellationToken);
             }
             else if (!string.IsNullOrWhiteSpace(aumid))
             {
@@ -183,13 +182,10 @@ public partial class CliApp
                     waitTime = 0; // Don't need to wait twice
                 }
 
-                return (int)await InspectStartedProcessAsync(process, waitTime, outputFilename, keepAfterInspect, cancellationToken);
+                return (int)await InspectStartedProcessAsync(process, waitTime, OutputFile, keepAfterInspect, cancellationToken);
             }
 
-            PrintError("Missing command arguments.");
-            await command.Parse("-h").InvokeAsync();
-
-            return (int)ExitCode.ArgumentParsingError;
+            return (int)await InvalidArgumentsShowHelpAsync(command);
         });
 
         return command;
