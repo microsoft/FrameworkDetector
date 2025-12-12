@@ -34,13 +34,13 @@ public record WindowsModuleMetadata(string Filename,
             else
             {
                 // Give up, just return the filename since we can't find the actual file on disk
-                return new WindowsModuleMetadata(Path.GetFileName(filename));
+                return new WindowsModuleMetadata(filename, IsLoaded: isLoaded);
             }
         }
 
         var fileVersionInfo = FileVersionInfo.GetVersionInfo(filename);
 
-        return new WindowsModuleMetadata(Path.GetFileName(fileVersionInfo.FileName), 
+        return new WindowsModuleMetadata(fileVersionInfo.FileName, 
             fileVersionInfo.OriginalFilename, 
             fileVersionInfo.FileVersion, 
             fileVersionInfo.ProductName, 

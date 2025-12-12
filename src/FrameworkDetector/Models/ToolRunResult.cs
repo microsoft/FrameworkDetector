@@ -40,7 +40,7 @@ public record ToolRunResult
 
         // Transform each input into a dictionary of lists based on the input type name.
         // i.e. all processes would be together in a "processes" bucket
-        Inputs = inputs.GroupBy(i => i.Name)
+        Inputs = inputs.GroupBy(i => i.InputGroup)
                        .ToDictionary(g => g.Key, g => g.Cast<object?>().ToList()).AsReadOnly();
     }
 

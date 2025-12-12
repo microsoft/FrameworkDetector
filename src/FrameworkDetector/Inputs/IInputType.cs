@@ -18,7 +18,7 @@ namespace FrameworkDetector.Inputs;
 public interface IInputType
 {
     /// <summary>
-    /// Gets the name of the input type. This will be used as a key name for similar inputs when grouping within a <see cref="ToolRunResult"/>.
+    /// An identifier to group similar inputs within a <see cref="ToolRunResult"/>.
     /// </summary>
-    public string Name { get; }
+    public string InputGroup { get; }
 }

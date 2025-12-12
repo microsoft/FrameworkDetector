@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace FrameworkDetector.Inputs;
 
 /// <summary>
-/// Interface definining a common static helper factory method for creating and initializing an <see cref="IInputType"/> implementation from a raw type T.
+/// Interface defining a common static helper factory method for creating and initializing an <see cref="IInputType"/> implementation from a raw type T.
 /// </summary>
 /// <typeparam name="T">Raw type wrapped at providing data to data source interfaces implemented by the implementation.</typeparam>
 /// <remarks>
@@ -24,5 +24,5 @@ public interface IInputTypeFactory<T>
     /// <param name="cancellationToken">A cancellation token to disrupt initialization.</param>
     /// <returns>An <see cref="IInputType"/> of the provided input with all data sources initialized.</returns>
     /// <exception cref="NotImplementedException">By default this exception is thrown if the implementor did not implement this method as required.</exception>
-    public virtual static Task<IInputType> CreateAndInitializeDataSourcesAsync(T input, bool? isLoaded, CancellationToken cancellationToken) => throw new NotImplementedException("Input Type did not implement CreateAsync method.");
+    public virtual static Task<IInputType?> CreateAndInitializeDataSourcesAsync(T input, bool? isLoaded, CancellationToken cancellationToken) => throw new NotImplementedException("Input Type did not implement CreateAsync method.");
 }
