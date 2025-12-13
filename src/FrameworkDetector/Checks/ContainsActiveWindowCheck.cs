@@ -15,7 +15,7 @@ using FrameworkDetector.Models;
 namespace FrameworkDetector.Checks;
 
 /// <summary>
-/// CheckDefinition extension for looking for a specific window present within a process.
+/// CheckDefinition extension for looking for a specific window present within an input.
 /// </summary>
 public static class ContainsActiveWindowCheck
 {

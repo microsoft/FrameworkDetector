@@ -16,7 +16,7 @@ using FrameworkDetector.Models;
 namespace FrameworkDetector.Checks;
 
 /// <summary>
-/// CheckDefinition extension for looking for a specific imported function, present within the PE headers of a process binary.
+/// CheckDefinition extension for looking for a specific imported function, present within the PE headers of an input.
 /// </summary>
 public static class ContainsImportedFunctionCheck
 {

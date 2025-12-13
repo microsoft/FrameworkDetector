@@ -16,7 +16,7 @@ using FrameworkDetector.Models;
 namespace FrameworkDetector.Checks;
 
 /// <summary>
-/// CheckDefinition extension for looking for a specific dependent package used within a process.
+/// CheckDefinition extension for looking for a specific dependent package used by an input.
 /// </summary>
 public static class ContainsPackagedDependencyCheck
 {
