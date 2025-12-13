@@ -332,12 +332,10 @@ public static class ProcessExtensions
             try
             {
                 var className = hwnd.GetClassName();
-                var windowText = hwnd.GetWindowText();
 
-                if (className is not null || windowText is not null)
+                if (className is not null)
                 {
                     windows.Add(new ActiveWindowMetadata(className,
-                                                          windowText,
                                                           hwnd.IsWindowVisible()));
                 }
             }

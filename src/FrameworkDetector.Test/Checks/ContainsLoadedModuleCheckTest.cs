@@ -22,7 +22,7 @@ public class ContainsLoadedModuleCheckTest() : CheckTestBase<ContainsModuleArgs,
     [DataRow("TestModuleName.dll")]
     public async Task ContainsModuleCheck_FilenameFoundTest(string filename)
     {
-        // Note: We pass null as that sets the checkIsLoaded to null to mean to indicate we don't care if it is loaded or not (default)
+        // Note: We pass null as that sets the isLoaded to null to mean to indicate we don't care if it is loaded or not (default)
         await RunFilenameCheck([filename], false, filename, DetectorCheckStatus.CompletedPassed, filename, null);
     }
 
@@ -56,7 +56,7 @@ public class ContainsLoadedModuleCheckTest() : CheckTestBase<ContainsModuleArgs,
     [DataRow("TestModuleName.dll", false, "TestModuleName.dll")]
     public async Task ContainsLoadedModuleCheck_FilenameNotLoadedFlagTest(string actualFilename, bool isLoaded, string filenameToCheck)
     {
-        // CheckIsLoaded = false: should only match if module.IsLoaded == false
+        // IsLoaded = false: should only match if module.IsLoaded == false
         var expectedStatus = isLoaded ? DetectorCheckStatus.CompletedFailed : DetectorCheckStatus.CompletedPassed;
         var expectedOutput = isLoaded ? null : filenameToCheck;
         await RunFilenameCheck([actualFilename], isLoaded, filenameToCheck, expectedStatus, expectedOutput, false);
@@ -65,7 +65,7 @@ public class ContainsLoadedModuleCheckTest() : CheckTestBase<ContainsModuleArgs,
     private async Task RunFilenameCheck(string[] actualFilenames, bool areLoaded, string filenameToCheck, DetectorCheckStatus expectedCheckStatus, string? expectedFilename, bool? checkIsLoaded = null)
     {
         var actualLoadedModules = actualFilenames.Select(filename => new WindowsModuleMetadata(filename, IsLoaded: areLoaded == true)).ToArray();
-        var args = new ContainsModuleArgs(filenameToCheck, checkIsLoaded: checkIsLoaded);
+        var args = new ContainsModuleArgs(filenameToCheck, isLoaded: checkIsLoaded);
 
         ContainsModuleData? expectedOutput = expectedFilename is not null ? new ContainsModuleData(new WindowsModuleMetadata(expectedFilename, IsLoaded: areLoaded == true)) : null;
 
