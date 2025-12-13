@@ -54,7 +54,7 @@ public class ContainsImportedFunctionCheckTest() : CheckTestBase<ContainsImporte
         ExecutableInput input = new(new(nameof(ContainsImportedFunctionCheckTest)),
                                     ImportedFunctions: actualImportedFunctions ?? Array.Empty<ImportedFunctionsMetadata>(),
                                     ExportedFunctions: [],
-                                    Modules: []);
+                                    ImportedModules: []);
 
         await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput, cancellationToken);
     }

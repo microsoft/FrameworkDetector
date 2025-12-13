@@ -20,7 +20,7 @@ namespace FrameworkDetector.Inputs;
 public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
                               ImportedFunctionsMetadata[] ImportedFunctions,
                               ExportedFunctionsMetadata[] ExportedFunctions,
-                              WindowsModuleMetadata[] Modules) 
+                              WindowsModuleMetadata[] ImportedModules) 
     : IEquatable<ExecutableInput>,
       IImportedFunctionsDataSource, 
       IExportedFunctionsDataSource,
@@ -47,7 +47,7 @@ public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
         // Get functions from the executable
         var importedFunctions = executable.GetImportedFunctionsMetadata();
 
-        // Loop over Imported Functions to Produce Modules Data Source
+        // Loop over Imported Functions to Produce ImportedModules Data Source
         HashSet<WindowsModuleMetadata> modules = new();
         foreach (var function in importedFunctions)
         {
@@ -73,4 +73,10 @@ public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
 
         return ExecutableMetadata == input.ExecutableMetadata;
     }
+
+    public IEnumerable<ImportedFunctionsMetadata> GetImportedFunctions() => ImportedFunctions;
+
+    public IEnumerable<ExportedFunctionsMetadata> GetExportedFunctions() => ExportedFunctions;
+
+    public IEnumerable<WindowsModuleMetadata> GetModules() => ImportedModules;
 }

@@ -10,6 +10,7 @@ using Windows.ApplicationModel;
 
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Models;
+using System.Collections.Generic;
 
 namespace FrameworkDetector.Inputs;
 
@@ -21,7 +22,7 @@ public record InstalledPackageInput(string DisplayName,
                                     string FamilyName,
                                     PackageMetadata PackageMetadata) 
     : IEquatable<InstalledPackageInput>,
-      IPackageMetadataDataSource,
+      IPackageDataSource,
       IInputTypeFactory<Package>,
       IInputType
 {
@@ -48,4 +49,6 @@ public record InstalledPackageInput(string DisplayName,
 
         return PackageMetadata.Id == input.PackageMetadata.Id;
     }
+
+    public IEnumerable<PackageMetadata> GetPackages() => [PackageMetadata];
 }

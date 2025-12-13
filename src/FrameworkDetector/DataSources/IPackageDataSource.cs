@@ -10,15 +10,15 @@ using FrameworkDetector.Models;
 namespace FrameworkDetector.DataSources;
 
 /// <summary>
-/// Provides metadata about the modules for a given input.
+/// Provides metadata about the packages for a given input.
 /// </summary>
-public interface IModulesDataSource : IDataSource
+public interface IPackageDataSource : IDataSource
 {
-    IEnumerable<WindowsModuleMetadata> GetModules();
+    IEnumerable<PackageMetadata> GetPackages();
 
-    virtual async IAsyncEnumerable<WindowsModuleMetadata> GetModulesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    virtual async IAsyncEnumerable<PackageMetadata> GetPackagesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        foreach (var item in GetModules())
+        foreach (var item in GetPackages())
         {
             if (cancellationToken.IsCancellationRequested)
             {

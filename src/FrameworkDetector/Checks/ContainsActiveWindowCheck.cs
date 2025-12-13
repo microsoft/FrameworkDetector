@@ -110,18 +110,14 @@ public static class ContainsActiveWindowCheck
 
         foreach (var input in inputs)
         {
-            if (input is IActiveWindowsDataSource dataSource
-                && dataSource.ActiveWindows is not null)
-            {
-                foreach (var window in dataSource.ActiveWindows)
-                {
-                    await Task.Yield();
+            // Stop evaluating inputs if we've gotten a cancellation or a result
+            if (cancellationToken.IsCancellationRequested || result.CheckStatus != DetectorCheckStatus.InProgress) break;
 
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        result.CheckStatus = DetectorCheckStatus.Canceled;
-                        break;
-                    }
+            if (input is IActiveWindowsDataSource dataSource)
+            {
+                await foreach (var window in dataSource.GetActiveWindowsAsync(cancellationToken))
+                {
+                    if (cancellationToken.IsCancellationRequested) break;
 
                     var classNameMatch = definition.CheckArguments.ClassName is null || window.ClassName is null || window.ClassName.Contains(definition.CheckArguments.ClassName, StringComparison.InvariantCultureIgnoreCase);
                     var textMatch = definition.CheckArguments.Text is null || window.Text is null || window.Text.Contains(definition.CheckArguments.Text, StringComparison.InvariantCultureIgnoreCase);
@@ -134,17 +130,11 @@ public static class ContainsActiveWindowCheck
                     }
                 }
             }
-
-            // Stop evaluating other process data sources if we've gotten a pass or cancel
-            if (result.CheckStatus != DetectorCheckStatus.InProgress)
-            {
-                break;
-            }
         }
 
         if (result.CheckStatus == DetectorCheckStatus.InProgress)
         {
-            result.CheckStatus = DetectorCheckStatus.CompletedFailed;
+            result.CheckStatus = cancellationToken.IsCancellationRequested ? DetectorCheckStatus.Canceled : DetectorCheckStatus.CompletedFailed;
         }
     }
 }

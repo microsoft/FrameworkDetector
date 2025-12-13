@@ -103,6 +103,12 @@ public record CheckDefinition<TInput,TOutput>(
         // Call the check extension to perform calculation and update result.
         await PerformCheckAsync.Invoke(this, inputs, result, cancellationToken);
 
+        // If the check forgot to update the status, set it here
+        if (result.CheckStatus == DetectorCheckStatus.InProgress)
+        {
+            result.CheckStatus = cancellationToken.IsCancellationRequested ? DetectorCheckStatus.Canceled : DetectorCheckStatus.CompletedFailed;
+        }
+
         return result;
     }
 

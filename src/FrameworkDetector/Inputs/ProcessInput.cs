@@ -20,7 +20,7 @@ namespace FrameworkDetector.Inputs;
 /// </summary>
 /// <param name="MainModule">Metadata of the process' executable.</param>
 /// <param name="ActiveWindows"><see cref="ActiveWindowMetadata"/> about Active Windows of the application.</param>
-/// <param name="Modules"><see cref="WindowsModuleMetadata"/> about the processes modules loaded in memory (more accurate than <see cref="ExecutableInput"/>'s Modules, TODO: Link directly to that property when we add it</param>
+/// <param name="LoadedModules"><see cref="WindowsModuleMetadata"/> about the processes modules loaded in memory (more accurate than <see cref="ExecutableInput"/>'s LoadedModules, TODO: Link directly to that property when we add it</param>
 /// <param name="ProcessId"></param>
 /// <param name="MainWindowHandle"></param>
 /// <param name="MainWindowTitle"></param>
@@ -28,7 +28,7 @@ namespace FrameworkDetector.Inputs;
 /// <param name="ApplicationUserModelId"></param>
 public record ProcessInput(FileMetadata MainModule,
                            ActiveWindowMetadata[] ActiveWindows,
-                           WindowsModuleMetadata[] Modules,
+                           WindowsModuleMetadata[] LoadedModules,
                            int? ProcessId = null,
                            long? MainWindowHandle = default, // IntPtr is long on 64-bit, int on 32-bit (so use long here)
                            string? MainWindowTitle = null,
@@ -36,7 +36,7 @@ public record ProcessInput(FileMetadata MainModule,
                            string? ApplicationUserModelId = null)
     : IEquatable<ProcessInput>,
       IActiveWindowsDataSource,
-      IModulesDataSource, 
+      IModulesDataSource,
       IInputTypeFactory<Process>,
       IInputType
 {
@@ -94,4 +94,8 @@ public record ProcessInput(FileMetadata MainModule,
 
         return MainModule == input.MainModule && ProcessId == input.ProcessId;
     }
+
+    public IEnumerable<ActiveWindowMetadata> GetActiveWindows() => ActiveWindows;
+
+    public IEnumerable<WindowsModuleMetadata> GetModules() => LoadedModules;
 }

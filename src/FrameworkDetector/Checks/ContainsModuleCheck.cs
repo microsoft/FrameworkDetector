@@ -213,18 +213,14 @@ public static class ContainsModuleCheck
 
         foreach (var input in inputs)
         {
-            if (input is IModulesDataSource dataSource
-                && dataSource.Modules is not null)
-            { 
-                foreach (var module in dataSource.Modules)
-                {
-                    await Task.Yield();
+            // Stop evaluating inputs if we've gotten a cancellation or a result
+            if (cancellationToken.IsCancellationRequested || result.CheckStatus != DetectorCheckStatus.InProgress) break;
 
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        result.CheckStatus = DetectorCheckStatus.Canceled;
-                        break;
-                    }
+            if (input is IModulesDataSource dataSource)
+            { 
+                await foreach (var module in dataSource.GetModulesAsync(cancellationToken))
+                {
+                    if (cancellationToken.IsCancellationRequested) break;
 
                     var filenameMatch = definition.CheckArguments.Filename is null || string.Equals(definition.CheckArguments.Filename, module.Filename, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenModuleName, module.Filename, StringComparison.InvariantCultureIgnoreCase));
                     var fileVersionMatch = fileVersionRange is null || SemVersion.TryParseCleaned(module.FileVersion, out var fileVersion) && fileVersionRange.Contains(fileVersion);
@@ -244,17 +240,11 @@ public static class ContainsModuleCheck
                     }
                 }
             }
-
-            // Stop evaluating other process data sources if we've gotten a pass or cancel
-            if (result.CheckStatus != DetectorCheckStatus.InProgress)
-            {
-                break;
-            }
         }
 
         if (result.CheckStatus == DetectorCheckStatus.InProgress)
         {
-            result.CheckStatus = DetectorCheckStatus.CompletedFailed;
+            result.CheckStatus = cancellationToken.IsCancellationRequested ? DetectorCheckStatus.Canceled : DetectorCheckStatus.CompletedFailed;
         }
     }
 }

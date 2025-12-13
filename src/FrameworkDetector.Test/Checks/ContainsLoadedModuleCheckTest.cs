@@ -78,7 +78,7 @@ public class ContainsLoadedModuleCheckTest() : CheckTestBase<ContainsModuleArgs,
     {
         ProcessInput input = new(new(nameof(ContainsLoadedModuleCheckTest)), 
                                  ActiveWindows: [],
-                                 Modules: actualLoadedModules ?? Array.Empty<WindowsModuleMetadata>());
+                                 LoadedModules: actualLoadedModules ?? Array.Empty<WindowsModuleMetadata>());
 
         await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput, cancellationToken);
     }
