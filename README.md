@@ -80,7 +80,7 @@ It will be available in the `bld\` folder.
 By default, filters to processes which have a Main Window Handle or visible child window.
 
 ```ps
-FrameworkDetector.CLI.exe all
+FrameworkDetector.CLI.exe inspect processes
 ```
 
 You can use `--filterWindowProcesses false` to inspect all processes. Some processes in either case may require admin rights to inspect.
@@ -128,7 +128,7 @@ When using the `all` command, a file will be created for each process in the fol
 Use `all --help` to see the available replacement options (case-sensitive).
 
 ```ps
-FrameworkDetector.CLI.exe all -o results\ --outputFileTemplate "{processName}_{processId}.json"
+FrameworkDetector.CLI.exe inspect processes -o results\ --outputFileTemplate "{processName}_{processId}.json"
 ```
 
 ### Verbosity
@@ -175,8 +175,8 @@ A Fluent API surface is used to construct detectors. For instance, a basic `IDet
     {
         return this.Create()
             .Required("Presentation Framework", checks => checks
-                .ContainsLoadedModule("PresentationFramework.dll")
-                .ContainsLoadedModule("PresentationCore.dll"))
+                .ContainsModule("PresentationFramework.dll")
+                .ContainsModule("PresentationCore.dll"))
             .BuildDefinition();
     }
 ```
@@ -214,7 +214,7 @@ Then look into the calls for `PerformCheckAsync` that get called from there.
 If you're looking to write a new detector or improve one and need to understand the data sources available, you can use the `dump` command to get a comprehensive view of all data available for a specific process:
 
 ```ps
-FrameworkDetector.CLI.exe dump -pid ###
+FrameworkDetector.CLI.exe dump process -pid ###
 ```
 
 This can also output (with `-o`) a JSON file with all the information available for that process used by detectors without running the detection logic.
