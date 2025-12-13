@@ -48,9 +48,14 @@ public partial class CliApp
             }
 
             var pathToExe = parseResult.GetValue(pathToExeArgument);
-            TryParseOutputFile(parseResult);
             TryParseIncludeChildren(parseResult);
             TryParseWaitForInputIdle(parseResult);
+
+            if (!TryParseOutputFile(parseResult))
+            {
+                PrintError("Invalid output file specified");
+                return (int)ExitCode.ArgumentParsingError;
+            }
 
             if (pathToExe is not null)
             {

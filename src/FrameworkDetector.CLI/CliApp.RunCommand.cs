@@ -81,11 +81,16 @@ public partial class CliApp
             var packageFullName = parseResult.GetValue(packageOption);
             var aumid = parseResult.GetValue(aumidOption);
             var waitTime = parseResult.GetValue(waitTimeOption) ?? 2000;
-            TryParseOutputFile(parseResult);
             var processName = parseResult.GetValue(processNameOption);
             var keepAfterInspect = parseResult.GetValue(keepAfterInspectOption);
             TryParseIncludeChildren(parseResult);
             TryParseWaitForInputIdle(parseResult);
+
+            if (!TryParseOutputFile(parseResult))
+            {
+                PrintError("Invalid output file specified");
+                return (int)ExitCode.ArgumentParsingError;
+            }
 
             if (exepath is not null)
             {

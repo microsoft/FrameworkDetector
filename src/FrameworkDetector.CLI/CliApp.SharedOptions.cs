@@ -14,6 +14,7 @@ using System.CommandLine.Parsing;
 using FrameworkDetector.Engine;
 using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
+using System.IO;
 
 namespace FrameworkDetector.CLI;
 
@@ -51,6 +52,11 @@ public partial class CliApp
         {
             var verbosityString = parseResult.GetValue(VerbosityOption);
 
+            if (verbosityString is null)
+            {
+                return true;
+            }
+
             if (Enum.TryParse(verbosityString, true, out VerbosityLevel verbosity))
             {
                 Verbosity = verbosity;
@@ -58,8 +64,6 @@ public partial class CliApp
 
                 return true;
             }
-
-            return true;
         }
         catch { }
 
@@ -112,7 +116,7 @@ public partial class CliApp
 
     protected Option<bool> WaitForInputIdleOption = new("--waitForInputIdle", "-w")
     {
-        Description = "Wait for input idle of process before inpspecting/dumping.",
+        Description = "Wait for input idle of process before inspecting/dumping.",
         Arity = ArgumentArity.Zero, // Note: Flag only, no value
     };
 
@@ -139,12 +143,22 @@ public partial class CliApp
     {
         try
         {
-            OutputFile = parseResult.GetValue(OutputFileOption);
-            return true;
+            var outputFile = parseResult.GetValue(OutputFileOption);
+
+            if (outputFile is null)
+            {
+                return true;
+            }
+
+            if (!Path.GetDirectoryName(outputFile).ContainsAny(Path.GetInvalidPathChars())
+             && !Path.GetFileName(outputFile).ContainsAny(Path.GetInvalidFileNameChars()))
+            {
+                OutputFile = outputFile;
+                return true;
+            }
         }
         catch { }
 
         return false;
     }
-
 }
