@@ -59,6 +59,7 @@ public partial class CliApp
             outputFolderOption,
             IncludeChildrenOption,
             WaitForInputIdleOption,
+            PluginFilesOption,
         };
         command.TreatUnmatchedTokensAsErrors = true;
 
@@ -80,6 +81,12 @@ public partial class CliApp
             var filterProcesses = parseResult.GetValue(filterWindowProcessesOption) ?? true;
             TryParseIncludeChildren(parseResult);
             TryParseWaitForInputIdle(parseResult);
+
+            if (!TryInitializePlugins(parseResult))
+            {
+                PrintError("Unable to initialize plugins");
+                return (int)ExitCode.ArgumentParsingError;
+            }
 
             // Create output folder (if specified) for output
             if (!string.IsNullOrEmpty(outputFolderName) && !Directory.Exists(outputFolderName))

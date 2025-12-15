@@ -41,6 +41,7 @@ public partial class CliApp
         var command = new Command("docs", "Get documentation for how a particular framework is detected. If no frameworkId specified, lists the available frameworks.")
         {
             frameworkIdArgument,
+            PluginFilesOption,
         };
         command.TreatUnmatchedTokensAsErrors = true;
 
@@ -54,6 +55,12 @@ public partial class CliApp
                     PrintError(parseError.Message);
                 }
 
+                return (int)ExitCode.ArgumentParsingError;
+            }
+
+            if (!TryInitializePlugins(parseResult))
+            {
+                PrintError("Unable to initialize plugins");
                 return (int)ExitCode.ArgumentParsingError;
             }
 

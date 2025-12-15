@@ -61,6 +61,7 @@ public partial class CliApp
             keepAfterInspectOption,
             IncludeChildrenOption,
             WaitForInputIdleOption,
+            PluginFilesOption,
         };
         command.TreatUnmatchedTokensAsErrors = true;
 
@@ -89,6 +90,12 @@ public partial class CliApp
             if (!TryParseOutputFile(parseResult))
             {
                 PrintError("Invalid output file specified");
+                return (int)ExitCode.ArgumentParsingError;
+            }
+
+            if (!TryInitializePlugins(parseResult))
+            {
+                PrintError("Unable to initialize plugins");
                 return (int)ExitCode.ArgumentParsingError;
             }
 

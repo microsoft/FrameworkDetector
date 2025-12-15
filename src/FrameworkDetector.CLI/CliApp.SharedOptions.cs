@@ -3,18 +3,20 @@
 
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
+using System.IO;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
+
 using System.CommandLine;
 using System.CommandLine.Parsing;
 
 using FrameworkDetector.Engine;
 using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
-using System.IO;
 
 namespace FrameworkDetector.CLI;
 
@@ -156,6 +158,40 @@ public partial class CliApp
                 OutputFile = outputFile;
                 return true;
             }
+        }
+        catch { }
+
+        return false;
+    }
+
+    protected IReadOnlySet<string> PluginFiles => _pluginFiles;
+    private HashSet<string> _pluginFiles = new HashSet<string>();
+
+    protected Option<string?[]?> PluginFilesOption = new("--pluginFile", "-pf")
+    {
+        Description = "Include the given plugin file."
+    };
+
+    protected bool TryParsePluginFiles(ParseResult parseResult)
+    {
+        try
+        {
+            var pluginFiles = parseResult.GetValue(PluginFilesOption);
+
+            if (pluginFiles is not null)
+            {
+                foreach (var pluginFile in pluginFiles)
+                {
+                    if (pluginFile is null || !Path.Exists(pluginFile))
+                    {
+                        return false;
+                    }
+
+                    _pluginFiles.Add(Path.GetFullPath(pluginFile));
+                }
+            }
+
+            return true;
         }
         catch { }
 

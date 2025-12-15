@@ -75,7 +75,8 @@ public class DetectionEngine
                 {
                     DetectorName = detector.Info.Name,
                     DetectorDescription = detector.Info.Description,
-                    DetectorVersion = AssemblyInfo.LibraryVersion,
+                    DetectorAssemblyName = AssemblyInfo.GetName(detector.Info.GetType().Assembly),
+                    DetectorAssemblyVersion = AssemblyInfo.GetVersionString(detector.Info.GetType().Assembly),
                     FrameworkId = detector.Info.FrameworkId,
                     DetectorStatus = DetectorStatus.InProgress
                 };

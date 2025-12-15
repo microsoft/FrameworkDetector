@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.IO;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,9 +13,10 @@ namespace FrameworkDetector.CLI;
 
 public partial class CliApp
 {
-    private static IServiceProvider Services = ConfigureServices();
+    private IServiceProvider Services => _services ??= ConfigureServices();
+    private static IServiceProvider? _services = null;
 
-    internal static IServiceProvider ConfigureServices()
+    internal IServiceProvider ConfigureServices()
     {
         ServiceCollection services = new();
 
@@ -45,6 +47,16 @@ public partial class CliApp
         services.AddSingleton<IDetector, WinUI2Detector>();
         services.AddSingleton<IDetector, WinUI3Detector>();
         services.AddSingleton<IDetector, WPFDetector>();
+
+        // Detectors will only be loaded if Plugins was populated BEFORE Services are called for
+        foreach (var plugin in Plugins)
+        {
+            // Load detectors
+            foreach (var detector in plugin.Detectors)
+            {
+                services.AddSingleton(typeof(IDetector), detector.GetType());
+            }
+        }
 
         // Note: An alternate setup we could have would be to setup each check as a class as well to inject here.
         // Then we could theoretically have datasources be keyed to request in their constructors: https://learn.microsoft.com/dotnet/core/extensions/dependency-injection#keyed-services
