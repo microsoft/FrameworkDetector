@@ -8,4 +8,5 @@ public enum ExitCode
     Success = 0,
     ArgumentParsingError = 1,
     InspectFailed = 2,
+    DumpFailed = 3,
 }

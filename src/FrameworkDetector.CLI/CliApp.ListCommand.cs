@@ -36,7 +36,7 @@ public partial class CliApp
             DefaultValueFactory = parseResult => 5,
         };
 
-        var command = new Command("list", "List of recent packages installed for the current user (or system if admin).")
+        var command = new Command("list", "List the recent packages installed for the current user (or system if admin).")
         {
             numberArgument,
         };
@@ -84,7 +84,14 @@ public partial class CliApp
                 {
                     Console.WriteLine($"FullName:  {package.Id.FullName}");
                     Console.WriteLine($"Installed: {package.InstalledDate}");
-                    Console.WriteLine($"Location:  {package.InstalledLocation.Path}");
+
+                    var installPath = "Unknown";
+                    try
+                    {
+                        installPath = package.InstalledLocation.Path;
+                    }
+                    catch (System.IO.FileNotFoundException) { }
+                    Console.WriteLine($"Location:  {installPath}");
 
                     var entries = await package.GetAppListEntriesAsync();
                     if (entries is not null && entries.Count > 0)
@@ -101,9 +108,8 @@ public partial class CliApp
 
                 return (int)ExitCode.Success;
             }
-                
-            PrintError("Please provide argument as an integer number.");
-            return (int)ExitCode.ArgumentParsingError;
+
+            return (int)await InvalidArgumentsShowHelpAsync(command);
         });
 
         return command;

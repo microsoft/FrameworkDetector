@@ -3,38 +3,39 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 
 using FrameworkDetector.Engine;
 using FrameworkDetector.Inputs;
+using FrameworkDetector.Models;
 
 namespace FrameworkDetector.CLI;
 
 public partial class CliApp
 {
     /// <summary>
-    /// A command which inspects a single running process on the system.
+    /// A command which provides all known details (available to the tool) about a given running process on the system.
     /// </summary>
     /// <returns><see cref="Command"/></returns>
-    private Command GetInspectProcessSubCommand()
+    private Command GetDumpProcessSubCommand()
     {
         Option<int?> pidOption = new("--id", "-pid", "-id")
         {
-            Description = "The PID of the process to inspect.",
+            Description = "The PID of the process to dump.",
         };
 
         Option<string?> processNameOption = new("--name", "-n", "-name")
         {
-            Description = "The name of the process to inspect.",
+            Description = "The name of the process to dump.",
         };
 
-        Command processCommand = new("process", "Inspect a running process")
+        var command = new Command("process", "Dump the metadata of a running process")
         {
             pidOption,
             processNameOption,
@@ -42,8 +43,9 @@ public partial class CliApp
             IncludeChildrenOption,
             WaitForInputIdleOption,
         };
+        command.TreatUnmatchedTokensAsErrors = true;
 
-        processCommand.SetAction(async (ParseResult parseResult, CancellationToken cancellationToken) =>
+        command.SetAction(async (ParseResult parseResult, CancellationToken cancellationToken) =>
         {
             if (parseResult.Errors.Count > 0)
             {
@@ -69,56 +71,51 @@ public partial class CliApp
 
             if (processId is not null)
             {
-                if (await InspectProcessAsync(Process.GetProcessById(processId.Value), OutputFile, cancellationToken))
+                if (await DumpProcessAsync(Process.GetProcessById(processId.Value), OutputFile, cancellationToken))
                 {
                     return (int)ExitCode.Success;
                 }
             }
             else if (!string.IsNullOrWhiteSpace(processName) && TryGetSingleProcessByName(processName, out var process) && process is not null)
             {
-                if (await InspectProcessAsync(process, OutputFile, cancellationToken))
+                if (await DumpProcessAsync(process, OutputFile, cancellationToken))
                 {
                     return (int)ExitCode.Success;
                 }
             }
 
-            return (int)await InvalidArgumentsShowHelpAsync(processCommand);
+            return (int)await InvalidArgumentsShowHelpAsync(command);
         });
 
-        return processCommand;
+        return command;
     }
 
     /// Encapsulation of initializing datasource and grabbing engine reference to kick-off a detection against all registered detectors (see ConfigureServices)
-    private async Task<bool> InspectProcessAsync(Process process, string? outputFilename, CancellationToken cancellationToken)
+    private async Task<bool> DumpProcessAsync(Process process, string? outputFilename, CancellationToken cancellationToken)
     {
         // TODO: Probably have this elsewhere to be called
         var target = $"process {process.ProcessName}({process.Id}){(IncludeChildren ? " (and children)" : "")}";
 
-        PrintInfo("Preparing to inspect {0}...", target);
+        PrintInfo("Preparing to dump {0}...", target);
 
         if (!process.IsAccessible())
         {
-            PrintError("Cannot access {0} to inspect" + (!WindowsIdentity.IsRunningAsAdmin ? ", try running as Administrator." : "."), target);
+            PrintError("Cannot access process {0}({1}) to dump" + (!WindowsIdentity.IsRunningAsAdmin ? ", try running as Administrator." : "."), process.ProcessName, process.Id);
             return false;
         }
 
         if (WaitForInputIdle)
         {
-            PrintInfo("Waiting for input idle for {0}", target);
+            PrintInfo("Waiting for input idle for process {0}({1})", process.ProcessName, process.Id);
             if (!await process.TryWaitForIdleAsync(cancellationToken))
             {
-                PrintError("Waiting for input idle for {0} failed, try running again.", target);
+                PrintError("Waiting for input idle for process {0}({1}) failed, try running again.", process.ProcessName, process.Id);
                 return false;
             }
         }
 
-        if (Verbosity > VerbosityLevel.Quiet)
-        {
-            Console.Write($"Inspecting {target}:");
-        }
-
         var inputs = await InputHelper.GetInputsFromProcessAsync(process, IncludeChildren, cancellationToken);
 
-        return await RunInspectionAsync(target, inputs, outputFilename, cancellationToken);
+        return await RunDumpAsync(target, inputs, outputFilename, cancellationToken);
     }
 }
