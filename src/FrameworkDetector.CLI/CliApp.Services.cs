@@ -31,7 +31,6 @@ public partial class CliApp
         services.AddSingleton<IDetector, DotNetCoreDetector>();
         services.AddSingleton<IDetector, DotNetFrameworkDetector>();
         services.AddSingleton<IDetector, DotNetNativeDetector>();
-        services.AddSingleton<IDetector, DUIDetector>();
         services.AddSingleton<IDetector, ElectronDetector>();
         services.AddSingleton<IDetector, MVVMToolkitDetector>();
         services.AddSingleton<IDetector, QtDetector>();
