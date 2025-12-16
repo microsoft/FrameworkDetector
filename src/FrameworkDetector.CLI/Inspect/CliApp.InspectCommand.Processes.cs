@@ -20,10 +20,10 @@ namespace FrameworkDetector.CLI;
 public partial class CliApp
 {
     /// <summary>
-    /// A command which inspects a single running process on the system.
+    /// A command which inspects all running processes on the system.
     /// </summary>
     /// <returns><see cref="Command"/></returns>
-    private Command GetInspectAllCommand()
+    private Command GetInspectAllProcessesSubCommand()
     {
         Option<string?> outputFolderOption = new("--outputFolder", "-o")
         {
@@ -52,11 +52,13 @@ public partial class CliApp
             Description = "Filters processes by those that are more likely to be applications with a MainWindowHandle or a visible child window. Default is true.",
         };
 
-        var command = new Command("all", "Inspect all running applications")
+        var command = new Command("processes", "Inspect all running processes")
         {
             filterWindowProcessesOption,
             outputFileTemplateOption,
-            outputFolderOption
+            outputFolderOption,
+            IncludeChildrenOption,
+            WaitForInputIdleOption,
         };
         command.TreatUnmatchedTokensAsErrors = true;
 
@@ -76,6 +78,8 @@ public partial class CliApp
             var outputFileTemplate = parseResult.GetValue(outputFileTemplateOption);
             var outputFolderName = parseResult.GetValue(outputFolderOption);
             var filterProcesses = parseResult.GetValue(filterWindowProcessesOption) ?? true;
+            TryParseIncludeChildren(parseResult);
+            TryParseWaitForInputIdle(parseResult);
 
             // Create output folder (if specified) for output
             if (!string.IsNullOrEmpty(outputFolderName) && !Directory.Exists(outputFolderName))
@@ -138,19 +142,5 @@ public partial class CliApp
         });
 
         return command;
-    }
-
-    private string FormatFileName(Process process, string? outputFileTemplate)
-    {
-        outputFileTemplate ??= "{appName}.json";
-
-        bool hasPackageName = process.TryGetPackageFullName(out string? packageFullName);
-
-        return outputFileTemplate
-            .Replace("{processId}", process.Id.ToString())
-            .Replace("{processName}", process.ProcessName)
-            .Replace("{packageFullName}", packageFullName)
-            .Replace("{appName}", hasPackageName ? packageFullName : process.ProcessName)
-            .Replace("{version}", AssemblyInfo.ToolVersion);
     }
 }

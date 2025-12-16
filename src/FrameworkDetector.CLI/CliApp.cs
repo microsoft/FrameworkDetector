@@ -20,14 +20,7 @@ namespace FrameworkDetector.CLI;
 
 public partial class CliApp
 {
-    // Value here represents the default verbosity when the -v option is specified without argument; otherwise it is defined below as normal in the DefaultValueFactory.
-    private VerbosityLevel Verbosity { get; set; } = VerbosityLevel.Diagnostic;
-
-    private bool IncludeChildren { get; set; }
-
-    private bool WaitForInputIdle { get; set; }
-
-    private string? ArgumentMetadata { get; set; }
+    protected string? ArgumentMetadata { get; private set; }
 
     public CliApp() { }
 
@@ -37,42 +30,13 @@ public partial class CliApp
 
         Console.OutputEncoding = Encoding.UTF8;
 
-        // TODO: Figure out how to accept the various shortnames, not specified in help:
-        // https://learn.microsoft.com/dotnet/standard/commandline/syntax#parse-errors
-        // https://learn.microsoft.com/dotnet/standard/commandline/design-guidance#the---verbosity-option
-        Option<string?> verbosityOption = new("--verbosity", "-v")
-        {
-            Description = "Set the verbosity level of printed output. If no additional value specified after '-v', defaults to 'diagnostic'.",
-            DefaultValueFactory = parseResult => "normal", // Note: Default value for standard running mode
-            Recursive = true, // Note: Makes this a global command when added to the Root Command
-            Arity = ArgumentArity.ZeroOrOne, // Note: Let's us specify -v without a value, uses C# default in that case (default above used when not specified at all)
-        };
-        verbosityOption.AcceptOnlyFromAmong("quiet", "minimal", "normal", "detailed", "diagnostic");
-
-        Option<bool> includeChildrenOption = new("--includeChildren", "-c")
-        {
-            Description = "Include the children processes of an inspected process. (May require running with elevation.)",
-            Recursive = true, // Note: Makes this a global command when added to the Root Command
-            Arity = ArgumentArity.Zero, // Note: Flag only, no value
-        };
-
-        Option<bool> waitForInputIdleOption = new("--waitForInputIdle", "-w")
-        {
-            Description = "Wait for input idle of process before inspecting.",
-            Recursive = true, // Note: Makes this a global command when added to the Root Command
-            Arity = ArgumentArity.Zero, // Note: Flag only, no value
-        };
-
         var rootCommand = new RootCommand("Framework Detector")
         {
             // Global Options (Recursive = true)
-            verbosityOption,
-            includeChildrenOption,
-            waitForInputIdleOption,
+            VerbosityOption,
             // Commands
             GetDocsCommand(),
             GetDumpCommand(),
-            GetInspectAllCommand(),
             GetInspectCommand(),
             GetListCommand(),
             GetRunCommand(),
@@ -83,23 +47,22 @@ public partial class CliApp
 
         var result = rootCommand.Parse(args);
         // Note: When "-v" specified without a value we get "null" so our default becomes the default value of the property.
-        var verbosityString = result.GetValue(verbosityOption);
-        IncludeChildren = result.GetValue(includeChildrenOption);
-        WaitForInputIdle = result.GetValue(waitForInputIdleOption);
-
-        if (Enum.TryParse(verbosityString, true, out VerbosityLevel verbosity))
+        
+        if (!TryParseVerbosity(result))
         {
-            Verbosity = verbosity;
-        }
-        else if (!string.IsNullOrWhiteSpace(verbosityString))
-        {
-            PrintError("Invalid verbosity level specified: {0}", verbosityString!);
+            PrintError("Invalid verbosity level specified");
             return (int)ExitCode.ArgumentParsingError;
         }
 
-        PrintInfo("Verbosity set to {0} - Running as Admin: {1}", Verbosity, WindowsIdentity.IsRunningAsAdmin);
-
         return await result.InvokeAsync(config, cancellationToken);
+    }
+
+    private async Task<ExitCode> InvalidArgumentsShowHelpAsync(Command command)
+    {
+        PrintError("Invalid command arguments.");
+        await command.Parse("-h").InvokeAsync();
+
+        return ExitCode.ArgumentParsingError;
     }
 
     private void PrintResult(ToolRunResult result)

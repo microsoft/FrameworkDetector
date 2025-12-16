@@ -18,18 +18,18 @@ namespace FrameworkDetector.CLI;
 public partial class CliApp
 {
     /// <summary>
-    /// A command which inspects a single installed application package on the system.
+    /// A command which dumps a single installed application package on the system.
     /// </summary>
     /// <returns><see cref="Command"/></returns>
-    private Command GetInspectInstalledPackageSubCommand()
+    private Command GetDumpInstalledPackageSubCommand()
     {
         Argument<string?> packageFullNameArgument = new("packageFullName")
         {
-            Description = "The Package Full Name of the installed package to inspect.",
+            Description = "The Package Full Name of the installed package to dump.",
             Arity = ArgumentArity.ExactlyOne,
         };
         
-        Command appCommand = new("package", "Inspect an installed package")
+        Command appCommand = new("package", "Dump an installed package")
         {
             packageFullNameArgument,
             OutputFileOption,
@@ -72,7 +72,7 @@ public partial class CliApp
                     return (int)ExitCode.ArgumentParsingError;
                 }
 
-                if (await InspectPackageAsync(package, OutputFile, cancellationToken))
+                if (await DumpPackageAsync(package, OutputFile, cancellationToken))
                 {
                     return (int)ExitCode.Success;
                 }
@@ -85,19 +85,19 @@ public partial class CliApp
     }
 
     /// Encapsulation of initializing datasource and grabbing engine reference to kick-off a detection against all registered detectors (see ConfigureServices)
-    private async Task<bool> InspectPackageAsync(Package package, string? outputFilename, CancellationToken cancellationToken)
+    private async Task<bool> DumpPackageAsync(Package package, string? outputFilename, CancellationToken cancellationToken)
     {
         var target = $"package {package.DisplayName}";
 
-        PrintInfo("Preparing to inspect {0}...", target);
+        PrintInfo("Preparing to dump {0}...", target);
 
         if (Verbosity > VerbosityLevel.Quiet)
         {
-            Console.Write($"Inspecting {target}:");
+            Console.Write($"Dumping {target}:");
         }
 
         var inputs = await InputHelper.GetInputsFromPackageAsync(package, isLoaded: false, cancellationToken);
 
-        return await RunInspectionAsync(target, inputs, outputFilename, cancellationToken);
+        return await RunDumpAsync(target, inputs, outputFilename, cancellationToken);
     }
 }
