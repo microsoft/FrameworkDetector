@@ -82,7 +82,7 @@ public partial class CliApp
 
         foreach (var detectorResult in results.OrderByDescending(dr => dr.FrameworkFound).ThenByDescending(dr => dr.HasAnyPassedChecks).ThenBy(dr => dr.DetectorName))
         {
-            var detectorResultString = "  🟨";
+            var detectorResultString = " 🟨";
 
             if (detectorResult.DetectorStatus == DetectorStatus.Completed)
             {

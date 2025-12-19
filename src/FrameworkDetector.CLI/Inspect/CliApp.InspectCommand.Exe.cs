@@ -66,10 +66,12 @@ public partial class CliApp
                     return (int)ExitCode.ArgumentParsingError;
                 }
 
-                if (await InspectExeAsync(fileInfo, OutputFile, cancellationToken))
+                if (!await InspectExeAsync(fileInfo, OutputFile, cancellationToken))
                 {
-                    return (int)ExitCode.Success;
+                    return (int)ExitCode.InspectFailed;
                 }
+
+                return (int)ExitCode.Success;
             }
 
             return (int)await InvalidArgumentsShowHelpAsync(exeCommand);
@@ -84,15 +86,20 @@ public partial class CliApp
         // TODO: Probably have this elsewhere to be called
         var target = $"exe {fileInfo.FullName}";
 
-        PrintInfo("Preparing to inspect {0}...", target);
-
-        if (Verbosity > VerbosityLevel.Quiet)
+        try
         {
-            Console.Write($"Inspecting {target}:");
+            PrintInfo("Preparing to inspect {0}...", target);
+
+            var inputs = await InputHelper.GetInputsFromExecutableAsync(fileInfo, isLoaded: false, cancellationToken);
+
+            PrintInfo("Inspecting {0}:", target);
+
+            return await RunInspectionAsync(target, inputs, outputFilename, cancellationToken);
         }
-
-        var inputs = await InputHelper.GetInputsFromExecutableAsync(fileInfo, isLoaded: false, cancellationToken);
-
-        return await RunInspectionAsync(target, inputs, outputFilename, cancellationToken);
+        catch (OperationCanceledException)
+        {
+            PrintWarning("Inspection canceled.");
+            return false;
+        }
     }
 }

@@ -103,25 +103,33 @@ public partial class CliApp
                 }
                 catch { }
 
-                if (process is null)
+                try
                 {
-                    PrintError("Unable to find/start program at \"{0}\".", exepath);
-                    return (int)ExitCode.ArgumentParsingError;
-                }
-
-                if (!string.IsNullOrEmpty(processName))
-                {
-                    var newProcess = await TryReattachAsync(processName, waitTime, cancellationToken);
-                    if (newProcess is null)
+                    if (process is null)
                     {
+                        PrintError("Unable to find/start program at \"{0}\".", exepath);
                         return (int)ExitCode.ArgumentParsingError;
                     }
 
-                    process = newProcess;
-                    waitTime = 0; // Don't need to wait twice
-                }
+                    if (!string.IsNullOrEmpty(processName))
+                    {
+                        var newProcess = await TryReattachAsync(processName, waitTime, cancellationToken);
+                        if (newProcess is null)
+                        {
+                            return (int)ExitCode.ArgumentParsingError;
+                        }
 
-                return (int)await InspectStartedProcessAsync(process, waitTime, OutputFile, keepAfterInspect, cancellationToken);
+                        process = newProcess;
+                        waitTime = 0; // Don't need to wait twice
+                    }
+
+                    return (int)await InspectStartedProcessAsync(process, waitTime, OutputFile, keepAfterInspect, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    PrintWarning("Run cancelled.");
+                    return (int)ExitCode.RunFailed;
+                }
             }
             else if (!string.IsNullOrWhiteSpace(packageFullName))
             {
@@ -135,28 +143,32 @@ public partial class CliApp
                     {
                         PrintInfo("Started \"{0}\" app of package \"{1}\".", defaultAumid, packageFullName);
                     }
-                }
-                catch { }
-                
-                if (!string.IsNullOrEmpty(processName))
-                {
-                    var newProcess = await TryReattachAsync(processName, waitTime, cancellationToken);
-                    if (newProcess is null)
+
+                    if (!string.IsNullOrEmpty(processName))
                     {
+                        var newProcess = await TryReattachAsync(processName, waitTime, cancellationToken);
+                        if (newProcess is null)
+                        {
+                            return (int)ExitCode.ArgumentParsingError;
+                        }
+
+                        process = newProcess;
+                        waitTime = 0; // Don't need to wait twice
+                    }
+
+                    if (process is null)
+                    {
+                        PrintError("Unable to start \"{0}\" app of package \"{1}\".", aumid ?? "default", packageFullName);
                         return (int)ExitCode.ArgumentParsingError;
                     }
 
-                    process = newProcess;
-                    waitTime = 0; // Don't need to wait twice
+                    return (int)await InspectStartedProcessAsync(process, waitTime, OutputFile, keepAfterInspect, cancellationToken);
                 }
-
-                if (process is null)
+                catch (OperationCanceledException)
                 {
-                    PrintError("Unable to start \"{0}\" app of package \"{1}\".", aumid ?? "default", packageFullName);
-                    return (int)ExitCode.ArgumentParsingError;
+                    PrintWarning("Run cancelled.");
+                    return (int)ExitCode.RunFailed;
                 }
-
-                return (int)await InspectStartedProcessAsync(process, waitTime, OutputFile, keepAfterInspect,cancellationToken);
             }
             else if (!string.IsNullOrWhiteSpace(aumid))
             {
@@ -169,25 +181,33 @@ public partial class CliApp
                 }
                 catch { }
 
-                if (process is null)
+                try
                 {
-                    PrintError("Unable to start \"{0}\" app.", aumid);
-                    return (int)ExitCode.ArgumentParsingError;
-                }
-
-                if (!string.IsNullOrEmpty(processName))
-                {
-                    var newProcess = await TryReattachAsync(processName, waitTime, cancellationToken);
-                    if (newProcess is null)
+                    if (process is null)
                     {
+                        PrintError("Unable to start \"{0}\" app.", aumid);
                         return (int)ExitCode.ArgumentParsingError;
                     }
 
-                    process = newProcess;
-                    waitTime = 0; // Don't need to wait twice
-                }
+                    if (!string.IsNullOrEmpty(processName))
+                    {
+                        var newProcess = await TryReattachAsync(processName, waitTime, cancellationToken);
+                        if (newProcess is null)
+                        {
+                            return (int)ExitCode.ArgumentParsingError;
+                        }
 
-                return (int)await InspectStartedProcessAsync(process, waitTime, OutputFile, keepAfterInspect, cancellationToken);
+                        process = newProcess;
+                        waitTime = 0; // Don't need to wait twice
+                    }
+
+                    return (int)await InspectStartedProcessAsync(process, waitTime, OutputFile, keepAfterInspect, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    PrintWarning("Run cancelled.");
+                    return (int)ExitCode.RunFailed;
+                }
             }
 
             return (int)await InvalidArgumentsShowHelpAsync(command);
@@ -217,29 +237,35 @@ public partial class CliApp
 
     private async Task<ExitCode> InspectStartedProcessAsync(Process process, int waitTime, string? outputFilename, bool keepAfterInspect, CancellationToken cancellationToken)
     {
-        PrintInfo($"Process {process.ProcessName}({process.Id}) started...");
-
-        if (waitTime > 0)
+        try
         {
-            PrintInfo("Waiting an additional {0}ms before inspecting...", waitTime);
-            await Task.Delay(waitTime, cancellationToken);
+            PrintInfo($"Process {process.ProcessName}({process.Id}) started...");
+
+            if (waitTime > 0)
+            {
+                PrintInfo("Waiting an additional {0}ms before inspecting...", waitTime);
+                await Task.Delay(waitTime, cancellationToken);
+            }
+
+            bool inspectResult = await InspectProcessAsync(process, outputFilename, cancellationToken);
+
+            return inspectResult ? ExitCode.Success : ExitCode.InspectFailed;
         }
-
-        bool inspectResult = await InspectProcessAsync(process, outputFilename, cancellationToken);
-
-        if (!keepAfterInspect)
+        finally
         {
-            try
+            // No matter what happens, try to kill the process we started
+            if (!keepAfterInspect)
             {
-                PrintInfo("Killing process {0}({1}) after inspect.", process.ProcessName, process.Id);
-                process.Kill();
-            }
-            catch
-            {
-                PrintError("Unable to kill {0}({1}) after inspect.", process.ProcessName, process.Id);
+                try
+                {
+                    PrintInfo("Killing process {0}({1}) after inspect.", process.ProcessName, process.Id);
+                    process.Kill();
+                }
+                catch
+                {
+                    PrintError("Unable to kill {0}({1}) after inspect.", process.ProcessName, process.Id);
+                }
             }
         }
-
-        return inspectResult ? ExitCode.Success : ExitCode.InspectFailed;
     }
 }

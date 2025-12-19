@@ -47,7 +47,14 @@ public static class AppListEntryExtensions
                 }
 
                 // Wait before querying the process list again
-                await Task.Delay(500);
+                try
+                {
+                    await Task.Delay(500, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    return null;
+                }
             }
 
         }

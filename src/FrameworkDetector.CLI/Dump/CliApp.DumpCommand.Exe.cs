@@ -66,10 +66,12 @@ public partial class CliApp
                     return (int)ExitCode.ArgumentParsingError;
                 }
 
-                if (await DumpExeAsync(fileInfo, OutputFile, cancellationToken))
+                if (!await DumpExeAsync(fileInfo, OutputFile, cancellationToken))
                 {
-                    return (int)ExitCode.Success;
+                    return (int)ExitCode.DumpFailed;
                 }
+
+                return (int)ExitCode.Success;
             }
 
             return (int)await InvalidArgumentsShowHelpAsync(exeCommand);
@@ -84,15 +86,20 @@ public partial class CliApp
         // TODO: Probably have this elsewhere to be called
         var target = $"exe {fileInfo.FullName}";
 
-        PrintInfo("Preparing to dump {0}...", target);
-
-        if (Verbosity > VerbosityLevel.Quiet)
+        try
         {
-            Console.Write($"Dumping {target}:");
+            PrintInfo("Preparing to dump {0}...", target);
+
+            var inputs = await InputHelper.GetInputsFromExecutableAsync(fileInfo, isLoaded: false, cancellationToken);
+
+            PrintInfo("Dumping {0}:", target);
+
+            return await RunDumpAsync(target, inputs, outputFilename, cancellationToken);
         }
-
-        var inputs = await InputHelper.GetInputsFromExecutableAsync(fileInfo, isLoaded: false, cancellationToken);
-
-        return await RunDumpAsync(target, inputs, outputFilename, cancellationToken);
+        catch (OperationCanceledException)
+        {
+            PrintWarning("Dump canceled.");
+            return false;
+        }
     }
 }

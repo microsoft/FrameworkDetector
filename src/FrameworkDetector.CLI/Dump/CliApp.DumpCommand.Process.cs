@@ -78,10 +78,12 @@ public partial class CliApp
             }
             else if (!string.IsNullOrWhiteSpace(processName) && TryGetSingleProcessByName(processName, out var process) && process is not null)
             {
-                if (await DumpProcessAsync(process, OutputFile, cancellationToken))
+                if (!await DumpProcessAsync(process, OutputFile, cancellationToken))
                 {
-                    return (int)ExitCode.Success;
+                    return (int)ExitCode.DumpFailed;
                 }
+
+                return (int)ExitCode.Success;
             }
 
             return (int)await InvalidArgumentsShowHelpAsync(command);
@@ -96,26 +98,36 @@ public partial class CliApp
         // TODO: Probably have this elsewhere to be called
         var target = $"process {process.ProcessName}({process.Id}){(IncludeChildren ? " (and children)" : "")}";
 
-        PrintInfo("Preparing to dump {0}...", target);
-
-        if (!process.IsAccessible())
+        try
         {
-            PrintError("Cannot access process {0}({1}) to dump" + (!WindowsIdentity.IsRunningAsAdmin ? ", try running as Administrator." : "."), process.ProcessName, process.Id);
-            return false;
-        }
+            PrintInfo("Preparing to dump {0}...", target);
 
-        if (WaitForInputIdle)
-        {
-            PrintInfo("Waiting for input idle for process {0}({1})", process.ProcessName, process.Id);
-            if (!await process.TryWaitForIdleAsync(cancellationToken))
+            if (!process.IsAccessible())
             {
-                PrintError("Waiting for input idle for process {0}({1}) failed, try running again.", process.ProcessName, process.Id);
+                PrintError("Cannot access process {0}({1}) to dump" + (!WindowsIdentity.IsRunningAsAdmin ? ", try running as Administrator." : "."), process.ProcessName, process.Id);
                 return false;
             }
+
+            if (WaitForInputIdle)
+            {
+                PrintInfo("Waiting for input idle for process {0}({1})", process.ProcessName, process.Id);
+                if (!await process.TryWaitForIdleAsync(cancellationToken))
+                {
+                    PrintError("Waiting for input idle for process {0}({1}) failed, try running again.", process.ProcessName, process.Id);
+                    return false;
+                }
+            }
+
+            var inputs = await InputHelper.GetInputsFromProcessAsync(process, IncludeChildren, cancellationToken);
+
+            PrintInfo("Dumping {0}:", target);
+
+            return await RunDumpAsync(target, inputs, outputFilename, cancellationToken);
         }
-
-        var inputs = await InputHelper.GetInputsFromProcessAsync(process, IncludeChildren, cancellationToken);
-
-        return await RunDumpAsync(target, inputs, outputFilename, cancellationToken);
+        catch (OperationCanceledException)
+        {
+            PrintWarning("Dump canceled.");
+            return false;
+        }
     }
 }

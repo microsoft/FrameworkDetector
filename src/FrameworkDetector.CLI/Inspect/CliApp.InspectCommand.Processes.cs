@@ -117,6 +117,13 @@ public partial class CliApp
             int fails = 0;
             foreach (var process in processesToInspect.OrderBy(p => p.ProcessName))
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    result = ExitCode.InspectFailed;
+                    fails++;
+                    continue;
+                }
+
                 string? outputFilename = string.IsNullOrEmpty(outputFolderName) ? null : Path.Combine(outputFolderName, FormatFileName(process, outputFileTemplate));
                 PrintInfo("Inspecting app {0} [{1}]({2}) {3:00.0}%", process.MainWindowTitle, process.ProcessName, process.Id, 100.0 * count++ / processesToInspect.Count);
                 if (!await InspectProcessAsync(process, outputFilename, cancellationToken))

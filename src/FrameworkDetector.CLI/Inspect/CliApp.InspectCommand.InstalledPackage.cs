@@ -72,10 +72,12 @@ public partial class CliApp
                     return (int)ExitCode.ArgumentParsingError;
                 }
 
-                if (await InspectPackageAsync(package, OutputFile, cancellationToken))
+                if (!await InspectPackageAsync(package, OutputFile, cancellationToken))
                 {
-                    return (int)ExitCode.Success;
+                    return (int)ExitCode.InspectFailed;
                 }
+
+                return (int)ExitCode.Success;
             }
 
             return (int)await InvalidArgumentsShowHelpAsync(appCommand);
@@ -89,15 +91,20 @@ public partial class CliApp
     {
         var target = $"package {package.DisplayName}";
 
-        PrintInfo("Preparing to inspect {0}...", target);
-
-        if (Verbosity > VerbosityLevel.Quiet)
+        try
         {
-            Console.Write($"Inspecting {target}:");
+            PrintInfo("Preparing to inspect {0}...", target);
+
+            var inputs = await InputHelper.GetInputsFromPackageAsync(package, isLoaded: false, cancellationToken);
+
+            PrintInfo("Inspecting {0}:", target);
+
+            return await RunInspectionAsync(target, inputs, outputFilename, cancellationToken);
         }
-
-        var inputs = await InputHelper.GetInputsFromPackageAsync(package, isLoaded: false, cancellationToken);
-
-        return await RunInspectionAsync(target, inputs, outputFilename, cancellationToken);
+        catch (OperationCanceledException)
+        {
+            PrintWarning("Inspection canceled.");
+            return false;
+        }
     }
 }

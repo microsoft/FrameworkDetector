@@ -76,10 +76,12 @@ public partial class CliApp
             }
             else if (!string.IsNullOrWhiteSpace(processName) && TryGetSingleProcessByName(processName, out var process) && process is not null)
             {
-                if (await InspectProcessAsync(process, OutputFile, cancellationToken))
+                if (!await InspectProcessAsync(process, OutputFile, cancellationToken))
                 {
-                    return (int)ExitCode.Success;
+                    return (int)ExitCode.InspectFailed;
                 }
+
+                return (int)ExitCode.Success;
             }
 
             return (int)await InvalidArgumentsShowHelpAsync(processCommand);
@@ -94,31 +96,36 @@ public partial class CliApp
         // TODO: Probably have this elsewhere to be called
         var target = $"process {process.ProcessName}({process.Id}){(IncludeChildren ? " (and children)" : "")}";
 
-        PrintInfo("Preparing to inspect {0}...", target);
-
-        if (!process.IsAccessible())
+        try
         {
-            PrintError("Cannot access {0} to inspect" + (!WindowsIdentity.IsRunningAsAdmin ? ", try running as Administrator." : "."), target);
-            return false;
-        }
+            PrintInfo("Preparing to inspect {0}...", target);
 
-        if (WaitForInputIdle)
-        {
-            PrintInfo("Waiting for input idle for {0}", target);
-            if (!await process.TryWaitForIdleAsync(cancellationToken))
+            if (!process.IsAccessible())
             {
-                PrintError("Waiting for input idle for {0} failed, try running again.", target);
+                PrintError("Cannot access {0} to inspect" + (!WindowsIdentity.IsRunningAsAdmin ? ", try running as Administrator." : "."), target);
                 return false;
             }
-        }
 
-        if (Verbosity > VerbosityLevel.Quiet)
+            if (WaitForInputIdle)
+            {
+                PrintInfo("Waiting for input idle for {0}", target);
+                if (!await process.TryWaitForIdleAsync(cancellationToken))
+                {
+                    PrintError("Waiting for input idle for {0} failed, try running again.", target);
+                    return false;
+                }
+            }
+
+            var inputs = await InputHelper.GetInputsFromProcessAsync(process, IncludeChildren, cancellationToken);
+
+            PrintInfo("Inspecting {0}:", target);
+
+            return await RunInspectionAsync(target, inputs, outputFilename, cancellationToken);
+        }
+        catch (OperationCanceledException)
         {
-            Console.Write($"Inspecting {target}:");
+            PrintWarning("Inspection canceled.");
+            return false;
         }
-
-        var inputs = await InputHelper.GetInputsFromProcessAsync(process, IncludeChildren, cancellationToken);
-
-        return await RunInspectionAsync(target, inputs, outputFilename, cancellationToken);
     }
 }

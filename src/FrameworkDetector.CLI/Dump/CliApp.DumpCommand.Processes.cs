@@ -117,6 +117,13 @@ public partial class CliApp
             int fails = 0;
             foreach (var process in processesToDump.OrderBy(p => p.ProcessName))
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    result = ExitCode.DumpFailed;
+                    fails++;
+                    continue;
+                }
+
                 string? outputFilename = string.IsNullOrEmpty(outputFolderName) ? null : Path.Combine(outputFolderName, FormatFileName(process, outputFileTemplate));
                 PrintInfo("Dumping app {0} [{1}]({2}) {3:00.0}%", process.MainWindowTitle, process.ProcessName, process.Id, 100.0 * count++ / processesToDump.Count);
                 if (!await DumpProcessAsync(process, outputFilename, cancellationToken))

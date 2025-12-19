@@ -72,10 +72,12 @@ public partial class CliApp
                     return (int)ExitCode.ArgumentParsingError;
                 }
 
-                if (await DumpPackageAsync(package, OutputFile, cancellationToken))
+                if (!await DumpPackageAsync(package, OutputFile, cancellationToken))
                 {
-                    return (int)ExitCode.Success;
+                    return (int)ExitCode.DumpFailed;
                 }
+
+                return (int)ExitCode.Success;
             }
 
             return (int)await InvalidArgumentsShowHelpAsync(appCommand);
@@ -89,15 +91,20 @@ public partial class CliApp
     {
         var target = $"package {package.DisplayName}";
 
-        PrintInfo("Preparing to dump {0}...", target);
-
-        if (Verbosity > VerbosityLevel.Quiet)
+        try
         {
-            Console.Write($"Dumping {target}:");
+            PrintInfo("Preparing to dump {0}...", target);
+
+            var inputs = await InputHelper.GetInputsFromPackageAsync(package, isLoaded: false, cancellationToken);
+
+            PrintInfo("Dumping {0}:", target);
+
+            return await RunDumpAsync(target, inputs, outputFilename, cancellationToken);
         }
-
-        var inputs = await InputHelper.GetInputsFromPackageAsync(package, isLoaded: false, cancellationToken);
-
-        return await RunDumpAsync(target, inputs, outputFilename, cancellationToken);
+        catch (OperationCanceledException)
+        {
+            PrintWarning("Dump canceled.");
+            return false;
+        }
     }
 }
