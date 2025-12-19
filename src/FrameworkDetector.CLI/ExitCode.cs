@@ -9,4 +9,5 @@ public enum ExitCode
     ArgumentParsingError = 1,
     InspectFailed = 2,
     DumpFailed = 3,
+    RunFailed = 4,
 }
