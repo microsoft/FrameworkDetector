@@ -104,7 +104,7 @@ public static class ContainsActiveWindowCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsActiveWindowArgs, ContainsActiveWindowData> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<ContainsActiveWindowArgs, ContainsActiveWindowData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsActiveWindowArgs, ContainsActiveWindowData> definition, IEnumerable<IInputType> inputs, DetectorCheckResult<ContainsActiveWindowArgs, ContainsActiveWindowData> result, CancellationToken cancellationToken)
     {
         result.CheckStatus = DetectorCheckStatus.InProgress;
 

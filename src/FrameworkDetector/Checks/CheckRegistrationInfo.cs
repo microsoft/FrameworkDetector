@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
 using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
@@ -47,4 +46,4 @@ public record CheckRegistrationInfo<TInput,TOutput>(
 /// <param name="result">The check result to be set during execution.</param>
 /// <param name="cancellationToken">Cancellation token.</param>
 /// <returns></returns>
-public delegate Task CheckFunction<TInput,TOutput>(CheckDefinition<TInput,TOutput> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<TInput,TOutput> result, CancellationToken cancellationToken) where TInput : ICheckArgs where TOutput : struct;
+public delegate Task CheckFunction<TInput,TOutput>(CheckDefinition<TInput,TOutput> definition, IEnumerable<IInputType> inputs, DetectorCheckResult<TInput,TOutput> result, CancellationToken cancellationToken) where TInput : ICheckArgs where TOutput : struct;

@@ -19,6 +19,9 @@ public static class InputHelper
 {
     public static async Task<IReadOnlyList<IInputType>> GetInputsFromExecutableAsync(FileInfo fileInfo, bool isLoaded, CancellationToken cancellationToken)
     {
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
+
         List<IInputType> inputs = [];
 
         var exeInput = await ExecutableInput.CreateAndInitializeDataSourcesAsync(fileInfo, isLoaded, cancellationToken);
@@ -35,12 +38,10 @@ public static class InputHelper
 
     public static async Task<IReadOnlyList<IInputType>> GetInputsFromPackageAsync(Package package, bool isLoaded, CancellationToken cancellationToken)
     {
-        List<IInputType> inputs = [];
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
 
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return inputs;
-        }
+        List<IInputType> inputs = [];
 
         var pkgInput = await InstalledPackageInput.CreateAndInitializeDataSourcesAsync(package, isLoaded, cancellationToken);
         if (pkgInput is not null)
@@ -67,12 +68,10 @@ public static class InputHelper
 
     public static async Task<IReadOnlyList<IInputType>> GetInputsFromProcessAsync(Process process, bool includeChildProcesses, CancellationToken cancellationToken)
     {
-        HashSet<IInputType> inputs = [];
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
 
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return [];
-        }
+        List<IInputType> inputs = [];
 
         // Get Main Process Info
         var processInput = await ProcessInput.CreateAndInitializeDataSourcesAsync(process, true, cancellationToken);
@@ -88,11 +87,6 @@ public static class InputHelper
             var exeInputs = await GetInputsFromExecutableAsync(mainModuleFileInfo, true, cancellationToken);
             foreach (var exeInput in exeInputs)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-
                 inputs.Add(exeInput);
             }
         }
@@ -101,14 +95,8 @@ public static class InputHelper
         if (await process.GetPackageFromProcess() is Package package)
         {
             var packageInputs = await GetInputsFromPackageAsync(package, true, cancellationToken);
-
             foreach (var packageInput in packageInputs)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-
                 inputs.Add(packageInput);
             }
         }
@@ -118,25 +106,18 @@ public static class InputHelper
         {
             foreach (var child in process.GetChildProcesses())
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-
                 var childInputs = await GetInputsFromProcessAsync(child, false, cancellationToken);
-
                 foreach (var childInput in childInputs)
                 {
-                    if (cancellationToken.IsCancellationRequested)
+                    // For apps that call themselves, make sure we're not getting unecessary inputs
+                    if (!inputs.Contains(childInput))
                     {
-                        break;
+                        inputs.Add(childInput);
                     }
-
-                    inputs.Add(childInput);
                 }
             }
         }
 
-        return inputs.ToList();
+        return inputs;
     }
 }

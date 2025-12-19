@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+
 using System.Text.Json.Serialization;
 
 namespace FrameworkDetector.Models;
@@ -10,27 +11,14 @@ namespace FrameworkDetector.Models;
 /// <summary>
 /// Information about a file used as part of data sources.
 /// </summary>
-public record FileMetadata
+/// <param name="Filename">The full path to the file on disk.</param>
+/// <param name="IsLoaded">Specifies, if true, whether this file was discovered as loaded by a running process; otherwise, when flse, if it was only loose on disk in proximity to searched locations.</param>
+public record FileMetadata([property: JsonIgnore()] string FullPath, // We don't want the full path in json but we do want it to de-dupe files
+                           bool IsLoaded = false)
 {
     /// <summary>
-    /// The full path to the file on disk.
+    /// Name of the file on disk.
     /// </summary>
-    [JsonIgnore] // We don't want the full path in json but we do want it to de-dupe files
-    public string FullPath { get; init; }
-
-    /// <summary>
-    /// InputGroup of the file on disk.
-    /// </summary>
-    public string Filename => Path.GetFileName(FullPath);
-
-    /// <summary>
-    /// Specifies, if true, whether this file was discovered as loaded by a running process; otherwise, when false, if it was only loose on disk in proximity to searched locations.
-    /// </summary>
-    public bool IsLoaded { get; init; }
-
-    public FileMetadata(string fullPath, bool isLoaded = false)
-    {
-        FullPath = fullPath;
-        IsLoaded = isLoaded;
-    }
+    [JsonPropertyOrder(int.MinValue)] // Derived class or not, always put the filename first
+    public string FileName => Path.GetFileName(FullPath);
 }

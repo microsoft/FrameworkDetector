@@ -205,7 +205,7 @@ public static class ContainsModuleCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsModuleArgs, ContainsModuleData> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<ContainsModuleArgs, ContainsModuleData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsModuleArgs, ContainsModuleData> definition, IEnumerable<IInputType> inputs, DetectorCheckResult<ContainsModuleArgs, ContainsModuleData> result, CancellationToken cancellationToken)
     {
         result.CheckStatus = DetectorCheckStatus.InProgress;
 
@@ -232,10 +232,10 @@ public static class ContainsModuleCheck
                 {
                     if (cancellationToken.IsCancellationRequested) break;
 
-                    var filenameMatch = definition.CheckArguments.Filename is null || string.Equals(definition.CheckArguments.Filename, module.Filename, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenModuleName, module.Filename, StringComparison.InvariantCultureIgnoreCase));
+                    var filenameMatch = definition.CheckArguments.Filename is null || string.Equals(definition.CheckArguments.Filename, module.FileName, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenModuleName, module.FileName, StringComparison.InvariantCultureIgnoreCase));
                     var fileVersionMatch = fileVersionRange is null || SemVersion.TryParseCleaned(module.FileVersion, out var fileVersion) && fileVersionRange.Contains(fileVersion);
 
-                    var originalFilenameMatch = definition.CheckArguments.OriginalFilename is null || string.Equals(definition.CheckArguments.OriginalFilename, module.OriginalFilename, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenOriginalModuleName, module.OriginalFilename, StringComparison.InvariantCultureIgnoreCase));
+                    var originalFilenameMatch = definition.CheckArguments.OriginalFilename is null || string.Equals(definition.CheckArguments.OriginalFilename, module.OriginalFileName, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenOriginalModuleName, module.OriginalFileName, StringComparison.InvariantCultureIgnoreCase));
 
                     var productNameMatch = definition.CheckArguments.ProductName is null || string.Equals(definition.CheckArguments.ProductName, module.ProductName, StringComparison.InvariantCultureIgnoreCase);
                     var productVersionMatch = productVersionRange is null || SemVersion.TryParseCleaned(module.ProductVersion, out var productVersion) && productVersionRange.Contains(productVersion);

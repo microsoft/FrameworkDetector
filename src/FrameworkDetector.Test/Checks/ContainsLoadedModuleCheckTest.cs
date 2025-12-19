@@ -9,14 +9,18 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using static FrameworkDetector.Checks.ContainsModuleCheck;
+using FrameworkDetector.DataSources;
 using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
+using System.Collections.Generic;
 
 namespace FrameworkDetector.Test.Checks;
 
 [TestClass]
 public class ContainsLoadedModuleCheckTest() : CheckTestBase<ContainsModuleArgs, ContainsModuleData>(GetCheckRegistrationInfo)
 {
+    public override TestContext TestContext { get; set; }
+
     [TestMethod]
     [DataRow("")]
     [DataRow("TestModuleName.dll")]
@@ -69,17 +73,15 @@ public class ContainsLoadedModuleCheckTest() : CheckTestBase<ContainsModuleArgs,
 
         ContainsModuleData? expectedOutput = expectedFilename is not null ? new ContainsModuleData(new WindowsModuleMetadata(expectedFilename, IsLoaded: areLoaded == true)) : null;
 
-        var cts = new CancellationTokenSource();
+        var input = new ModulesTestInput(actualLoadedModules);
 
-        await RunTest(actualLoadedModules, args, expectedCheckStatus, expectedOutput, cts.Token);
+        await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput);
     }
 
-    private async Task RunTest(WindowsModuleMetadata[]? actualLoadedModules, ContainsModuleArgs args, DetectorCheckStatus expectedCheckStatus, ContainsModuleData? expectedOutput, CancellationToken cancellationToken)
+    private record ModulesTestInput(WindowsModuleMetadata[] Modules) : IInputType, IModulesDataSource
     {
-        ProcessInput input = new(new(nameof(ContainsLoadedModuleCheckTest)), 
-                                 ActiveWindows: [],
-                                 LoadedModules: actualLoadedModules ?? Array.Empty<WindowsModuleMetadata>());
+        public string InputGroup => nameof(ModulesTestInput);
 
-        await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput, cancellationToken);
+        public IEnumerable<WindowsModuleMetadata> GetModules() => Modules;
     }
 }

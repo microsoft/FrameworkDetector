@@ -318,7 +318,7 @@ public static class ProcessExtensions
     /// </summary>
     /// <param name="process">The target process.</param>
     /// <returns>The metadata for each active window.</returns>
-    public static IEnumerable<ActiveWindowMetadata> GetActiveWindowMetadata(this Process process)
+    public static IReadOnlyCollection<ActiveWindowMetadata> GetActiveWindowMetadata(this Process process)
     {
         var windows = new HashSet<ActiveWindowMetadata>();
 
@@ -335,6 +335,8 @@ public static class ProcessExtensions
 
                 if (className is not null)
                 {
+                    // We're using a set to reduce "dupes" (since we're just capturing class name and is/isn't visible)
+                    // but is there a world where the **count** of windows (of a certain class) matters?
                     windows.Add(new ActiveWindowMetadata(className,
                                                           hwnd.IsWindowVisible()));
                 }
@@ -359,7 +361,7 @@ public static class ProcessExtensions
                         addWindow(hwnd);
                     }
 
-                    if (processMatch || applicationFrameHosts.Where(p => p.Id == processID).Any())
+                    if (processMatch || applicationFrameHosts.Any(p => p.Id == processID))
                     {
                         // HWNDs can be parented to HWNDs of different processes, which is especially true
                         // for UWP apps, whose HWNDs get parented to ApplicationFrameHost's top-level HWND
@@ -408,20 +410,6 @@ public static class ProcessExtensions
 
         return null;
     }
-
-    /// <summary>
-    /// Gets the metadata for the functions imported by the main module of the given process.
-    /// </summary>
-    /// <param name="process">The target process.</param>
-    /// <returns>The metadata from each imported function.</returns>
-    public static IEnumerable<ImportedFunctionsMetadata> GetImportedFunctionsMetadata(this Process process) => process.GetMainModuleFileInfo()?.GetImportedFunctionsMetadata() ?? [];
-
-    /// <summary>
-    /// Gets the metadata for the functions exported by the main module of the given process.
-    /// </summary>
-    /// <param name="process">The target process.</param>
-    /// <returns>The metadata from each exported function.</returns>
-    public static IEnumerable<ExportedFunctionsMetadata> GetExportedFunctionsMetadata(this Process process) => process.GetMainModuleFileInfo()?.GetExportedFunctionsMetadata() ?? [];
 
     /// <summary>
     /// Gets a <see cref="Package"/> from a <see cref="Process"/>, used to help create a <see cref="InstalledPackageInput"/> from a <see cref="Process"/>.

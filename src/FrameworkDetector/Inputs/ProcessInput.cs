@@ -23,15 +23,13 @@ namespace FrameworkDetector.Inputs;
 /// <param name="LoadedModules"><see cref="WindowsModuleMetadata"/> about the processes modules loaded in memory (more accurate than <see cref="ExecutableInput"/>'s LoadedModules, TODO: Link directly to that property when we add it</param>
 /// <param name="ProcessId"></param>
 /// <param name="MainWindowHandle"></param>
-/// <param name="MainWindowTitle"></param>
 /// <param name="PackageFullName"></param>
 /// <param name="ApplicationUserModelId"></param>
-public record ProcessInput(FileMetadata MainModule,
+public record ProcessInput(int ProcessId,
+                           FileMetadata MainModule,
                            ActiveWindowMetadata[] ActiveWindows,
                            WindowsModuleMetadata[] LoadedModules,
-                           int? ProcessId = null,
                            long? MainWindowHandle = default, // IntPtr is long on 64-bit, int on 32-bit (so use long here)
-                           string? MainWindowTitle = null,
                            string? PackageFullName = null,
                            string? ApplicationUserModelId = null)
     : IEquatable<ProcessInput>,
@@ -43,27 +41,33 @@ public record ProcessInput(FileMetadata MainModule,
     [JsonIgnore]
     public string InputGroup => "processes";
 
-    public static async Task<IInputType?> CreateAndInitializeDataSourcesAsync(Process process, bool? isLoaded, CancellationToken cancellationToken)
+    public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(Process process, bool? isLoaded, CancellationToken cancellationToken)
     {
-        // Get Process Metadata
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Get process filename (main module is null if we're attaching too soon)
         string filename = process.MainModule?.FileName ?? throw new ArgumentNullException(nameof(process.MainModule));
 
         process.TryGetPackageFullName(out var packageFullName);
 
         process.TryGetApplicationUserModelId(out var applicationUserModelId);
 
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
+
         // Get Active Windows
         var activeWindows = process.GetActiveWindowMetadata();
+
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
 
         // Get modules loaded in memory by the process.
         var loadedModules = new HashSet<WindowsModuleMetadata>();
         foreach (var module in process.Modules.Cast<ProcessModule>())
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                // TODO: Figure out how we want to handle cancellation here in the API contract with the return type...
-                return null;
-            }
+            await Task.Yield();
+            cancellationToken.ThrowIfCancellationRequested();
 
             var moduleMetadata = WindowsModuleMetadata.GetMetadata(module.FileName, isLoaded: true);
             if (moduleMetadata is not null)
@@ -72,13 +76,14 @@ public record ProcessInput(FileMetadata MainModule,
             }
         }
 
-        return new ProcessInput(new FileMetadata(filename, isLoaded: true),
-                                // Data Sources First so we don't have to make them null.
-                                activeWindows.OrderBy(aw => aw.ClassName ?? "").ToArray(),
-                                loadedModules.OrderBy(pm => pm.Filename).ToArray(),
-                                process.Id,
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return new ProcessInput(process.Id,
+                                new FileMetadata(filename, IsLoaded: true),
+                                activeWindows.OrderBy(aw => aw.ClassName).ToArray(),
+                                loadedModules.OrderBy(pm => pm.FileName).ToArray(),
                                 process.MainWindowHandle,
-                                process.MainWindowTitle,
                                 packageFullName,
                                 applicationUserModelId);
     }

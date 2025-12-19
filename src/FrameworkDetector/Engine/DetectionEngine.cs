@@ -56,7 +56,7 @@ public class DetectionEngine
     /// <returns>A ToolRunResult containing the results of all detector runs, including metadata and individual detector
     /// outcomes.</returns>
     /// <exception cref="ArgumentException">Thrown if any required or optional check group for a detector does not contain at least one check.</exception>
-    public async Task<ToolRunResult> DetectAgainstInputsAsync(IReadOnlyList<IInputType> inputs, CancellationToken cancellationToken, string? toolArguments = null)
+    public async Task<ToolRunResult> DetectAgainstInputsAsync(IEnumerable<IInputType> inputs, CancellationToken cancellationToken, string? toolArguments = null)
     {
         int totalDetectors = _detectors.Count;
         int processedDetectors = 0;
@@ -172,7 +172,7 @@ public class DetectionEngine
         catch (TaskCanceledException) { } // If it gets canceled, return what we found anyway
 
         // Step 2. Aggregate/Finalize all the results?
-        result.DetectorResults = allDetectorResults.ToList();
+        result.DetectorResults.AddRange(allDetectorResults.OrderBy(dr => dr.DetectorName));
 
         return result;
     }
@@ -185,7 +185,7 @@ public class DetectionEngine
     /// <param name="toolArguments">Metadata to record of arguments used to run the tool.</param>
     /// <returns>Partial <see cref="ToolRunResult"/> object with data source information but without framework detection results.</returns>
     /// <exception cref="ArgumentException"></exception>
-    public async Task<ToolRunResult> DumpAllDataFromInputsAsync(IReadOnlyList<IInputType> inputs, CancellationToken cancellationToken, string? toolArguments = null)
+    public async Task<ToolRunResult> DumpAllDataFromInputsAsync(IEnumerable<IInputType> inputs, CancellationToken cancellationToken, string? toolArguments = null)
     {
         var result = new ToolRunResult(AssemblyInfo.ToolName, AssemblyInfo.ToolVersion, toolArguments, inputs);
 

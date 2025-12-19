@@ -29,8 +29,11 @@ public record InstalledPackageInput(string DisplayName,
     [JsonIgnore]
     public string InputGroup => "installedPackages";
 
-    public static async Task<IInputType?> CreateAndInitializeDataSourcesAsync(Package package, bool? isLoaded, CancellationToken cancellationToken)
+    public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(Package package, bool? isLoaded, CancellationToken cancellationToken)
     {
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
+
         // No async initialization needed here yet, so just construct
         return new InstalledPackageInput(package.DisplayName,
                                          package.Description,

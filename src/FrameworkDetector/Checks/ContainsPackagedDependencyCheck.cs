@@ -176,7 +176,7 @@ public static class ContainsPackagedDependencyCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> definition, IEnumerable<IInputType> inputs, DetectorCheckResult<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> result, CancellationToken cancellationToken)
     {
         result.CheckStatus = DetectorCheckStatus.InProgress;
 

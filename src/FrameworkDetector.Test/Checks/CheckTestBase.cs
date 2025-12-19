@@ -20,7 +20,9 @@ public abstract class CheckTestBase<TInput, TOutput>(
 ) where TInput : ICheckArgs
   where TOutput : struct
 {
-    public async Task RunCheck_ValidArgsAsync(IReadOnlyList<IInputType> inputs, TInput args, DetectorCheckStatus expectedCheckStatus, TOutput? expectedOutput, CancellationToken cancellationToken)
+    public abstract TestContext TestContext { get; set; }
+
+    public async Task RunCheck_ValidArgsAsync(IReadOnlyList<IInputType> inputs, TInput args, DetectorCheckStatus expectedCheckStatus, TOutput? expectedOutput, CancellationToken? cancellationToken = null)
     {
         args.Validate();
 
@@ -29,7 +31,7 @@ public abstract class CheckTestBase<TInput, TOutput>(
         var checkDefinition = new CheckDefinition<TInput, TOutput>(checkRegistration, args);
         var actualResult = new DetectorCheckResult<TInput, TOutput>(new TestDetector(), checkDefinition);
 
-        await checkRegistration.PerformCheckAsync(checkDefinition, inputs, actualResult, cancellationToken);
+        await checkRegistration.PerformCheckAsync(checkDefinition, inputs, actualResult, cancellationToken ?? TestContext.CancellationToken);
 
         Assert.AreEqual(expectedCheckStatus, actualResult.CheckStatus);
         Assert.AreEqual(expectedOutput is null, actualResult.CheckOutput is null, "Expected and actual outputs are both defined or not.");

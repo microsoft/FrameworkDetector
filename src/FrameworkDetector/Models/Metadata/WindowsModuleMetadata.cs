@@ -7,12 +7,12 @@ using System.IO;
 
 namespace FrameworkDetector.Models;
 
-public record WindowsModuleMetadata(string Filename, 
-                                    string? OriginalFilename = null, 
+public record WindowsModuleMetadata(string FileName,
+                                    string? OriginalFileName = null, 
                                     string? FileVersion = null, 
                                     string? ProductName = null, 
                                     string? ProductVersion = null,
-                                    bool IsLoaded = false) : FileMetadata(Filename, IsLoaded)
+                                    bool IsLoaded = false) : FileMetadata(FileName, IsLoaded)
 {
     public static WindowsModuleMetadata GetMetadata(string filename, bool isLoaded)
     {

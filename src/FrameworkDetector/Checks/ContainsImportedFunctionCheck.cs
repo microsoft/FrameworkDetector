@@ -116,7 +116,7 @@ public static class ContainsImportedFunctionCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsImportedFunctionArgs, ContainsImportedFunctionData> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<ContainsImportedFunctionArgs, ContainsImportedFunctionData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsImportedFunctionArgs, ContainsImportedFunctionData> definition, IEnumerable<IInputType> inputs, DetectorCheckResult<ContainsImportedFunctionArgs, ContainsImportedFunctionData> result, CancellationToken cancellationToken)
     {
         result.CheckStatus = DetectorCheckStatus.InProgress;
 

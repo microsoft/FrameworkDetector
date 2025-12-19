@@ -89,7 +89,7 @@ public static class ContainsExportedFunctionCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsExportedFunctionArgs, ContainsExportedFunctionData> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<ContainsExportedFunctionArgs, ContainsExportedFunctionData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsExportedFunctionArgs, ContainsExportedFunctionData> definition, IEnumerable<IInputType> inputs, DetectorCheckResult<ContainsExportedFunctionArgs, ContainsExportedFunctionData> result, CancellationToken cancellationToken)
     {
         result.CheckStatus = DetectorCheckStatus.InProgress;
 
