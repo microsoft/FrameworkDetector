@@ -112,40 +112,31 @@ public partial class CliApp
             }
 
             // 2. Run against all the processes (one-by-one for now)
-            ExitCode result = ExitCode.Success;
-            int count = 0;
-            int fails = 0;
+            int current = 0;
+            int successes = 0;
             foreach (var process in processesToInspect.OrderBy(p => p.ProcessName))
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    result = ExitCode.InspectFailed;
-                    fails++;
-                    continue;
+                    break;
                 }
 
                 string? outputFilename = string.IsNullOrEmpty(outputFolderName) ? null : Path.Combine(outputFolderName, FormatFileName(process, outputFileTemplate));
-                PrintInfo("Inspecting app {0} [{1}]({2}) {3:00.0}%", process.MainWindowTitle, process.ProcessName, process.Id, 100.0 * count++ / processesToInspect.Count);
-                if (!await InspectProcessAsync(process, outputFilename, cancellationToken))
+                PrintInfo("Inspecting process {0} [{1}]({2}) {3:00.0}%", process.MainWindowTitle, process.ProcessName, process.Id, 100.0 * current++ / processesToInspect.Count);
+                if (await InspectProcessAsync(process, outputFilename, cancellationToken))
+                {
+                    successes++;
+                }
+                else
                 {
                     PrintError("Failed to inspect process {0}({1}).", process.ProcessName, process.Id);
-                    // Set error, but continue
-                    result = ExitCode.InspectFailed;
-                    fails++;
                 }
             }
 
             // 3. Summary
-            if (fails == 0)
-            {
-                PrintInfo("Successfully inspected all {0} processes.", processesToInspect.Count);
-            }
-            else
-            {
-                PrintError("Failed to inspect {0}/{1} processes.", fails, processesToInspect.Count);
-            }
+            PrintInfo("Successfully inspected {0}/{1} ({2:00.0}%) processes.", successes, processesToInspect.Count, 100.0 * successes / processesToInspect.Count);
 
-            return (int)result;
+            return (int)(successes == current ? ExitCode.Success : ExitCode.DumpFailed);
         });
 
         return command;

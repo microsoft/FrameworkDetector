@@ -112,40 +112,31 @@ public partial class CliApp
             }
 
             // 2. Run against all the processes (one-by-one for now)
-            ExitCode result = ExitCode.Success;
-            int count = 0;
-            int fails = 0;
+            int current = 0;
+            int successes = 0;
             foreach (var process in processesToDump.OrderBy(p => p.ProcessName))
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    result = ExitCode.DumpFailed;
-                    fails++;
-                    continue;
+                    break;
                 }
 
                 string? outputFilename = string.IsNullOrEmpty(outputFolderName) ? null : Path.Combine(outputFolderName, FormatFileName(process, outputFileTemplate));
-                PrintInfo("Dumping app {0} [{1}]({2}) {3:00.0}%", process.MainWindowTitle, process.ProcessName, process.Id, 100.0 * count++ / processesToDump.Count);
-                if (!await DumpProcessAsync(process, outputFilename, cancellationToken))
+                PrintInfo("Dumping process {0} [{1}]({2}) {3:00.0}%", process.MainWindowTitle, process.ProcessName, process.Id, 100.0 * current++ / processesToDump.Count);
+                if (await DumpProcessAsync(process, outputFilename, cancellationToken))
+                {
+                    successes++;
+                }
+                else
                 {
                     PrintError("Failed to dump process {0}({1}).", process.ProcessName, process.Id);
-                    // Set error, but continue
-                    result = ExitCode.DumpFailed;
-                    fails++;
                 }
             }
 
             // 3. Summary
-            if (fails == 0)
-            {
-                PrintInfo("Successfully dumped all {0} processes.", processesToDump.Count);
-            }
-            else
-            {
-                PrintError("Failed to dump {0}/{1} processes.", fails, processesToDump.Count);
-            }
+            PrintInfo("Successfully dumped {0}/{1} ({2}) processes.", successes, processesToDump.Count, 100.0 * successes / processesToDump.Count);
 
-            return (int)result;
+            return (int)(successes == current ? ExitCode.Success : ExitCode.DumpFailed);
         });
 
         return command;
