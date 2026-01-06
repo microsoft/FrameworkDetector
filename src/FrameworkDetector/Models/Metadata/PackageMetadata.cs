@@ -2,19 +2,16 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Security.Principal;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Windows.Management.Deployment;
+using Windows.System;
 
 using Windows.ApplicationModel;
 
 namespace FrameworkDetector.Models;
-
-/// <summary>
-/// Represents metadata for a packaged application, including display information and package details.
-/// </summary>
-/// <param name="AppDisplayName">The display name of the application as shown to users.</param>
-/// <param name="AppDescription">A brief description of the application, typically used for informational or display purposes.</param>
-/// <param name="AppPackageFamilyName">The unique package family name that identifies the application within the system.</param>
-/// <param name="PackageMetadata">Additional metadata about the application's package, or <see langword="null"/> if not available.</param>
-public record PackagedAppMetadata(string AppDisplayName, string AppDescription, string AppPackageFamilyName, PackageMetadata? PackageMetadata) { }
 
 /// <summary>
 /// Represents metadata information for a software package (app or dependency), including identity, display details, installation paths,

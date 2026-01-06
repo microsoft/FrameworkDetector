@@ -16,7 +16,7 @@ using FrameworkDetector.Models;
 namespace FrameworkDetector.Checks;
 
 /// <summary>
-/// CheckDefinition extension for looking for a specific imported function, present within the PE headers of a process binary.
+/// CheckDefinition extension for looking for a specific imported function, present within the PE headers of an input.
 /// </summary>
 public static class ContainsImportedFunctionCheck
 {
@@ -116,24 +116,20 @@ public static class ContainsImportedFunctionCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsImportedFunctionArgs, ContainsImportedFunctionData> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<ContainsImportedFunctionArgs, ContainsImportedFunctionData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsImportedFunctionArgs, ContainsImportedFunctionData> definition, IEnumerable<IInputType> inputs, DetectorCheckResult<ContainsImportedFunctionArgs, ContainsImportedFunctionData> result, CancellationToken cancellationToken)
     {
         result.CheckStatus = DetectorCheckStatus.InProgress;
 
         foreach (var input in inputs)
         {
-            if (input is IImportedFunctionsDataSource dataSource
-                && dataSource.ImportedFunctions is not null)
-            {
-                foreach (var importedFunction in dataSource.ImportedFunctions)
-                {
-                    await Task.Yield();
+            // Stop evaluating inputs if we've gotten a cancellation or a result
+            if (cancellationToken.IsCancellationRequested || result.CheckStatus != DetectorCheckStatus.InProgress) break;
 
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        result.CheckStatus = DetectorCheckStatus.Canceled;
-                        break;
-                    }
+            if (input is IImportedFunctionsDataSource dataSource)
+            {
+                await foreach (var importedFunction in dataSource.GetImportedFunctionsAsync(cancellationToken))
+                {
+                    if (cancellationToken.IsCancellationRequested) break;
 
                     var moduleNameMatch = definition.CheckArguments.ModuleName is null || string.Equals(definition.CheckArguments.ModuleName, importedFunction.ModuleName, StringComparison.InvariantCultureIgnoreCase);
 
@@ -155,17 +151,11 @@ public static class ContainsImportedFunctionCheck
                     }
                 }
             }
-
-            // Stop evaluating other process data sources if we've gotten a pass or cancel
-            if (result.CheckStatus != DetectorCheckStatus.InProgress)
-            {
-                break;
-            }
         }
 
         if (result.CheckStatus == DetectorCheckStatus.InProgress)
         {
-            result.CheckStatus = DetectorCheckStatus.CompletedFailed;
+            result.CheckStatus = cancellationToken.IsCancellationRequested ? DetectorCheckStatus.Canceled : DetectorCheckStatus.CompletedFailed;
         }
     }
 }

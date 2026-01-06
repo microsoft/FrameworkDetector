@@ -3,12 +3,8 @@
 
 using System;
 using System.Linq;
-using System.Security.Principal;
-using System.Threading.Tasks;
 
 using Windows.ApplicationModel;
-using Windows.Management.Deployment;
-using Windows.System;
 
 using FrameworkDetector.Models;
 
@@ -16,74 +12,6 @@ namespace FrameworkDetector;
 
 public static class PackageExtensions
 {
-    /// <summary>
-    /// Retrieves metdata from the installed app registry of the machine based on the Package Family Name of an installed app package.
-    /// </summary>
-    /// <param name="packageFamilyName">The application's <see cref="AppInfo.PackageFamilyName"/> to find.</param>
-    /// <param name="packageFullName">Optional additional information hint of PackageFullName for down-level OS, pre-19041.</param>
-    /// <returns></returns>
-    public static async Task<PackagedAppMetadata?> GetPackagedAppMetadataAsync(string packageFamilyName, string? packageFullName = null)
-    {
-        AppInfo? appInfo = null;
-        var packageInfo = await AppDiagnosticInfo.RequestInfoAsync();
-        foreach (var package in packageInfo)
-        {
-            if (package.AppInfo.PackageFamilyName == packageFamilyName)
-            {
-                appInfo = package.AppInfo;
-                break;
-            }
-        }
-
-        if (appInfo is not null)
-        {
-            Package? package = null;
-
-            // Package property introduced 19041: https://learn.microsoft.com/uwp/api/windows.applicationmodel.appinfo.package
-            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
-            {
-                package = appInfo.Package;
-            }
-            else
-            {
-                // Fallback for older windows versions
-                if (packageFullName is not null)
-                {
-                    PackageManager packageManager = new();
-
-                    // 1. Find package by full name
-                    if (WindowsIdentity.IsRunningAsAdmin)
-                    {
-
-                        // https://learn.microsoft.com/uwp/api/windows.management.deployment.packagemanager.findpackage
-                        package = packageManager.FindPackage(packageFullName);
-                    }
-                    else
-                    {
-                        // Empty string == current user
-                        // https://learn.microsoft.com/uwp/api/windows.management.deployment.packagemanager.findpackageforuser
-                        package = packageManager.FindPackageForUser(string.Empty, packageFullName);
-                    }
-                }
-                else
-                {
-                    // TODO: How do we bubble up warnings?
-                    // We can't find package, so we don't have extra info needed...
-                    return null;
-                }
-            }
-
-            var packageMetadata = package is not null ? package.GetMetadata() : null;
-
-            return new PackagedAppMetadata(appInfo.DisplayInfo.DisplayName,
-                                           appInfo.DisplayInfo.Description,
-                                           appInfo.PackageFamilyName,
-                                           packageMetadata);
-        }
-
-        return null;
-    }
-
     /// <summary>
     /// Helper to be able to get all package metadata recursively for process package and dependencies
     /// </summary>

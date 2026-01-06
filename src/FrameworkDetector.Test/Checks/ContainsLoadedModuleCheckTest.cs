@@ -9,20 +9,24 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using static FrameworkDetector.Checks.ContainsModuleCheck;
+using FrameworkDetector.DataSources;
 using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
+using System.Collections.Generic;
 
 namespace FrameworkDetector.Test.Checks;
 
 [TestClass]
 public class ContainsLoadedModuleCheckTest() : CheckTestBase<ContainsModuleArgs, ContainsModuleData>(GetCheckRegistrationInfo)
 {
+    public override TestContext TestContext { get; set; }
+
     [TestMethod]
     [DataRow("")]
     [DataRow("TestModuleName.dll")]
     public async Task ContainsModuleCheck_FilenameFoundTest(string filename)
     {
-        // Note: We pass null as that sets the checkIsLoaded to null to mean to indicate we don't care if it is loaded or not (default)
+        // Note: We pass null as that sets the isLoaded to null to mean to indicate we don't care if it is loaded or not (default)
         await RunFilenameCheck([filename], false, filename, DetectorCheckStatus.CompletedPassed, filename, null);
     }
 
@@ -56,7 +60,7 @@ public class ContainsLoadedModuleCheckTest() : CheckTestBase<ContainsModuleArgs,
     [DataRow("TestModuleName.dll", false, "TestModuleName.dll")]
     public async Task ContainsLoadedModuleCheck_FilenameNotLoadedFlagTest(string actualFilename, bool isLoaded, string filenameToCheck)
     {
-        // CheckIsLoaded = false: should only match if module.IsLoaded == false
+        // IsLoaded = false: should only match if module.IsLoaded == false
         var expectedStatus = isLoaded ? DetectorCheckStatus.CompletedFailed : DetectorCheckStatus.CompletedPassed;
         var expectedOutput = isLoaded ? null : filenameToCheck;
         await RunFilenameCheck([actualFilename], isLoaded, filenameToCheck, expectedStatus, expectedOutput, false);
@@ -65,21 +69,19 @@ public class ContainsLoadedModuleCheckTest() : CheckTestBase<ContainsModuleArgs,
     private async Task RunFilenameCheck(string[] actualFilenames, bool areLoaded, string filenameToCheck, DetectorCheckStatus expectedCheckStatus, string? expectedFilename, bool? checkIsLoaded = null)
     {
         var actualLoadedModules = actualFilenames.Select(filename => new WindowsModuleMetadata(filename, IsLoaded: areLoaded == true)).ToArray();
-        var args = new ContainsModuleArgs(filenameToCheck, checkIsLoaded: checkIsLoaded);
+        var args = new ContainsModuleArgs(filenameToCheck, isLoaded: checkIsLoaded);
 
         ContainsModuleData? expectedOutput = expectedFilename is not null ? new ContainsModuleData(new WindowsModuleMetadata(expectedFilename, IsLoaded: areLoaded == true)) : null;
 
-        var cts = new CancellationTokenSource();
+        var input = new ModulesTestInput(actualLoadedModules);
 
-        await RunTest(actualLoadedModules, args, expectedCheckStatus, expectedOutput, cts.Token);
+        await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput);
     }
 
-    private async Task RunTest(WindowsModuleMetadata[]? actualLoadedModules, ContainsModuleArgs args, DetectorCheckStatus expectedCheckStatus, ContainsModuleData? expectedOutput, CancellationToken cancellationToken)
+    private record ModulesTestInput(WindowsModuleMetadata[] Modules) : IInputType, IModulesDataSource
     {
-        ProcessInput input = new(new(nameof(ContainsLoadedModuleCheckTest)), 
-                                 ActiveWindows: [],
-                                 Modules: actualLoadedModules ?? Array.Empty<WindowsModuleMetadata>());
+        public string InputGroup => nameof(ModulesTestInput);
 
-        await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput, cancellationToken);
+        public IEnumerable<WindowsModuleMetadata> GetModules() => Modules;
     }
 }

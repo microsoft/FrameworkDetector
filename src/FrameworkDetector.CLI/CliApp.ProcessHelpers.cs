@@ -66,4 +66,24 @@ public partial class CliApp
         result = default;
         return false;
     }
+
+    private bool TryKillProcess(Process? process)
+    {
+        try
+        {
+            if (process is not null)
+            {
+                PrintInfo("Trying to kill process {0}({1})...", process.ProcessName, process.Id);
+                process.Kill();
+                PrintInfo("Process killed.");
+                return true;
+            }
+        }
+        catch
+        {
+            PrintError("Unable to kill process.");
+        }
+
+        return false;
+    }
 }

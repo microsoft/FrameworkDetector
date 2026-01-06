@@ -18,7 +18,7 @@ using FrameworkDetector.Inputs;
 namespace FrameworkDetector.Checks;
 
 /// <summary>
-/// CheckDefinition extension for looking for a specific loaded module, present within a process.
+/// CheckDefinition extension for looking for a specific module, present within a input.
 /// </summary>
 public static class ContainsModuleCheck
 {
@@ -37,13 +37,14 @@ public static class ContainsModuleCheck
     /// <summary>
     /// Input arguments for <see cref="ContainsModuleCheck"/>.
     /// </summary>
-    /// <param name="filename">A loaded module's filename must match this text, if specified.</param>
-    /// <param name="originalFilename">A loaded module's original filename must match this text, if specified.</param>
-    /// <param name="fileVersionRange">A loaded module's file version must match this semver version range sepc, if specified.</param>
-    /// <param name="productName">A loaded module's product name must match this text, if specified.</param>
-    /// <param name="productVersionRange">A loaded module's product version must match this semver version range sepc, if specified.</param>
+    /// <param name="filename">A module's filename must match this text, if specified.</param>
+    /// <param name="originalFilename">A module's original filename must match this text, if specified.</param>
+    /// <param name="fileVersionRange">A module's file version must match this semver version range sepc, if specified.</param>
+    /// <param name="productName">A module's product name must match this text, if specified.</param>
+    /// <param name="productVersionRange">A module's product version must match this semver version range sepc, if specified.</param>
+    /// <param name="isLoaded">Whether or not the module is loaded in memory, if specified.</param>
     /// <param name="checkForNgenModule">Whether or not to also match NGENed versions (.ni.dll) of the specified filename and/or original filename.</param>
-    public readonly struct ContainsModuleArgs(string? filename = null, string? originalFilename = null, string? fileVersionRange = null, string? productName = null, string? productVersionRange = null, bool? checkForNgenModule = null, bool? checkIsLoaded = null) : ICheckArgs
+    public readonly struct ContainsModuleArgs(string? filename = null, string? originalFilename = null, string? fileVersionRange = null, string? productName = null, string? productVersionRange = null, bool? isLoaded = null, bool? checkForNgenModule = null) : ICheckArgs
     {
         public string? Filename { get; } = filename;
 
@@ -55,9 +56,9 @@ public static class ContainsModuleCheck
 
         public string? ProductVersionRange { get; } = productVersionRange;
 
-        public bool? CheckForNgenModule { get; } = checkForNgenModule;
+        public bool? IsLoaded { get; } = isLoaded;
 
-        public bool? CheckIsLoaded { get; } = checkIsLoaded;
+        public bool? CheckForNgenModule { get; } = checkForNgenModule;
 
         public string GetDescription()
         {
@@ -90,6 +91,7 @@ public static class ContainsModuleCheck
                 nameAdded = true;
             }
 
+            bool versionAdded = false;
             if (FileVersionRange is not null || ProductVersionRange is not null)
             {
                 if (nameAdded)
@@ -99,7 +101,6 @@ public static class ContainsModuleCheck
 
                 descriptionSB.Append("with ");
 
-                bool versionAdded = false;
                 if (FileVersionRange is not null)
                 {
                     descriptionSB.AppendFormat("version \"{0}\"", FileVersionRange);
@@ -114,6 +115,15 @@ public static class ContainsModuleCheck
                     }
                     descriptionSB.AppendFormat("product version \"{0}\"", ProductVersionRange);
                 }
+            }
+
+            if (IsLoaded is not null)
+            {
+                if (nameAdded || versionAdded)
+                {
+                    descriptionSB.Append(' ');
+                }
+                descriptionSB.AppendFormat("where it's \"{0}\"", IsLoaded.Value ? "loaded" : "not loaded");
             }
 
             return descriptionSB.ToString();
@@ -150,17 +160,17 @@ public static class ContainsModuleCheck
     extension(IDetectorCheckGroup @this)
     {
         /// <summary>
-        /// Checks for module by name found either in Process.LoadedModules or by ImportedFunctions, use the checkIsLoaded parameter to enforce checking that the module was in use (e.g. by a process).
+        /// Checks for module by name found either in Process.LoadedModules or by ImportedFunctions, use the isLoaded parameter to enforce checking that the module was in use (e.g. by a process).
         /// </summary>
         /// <param name="filename">A loaded module's filename must match this text, if specified.</param>
         /// <param name="originalFilename">A loaded module's original filename must match this text, if specified.</param>
         /// <param name="fileVersionRange">A loaded module's file version must match this semver version range sepc, if specified.</param>
         /// <param name="productName">A loaded module's product name must match this text, if specified.</param>
         /// <param name="productVersionRange">A loaded module's product version must match this semver version range sepc, if specified.</param>
+        /// <param name="isLoaded"></param>Whether to explicitly check if the module was discovered in use or not. By default null where the module will match regardless of if it was in use or not.</param>
         /// <param name="checkForNgenModule">Whether or not to also match NGENed versions (.ni.dll) of the specified filename and/or original filename.</param>
-        /// <param name="checkIsLoaded"></param>Whether to explicitly check if the module was discovered in use or not. By default null where the module will match regardless of if it was in use or not.</param>
         /// <returns><see cref="ContainsModuleDetectorCheckGroup"/> wrapper to allow for version specification point.</returns>
-        public ContainsModuleDetectorCheckGroup ContainsModule(string? filename = null, string? originalFilename = null, string? fileVersionRange = null, string? productName = null, string? productVersionRange = null, bool? checkForNgenModule = null, bool? checkIsLoaded = null)
+        public ContainsModuleDetectorCheckGroup ContainsModule(string? filename = null, string? originalFilename = null, string? fileVersionRange = null, string? productName = null, string? productVersionRange = null, bool? isLoaded = null, bool? checkForNgenModule = null)
         {
             var dcg = @this.Get();
 
@@ -168,7 +178,7 @@ public static class ContainsModuleCheck
             // The metadata along with the live data sources (as indicated by the registration)
             // will be passed into the PerformCheckAsync method below to do the actual check.
 
-            var args = new ContainsModuleArgs(filename, originalFilename, fileVersionRange, productName, productVersionRange, checkForNgenModule, checkIsLoaded);
+            var args = new ContainsModuleArgs(filename, originalFilename, fileVersionRange, productName, productVersionRange, checkForNgenModule, isLoaded);
             args.Validate();
 
             dcg.AddCheck(new CheckDefinition<ContainsModuleArgs, ContainsModuleData>(GetCheckRegistrationInfo(args), args));
@@ -195,7 +205,7 @@ public static class ContainsModuleCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsModuleArgs, ContainsModuleData> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<ContainsModuleArgs, ContainsModuleData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsModuleArgs, ContainsModuleData> definition, IEnumerable<IInputType> inputs, DetectorCheckResult<ContainsModuleArgs, ContainsModuleData> result, CancellationToken cancellationToken)
     {
         result.CheckStatus = DetectorCheckStatus.InProgress;
 
@@ -213,28 +223,24 @@ public static class ContainsModuleCheck
 
         foreach (var input in inputs)
         {
-            if (input is IModulesDataSource dataSource
-                && dataSource.Modules is not null)
+            // Stop evaluating inputs if we've gotten a cancellation or a result
+            if (cancellationToken.IsCancellationRequested || result.CheckStatus != DetectorCheckStatus.InProgress) break;
+
+            if (input is IModulesDataSource dataSource)
             { 
-                foreach (var module in dataSource.Modules)
+                await foreach (var module in dataSource.GetModulesAsync(cancellationToken))
                 {
-                    await Task.Yield();
+                    if (cancellationToken.IsCancellationRequested) break;
 
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        result.CheckStatus = DetectorCheckStatus.Canceled;
-                        break;
-                    }
-
-                    var filenameMatch = definition.CheckArguments.Filename is null || string.Equals(definition.CheckArguments.Filename, module.Filename, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenModuleName, module.Filename, StringComparison.InvariantCultureIgnoreCase));
+                    var filenameMatch = definition.CheckArguments.Filename is null || string.Equals(definition.CheckArguments.Filename, module.FileName, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenModuleName, module.FileName, StringComparison.InvariantCultureIgnoreCase));
                     var fileVersionMatch = fileVersionRange is null || SemVersion.TryParseCleaned(module.FileVersion, out var fileVersion) && fileVersionRange.Contains(fileVersion);
 
-                    var originalFilenameMatch = definition.CheckArguments.OriginalFilename is null || string.Equals(definition.CheckArguments.OriginalFilename, module.OriginalFilename, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenOriginalModuleName, module.OriginalFilename, StringComparison.InvariantCultureIgnoreCase));
+                    var originalFilenameMatch = definition.CheckArguments.OriginalFilename is null || string.Equals(definition.CheckArguments.OriginalFilename, module.OriginalFileName, StringComparison.InvariantCultureIgnoreCase) || (checkForNgenModule && string.Equals(nGenOriginalModuleName, module.OriginalFileName, StringComparison.InvariantCultureIgnoreCase));
 
                     var productNameMatch = definition.CheckArguments.ProductName is null || string.Equals(definition.CheckArguments.ProductName, module.ProductName, StringComparison.InvariantCultureIgnoreCase);
                     var productVersionMatch = productVersionRange is null || SemVersion.TryParseCleaned(module.ProductVersion, out var productVersion) && productVersionRange.Contains(productVersion);
 
-                    var isLoadedMatch = definition.CheckArguments.CheckIsLoaded is null || definition.CheckArguments.CheckIsLoaded == module.IsLoaded;
+                    var isLoadedMatch = definition.CheckArguments.IsLoaded is null || definition.CheckArguments.IsLoaded == module.IsLoaded;
 
                     if (filenameMatch && fileVersionMatch && originalFilenameMatch && productNameMatch && productVersionMatch && isLoadedMatch)
                     {
@@ -244,17 +250,11 @@ public static class ContainsModuleCheck
                     }
                 }
             }
-
-            // Stop evaluating other process data sources if we've gotten a pass or cancel
-            if (result.CheckStatus != DetectorCheckStatus.InProgress)
-            {
-                break;
-            }
         }
 
         if (result.CheckStatus == DetectorCheckStatus.InProgress)
         {
-            result.CheckStatus = DetectorCheckStatus.CompletedFailed;
+            result.CheckStatus = cancellationToken.IsCancellationRequested ? DetectorCheckStatus.Canceled : DetectorCheckStatus.CompletedFailed;
         }
     }
 }

@@ -99,108 +99,145 @@ public partial class CliApp
                 return (int)ExitCode.ArgumentParsingError;
             }
 
-            if (exepath is not null)
+            Process? process = null;
+            Process? reattachProcess = null;
+
+            try
             {
-                Process? process = null;
-
-                try
+                if (exepath is not null)
                 {
-                    PrintInfo("Starting program at \"{0}\"...", exepath);
-                    process = Process.Start(exepath);
+                    process = await TryRunByExePathAsync(exepath, cancellationToken);
                 }
-                catch { }
-
-                if (process is null)
+                else if (!string.IsNullOrWhiteSpace(packageFullName))
                 {
-                    PrintError("Unable to find/start program at \"{0}\".", exepath);
-                    return (int)ExitCode.ArgumentParsingError;
+                    process = await TryRunByPackageFullNameAsync(packageFullName, aumid, cancellationToken);
                 }
-
-                if (!string.IsNullOrEmpty(processName))
+                else if (!string.IsNullOrWhiteSpace(aumid))
                 {
-                    var newProcess = await TryReattachAsync(processName, waitTime, cancellationToken);
-                    if (newProcess is null)
-                    {
-                        return (int)ExitCode.ArgumentParsingError;
-                    }
-
-                    process = newProcess;
-                    waitTime = 0; // Don't need to wait twice
+                    process = await TryRunByAumidAsync(aumid, cancellationToken);
                 }
-
-                return (int)await InspectStartedProcessAsync(process, waitTime, OutputFile, keepAfterInspect, cancellationToken);
-            }
-            else if (!string.IsNullOrWhiteSpace(packageFullName))
-            {
-                Process? process = null;
-
-                try
+                else
                 {
-                    PrintInfo("Starting \"{0}\" app of package \"{1}\"...", aumid ?? "default", packageFullName);
-                    process = await Process.StartByPackageFullNameAsync(packageFullName, aumid, cancellationToken);
-                    if (aumid is null && process is not null && process.TryGetApplicationUserModelId(out var defaultAumid) && defaultAumid is not null)
-                    {
-                        PrintInfo("Started \"{0}\" app of package \"{1}\".", defaultAumid, packageFullName);
-                    }
-                }
-                catch { }
-                
-                if (!string.IsNullOrEmpty(processName))
-                {
-                    var newProcess = await TryReattachAsync(processName, waitTime, cancellationToken);
-                    if (newProcess is null)
-                    {
-                        return (int)ExitCode.ArgumentParsingError;
-                    }
-
-                    process = newProcess;
-                    waitTime = 0; // Don't need to wait twice
+                    // Missing one of the necessary arguments, fail.
+                    return (int)await InvalidArgumentsShowHelpAsync(command);
                 }
 
                 if (process is null)
                 {
-                    PrintError("Unable to start \"{0}\" app of package \"{1}\".", aumid ?? "default", packageFullName);
+                    // Nothing started, so bail. Assume each of the above attempts will have already output error information.
                     return (int)ExitCode.ArgumentParsingError;
                 }
 
-                return (int)await InspectStartedProcessAsync(process, waitTime, OutputFile, keepAfterInspect,cancellationToken);
-            }
-            else if (!string.IsNullOrWhiteSpace(aumid))
-            {
-                Process? process = null;
-
-                try
-                {
-                    PrintInfo("Starting \"{0}\" app...", aumid);
-                    process = await Process.StartByApplicationModelUserIdAsync(aumid, cancellationToken);
-                }
-                catch { }
-
-                if (process is null)
-                {
-                    PrintError("Unable to start \"{0}\" app.", aumid);
-                    return (int)ExitCode.ArgumentParsingError;
-                }
-
+                // Try to reattach if requested
                 if (!string.IsNullOrEmpty(processName))
                 {
-                    var newProcess = await TryReattachAsync(processName, waitTime, cancellationToken);
-                    if (newProcess is null)
+                    reattachProcess = await TryReattachAsync(processName, waitTime, cancellationToken);
+                    if (reattachProcess is null)
                     {
+                        // Reattach requrested but failed
                         return (int)ExitCode.ArgumentParsingError;
                     }
 
-                    process = newProcess;
                     waitTime = 0; // Don't need to wait twice
                 }
 
-                return (int)await InspectStartedProcessAsync(process, waitTime, OutputFile, keepAfterInspect, cancellationToken);
+                return (int)await InspectStartedProcessAsync(reattachProcess ?? process, waitTime, OutputFile, keepAfterInspect, cancellationToken);
             }
-
-            return (int)await InvalidArgumentsShowHelpAsync(command);
+            catch (OperationCanceledException)
+            {
+                PrintWarning("Run cancelled.");
+                return (int)ExitCode.RunFailed;
+            }
+            finally
+            {
+                // No matter what happens, try to kill the process(es) we started
+                if (!keepAfterInspect)
+                {
+                    PrintInfo("Killing started process(es) after inspect...");
+                    TryKillProcess(reattachProcess);
+                    TryKillProcess(process);
+                }
+            }
         });
 
         return command;
+    }
+
+
+    private async Task<Process?> TryRunByExePathAsync(string exepath, CancellationToken cancellationToken)
+    {
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        Process? process = null;
+
+        try
+        {
+            PrintInfo("Starting program at \"{0}\"...", exepath);
+            process = Process.Start(exepath);
+            PrintInfo("Starting program at \"{0}\"...", exepath);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { }
+
+        if (process is null)
+        {
+            PrintError("Unable to find/start program at \"{0}\".", exepath);
+        }
+
+        return process;
+    }
+
+    private async Task<Process?> TryRunByPackageFullNameAsync(string packageFullName, string? aumid, CancellationToken cancellationToken)
+    {
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        Process? process = null;
+
+        try
+        {
+            PrintInfo("Starting \"{0}\" app of package \"{1}\"...", aumid ?? "default", packageFullName);
+            process = await Process.StartByPackageFullNameAsync(packageFullName, aumid, cancellationToken);
+            if (aumid is null && process is not null && process.TryGetApplicationUserModelId(out var defaultAumid) && defaultAumid is not null)
+            {
+                aumid = defaultAumid;
+            }
+            PrintInfo("Started \"{0}\" app of package \"{1}\".", aumid ?? "default", packageFullName);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { }
+
+        if (process is null)
+        {
+            PrintError("Unable to start \"{0}\" app of package \"{1}\".", aumid ?? "default", packageFullName);
+        }
+
+        return process;
+    }
+
+    private async Task<Process?> TryRunByAumidAsync(string aumid, CancellationToken cancellationToken)
+    {
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        Process? process = null;
+
+        try
+        {
+            PrintInfo("Starting \"{0}\" app...", aumid);
+            process = await Process.StartByApplicationModelUserIdAsync(aumid, cancellationToken);
+            PrintInfo("Started \"{0}\" app...", aumid);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { }
+
+        if (process is null)
+        {
+            PrintError("Unable to start \"{0}\" app.", aumid);
+        }
+
+        return process;
     }
 
     private async Task<Process?> TryReattachAsync(string processName, int waitTime, CancellationToken cancellationToken)
@@ -211,15 +248,16 @@ public partial class CliApp
             await Task.Delay(waitTime, cancellationToken);
         }
 
-        if (TryGetSingleProcessByName(processName, out var newProcess) && newProcess is not null)
+        if (!TryGetSingleProcessByName(processName, out var newProcess) && newProcess is not null)
         {
-            return newProcess;
+            PrintInfo($"Process {newProcess.ProcessName}({newProcess.Id}) found.");
         }
         else
         {
             PrintError("Unable to re-attach to process with name \"{0}\".", processName);
         }
-        return null;
+
+        return newProcess;
     }
 
     private async Task<ExitCode> InspectStartedProcessAsync(Process process, int waitTime, string? outputFilename, bool keepAfterInspect, CancellationToken cancellationToken)
@@ -233,19 +271,6 @@ public partial class CliApp
         }
 
         bool inspectResult = await InspectProcessAsync(process, outputFilename, cancellationToken);
-
-        if (!keepAfterInspect)
-        {
-            try
-            {
-                PrintInfo("Killing process {0}({1}) after inspect.", process.ProcessName, process.Id);
-                process.Kill();
-            }
-            catch
-            {
-                PrintError("Unable to kill {0}({1}) after inspect.", process.ProcessName, process.Id);
-            }
-        }
 
         return inspectResult ? ExitCode.Success : ExitCode.InspectFailed;
     }

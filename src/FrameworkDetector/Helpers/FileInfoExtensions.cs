@@ -4,6 +4,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using PeNet;
 
@@ -20,7 +21,7 @@ public static class FileInfoExtensions
         /// </summary>
         /// <param name="process">The target process.</param>
         /// <returns>The metadata from each imported function.</returns>
-        public IEnumerable<ImportedFunctionsMetadata> GetImportedFunctionsMetadata()
+        public IReadOnlySet<ImportedFunctionsMetadata> GetImportedFunctionsMetadata()
         {
             var importedFunctions = new HashSet<ImportedFunctionsMetadata>();
 
@@ -28,7 +29,7 @@ public static class FileInfoExtensions
             {
                 lock (peFile)
                 {
-                    var tempMap = new Dictionary<string, List<FunctionMetadata>>();
+                    var tempMap = new Dictionary<string, SortedList<string, FunctionMetadata>>();
 
                     if (peFile.ImportedFunctions is not null)
                     {
@@ -36,13 +37,13 @@ public static class FileInfoExtensions
                         {
                             if (!tempMap.TryGetValue(importedFunction.DLL, out var functions))
                             {
-                                functions = new List<FunctionMetadata>();
+                                functions = new SortedList<string, FunctionMetadata>();
                                 tempMap[importedFunction.DLL] = functions;
                             }
 
                             if (importedFunction.Name is not null)
                             {
-                                tempMap[importedFunction.DLL].Add(new FunctionMetadata(importedFunction.Name, false));
+                                tempMap[importedFunction.DLL].Add(importedFunction.Name, new FunctionMetadata(importedFunction.Name, false));
                             }
                         }
                     }
@@ -53,20 +54,22 @@ public static class FileInfoExtensions
                         {
                             if (!tempMap.TryGetValue(delayImportedFunction.DLL, out var functions))
                             {
-                                functions = new List<FunctionMetadata>();
+                                functions = new SortedList<string, FunctionMetadata>();
                                 tempMap[delayImportedFunction.DLL] = functions;
                             }
 
                             if (delayImportedFunction.Name is not null)
                             {
-                                tempMap[delayImportedFunction.DLL].Add(new FunctionMetadata(delayImportedFunction.Name, true));
+                                tempMap[delayImportedFunction.DLL].Add(delayImportedFunction.Name, new FunctionMetadata(delayImportedFunction.Name, true));
                             }
                         }
                     }
 
                     foreach (var kvp in tempMap)
                     {
-                        importedFunctions.Add(new ImportedFunctionsMetadata(kvp.Key, kvp.Value.ToArray()));
+                        var moduleName = kvp.Key;
+                        var functions = kvp.Value.Values.ToArray();
+                        importedFunctions.Add(new ImportedFunctionsMetadata(moduleName, functions));
                     }
                 }
             }
@@ -79,7 +82,7 @@ public static class FileInfoExtensions
         /// </summary>
         /// <param name="process">The target process.</param>
         /// <returns>The metadata from each exported function.</returns>
-        public IEnumerable<ExportedFunctionsMetadata> GetExportedFunctionsMetadata()
+        public IReadOnlySet<ExportedFunctionsMetadata> GetExportedFunctionsMetadata()
         {
             var exportedFunctions = new HashSet<ExportedFunctionsMetadata>();
 

@@ -265,7 +265,7 @@ public static class ProcessExtensions
                 }
             }
 
-            if (appListEntry is not null && await appListEntry.LaunchAsync())
+            if (appListEntry is not null)
             {
                 return await appListEntry.LaunchAndGetProcessAsync(cancellationToken);
             }
@@ -318,7 +318,7 @@ public static class ProcessExtensions
     /// </summary>
     /// <param name="process">The target process.</param>
     /// <returns>The metadata for each active window.</returns>
-    public static IEnumerable<ActiveWindowMetadata> GetActiveWindowMetadata(this Process process)
+    public static IReadOnlyCollection<ActiveWindowMetadata> GetActiveWindowMetadata(this Process process)
     {
         var windows = new HashSet<ActiveWindowMetadata>();
 
@@ -332,12 +332,12 @@ public static class ProcessExtensions
             try
             {
                 var className = hwnd.GetClassName();
-                var windowText = hwnd.GetWindowText();
 
-                if (className is not null || windowText is not null)
+                if (className is not null)
                 {
+                    // We're using a set to reduce "dupes" (since we're just capturing class name and is/isn't visible)
+                    // but is there a world where the **count** of windows (of a certain class) matters?
                     windows.Add(new ActiveWindowMetadata(className,
-                                                          windowText,
                                                           hwnd.IsWindowVisible()));
                 }
             }
@@ -361,7 +361,7 @@ public static class ProcessExtensions
                         addWindow(hwnd);
                     }
 
-                    if (processMatch || applicationFrameHosts.Where(p => p.Id == processID).Any())
+                    if (processMatch || applicationFrameHosts.Any(p => p.Id == processID))
                     {
                         // HWNDs can be parented to HWNDs of different processes, which is especially true
                         // for UWP apps, whose HWNDs get parented to ApplicationFrameHost's top-level HWND
@@ -412,65 +412,27 @@ public static class ProcessExtensions
     }
 
     /// <summary>
-    /// Gets the metadata for the functions imported by the main module of the given process.
+    /// Tries to get a <see cref="Package"/> from a <see cref="Process"/>, used to help create a <see cref="InstalledPackageInput"/> from a <see cref="Process"/>.
     /// </summary>
     /// <param name="process">The target process.</param>
-    /// <returns>The metadata from each imported function.</returns>
-    public static IEnumerable<ImportedFunctionsMetadata> GetImportedFunctionsMetadata(this Process process) => process.GetMainModuleFileInfo()?.GetImportedFunctionsMetadata() ?? [];
-
-    /// <summary>
-    /// Gets the metadata for the functions exported by the main module of the given process.
-    /// </summary>
-    /// <param name="process">The target process.</param>
-    /// <returns>The metadata from each exported function.</returns>
-    public static IEnumerable<ExportedFunctionsMetadata> GetExportedFunctionsMetadata(this Process process) => process.GetMainModuleFileInfo()?.GetExportedFunctionsMetadata() ?? [];
-
-    /// <summary>
-    /// Gets a <see cref="Package"/> from a <see cref="Process"/>, used to help create a <see cref="InstalledPackageInput"/> from a <see cref="Process"/>.
-    /// </summary>
-    /// <param name="process"><see cref="Process"/> object to inspect.</param>
-    /// <returns><see cref="Package"/> corresponding to that process, if available. Otherwise null.</returns>
-    public static async Task<Package?> GetPackageFromProcess(this Process process)
+    /// <param name="package">The <see cref="Package"/> of the process, if available.</param>
+    /// <returns>Whether or not a <see cref="Package"/> was found.</returns>
+    public static bool TryGetPackageFromProcess(this Process process, out Package? package)
     {
-        var processInfo = ProcessDiagnosticInfo.TryGetForProcessId((uint)process.Id);
-        if (processInfo is null || !processInfo.IsPackaged)
+        try
         {
-            return null;
+            var processInfo = ProcessDiagnosticInfo.TryGetForProcessId((uint)process.Id);
+            if (processInfo is not null && processInfo.IsPackaged && process.TryGetPackageFullName(out var packageFullName))
+            {
+                PackageManager packageManager = new();
+
+                package = WindowsIdentity.IsRunningAsAdmin ? packageManager.FindPackage(packageFullName) : packageManager.FindPackageForUser(string.Empty, packageFullName);
+                return package is not null;
+            }
         }
+        catch { }
 
-        if (process.TryGetPackageFamilyName(out var packageFamilyName)
-            && !string.IsNullOrWhiteSpace(packageFamilyName))
-        {
-            // Fallback for older windows versions
-            TryGetPackageFullName(process, out var packageFullName);
-
-            PackageManager packageManager = new();
-
-            var package = WindowsIdentity.IsRunningAsAdmin ? packageManager.FindPackage(packageFullName) : packageManager.FindPackageForUser(string.Empty, packageFullName);
-
-            return package;
-        }
-
-        return null;
-    }
-
-    public static async Task<PackagedAppMetadata?> ProcessPackageMetadataAsync(this Process process)
-    {
-        var processInfo = ProcessDiagnosticInfo.TryGetForProcessId((uint)process.Id);
-        if (processInfo is null || !processInfo.IsPackaged)
-        {
-            return null;
-        }
-
-        if (process.TryGetPackageFamilyName(out var packageFamilyName)
-            && !string.IsNullOrWhiteSpace(packageFamilyName))
-        {
-            // Fallback for older windows versions
-            TryGetPackageFullName(process, out var packageFullName);
-            
-            return await PackageExtensions.GetPackagedAppMetadataAsync(packageFamilyName, packageFullName);
-        }
-
-        return null;
+        package = default;
+        return false;
     }
 }

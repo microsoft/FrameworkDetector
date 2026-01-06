@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FrameworkDetector.DataSources;
 using FrameworkDetector.Engine;
 using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
@@ -55,7 +54,7 @@ public interface ICheckDefinition
     /// <param name="inputs">Complete set of <see cref="IInputType"/> to process for analysis.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns></returns>
-    public Task<IDetectorCheckResult> PerformCheckAsync(IDetector detector, IReadOnlyList<IInputType> inputs, CancellationToken cancellationToken);
+    public Task<IDetectorCheckResult> PerformCheckAsync(IDetector detector, IEnumerable<IInputType> inputs, CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -91,7 +90,7 @@ public record CheckDefinition<TInput,TOutput>(
 
     //// Used to translate between the strongly-typed definition written by check extension author passed in as a delegate and the concreate generalized version the engine will call on the check.
     /// <inheritdoc/>
-    async Task<IDetectorCheckResult> ICheckDefinition.PerformCheckAsync(IDetector detector, IReadOnlyList<IInputType> inputs, CancellationToken cancellationToken)
+    async Task<IDetectorCheckResult> ICheckDefinition.PerformCheckAsync(IDetector detector, IEnumerable<IInputType> inputs, CancellationToken cancellationToken)
     {
         // Create initial result holder linking the detector to this check being performed.
         // Auto includes the additional arguments required by the check defined by the detector (and used by the check).
@@ -102,6 +101,12 @@ public record CheckDefinition<TInput,TOutput>(
 
         // Call the check extension to perform calculation and update result.
         await PerformCheckAsync.Invoke(this, inputs, result, cancellationToken);
+
+        // If the check forgot to update the status, set it here
+        if (result.CheckStatus == DetectorCheckStatus.InProgress)
+        {
+            result.CheckStatus = cancellationToken.IsCancellationRequested ? DetectorCheckStatus.Canceled : DetectorCheckStatus.CompletedFailed;
+        }
 
         return result;
     }

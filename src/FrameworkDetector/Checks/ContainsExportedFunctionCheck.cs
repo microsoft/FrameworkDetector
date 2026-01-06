@@ -15,7 +15,7 @@ using FrameworkDetector.Models;
 namespace FrameworkDetector.Checks;
 
 /// <summary>
-/// CheckDefinition extension for looking for a specific exported function, present within the PE headers of a process binary.
+/// CheckDefinition extension for looking for a specific exported function, present within the PE headers of an input.
 /// </summary>
 public static class ContainsExportedFunctionCheck
 {
@@ -89,24 +89,20 @@ public static class ContainsExportedFunctionCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsExportedFunctionArgs, ContainsExportedFunctionData> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<ContainsExportedFunctionArgs, ContainsExportedFunctionData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsExportedFunctionArgs, ContainsExportedFunctionData> definition, IEnumerable<IInputType> inputs, DetectorCheckResult<ContainsExportedFunctionArgs, ContainsExportedFunctionData> result, CancellationToken cancellationToken)
     {
         result.CheckStatus = DetectorCheckStatus.InProgress;
 
         foreach (var input in inputs)
         {
-            if (input is IExportedFunctionsDataSource dataSource
-                && dataSource.ExportedFunctions is not null)
-            {
-                foreach (var exportedFunction in dataSource.ExportedFunctions)
-                {
-                    await Task.Yield();
+            // Stop evaluating inputs if we've gotten a cancellation or a result
+            if (cancellationToken.IsCancellationRequested || result.CheckStatus != DetectorCheckStatus.InProgress) break;
 
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        result.CheckStatus = DetectorCheckStatus.Canceled;
-                        break;
-                    }
+            if (input is IExportedFunctionsDataSource dataSource)
+            {
+                await foreach (var exportedFunction in dataSource.GetExportedFunctionsAsync(cancellationToken))
+                {
+                    if (cancellationToken.IsCancellationRequested) break;
 
                     var nameMatch = definition.CheckArguments.Name is null || exportedFunction.Name is null || exportedFunction.Name.Contains(definition.CheckArguments.Name, StringComparison.InvariantCultureIgnoreCase);
 
@@ -118,17 +114,11 @@ public static class ContainsExportedFunctionCheck
                     }
                 }
             }
-
-            // Stop evaluating other process data sources if we've gotten a pass or cancel
-            if (result.CheckStatus != DetectorCheckStatus.InProgress)
-            {
-                break;
-            }
         }
 
         if (result.CheckStatus == DetectorCheckStatus.InProgress)
         {
-            result.CheckStatus = DetectorCheckStatus.CompletedFailed;
+            result.CheckStatus = cancellationToken.IsCancellationRequested ? DetectorCheckStatus.Canceled : DetectorCheckStatus.CompletedFailed;
         }
     }
 }

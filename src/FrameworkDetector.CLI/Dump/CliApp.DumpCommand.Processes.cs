@@ -8,12 +8,12 @@ using System.IO;
 using System.Linq;
 using System.Security.Principal;
 using System.Threading;
+using System.Threading.Tasks;
 
 using System.CommandLine;
 using System.CommandLine.Parsing;
 
 using FrameworkDetector.Engine;
-using FrameworkDetector.Models;
 
 namespace FrameworkDetector.CLI;
 
@@ -32,7 +32,7 @@ public partial class CliApp
 
         Option<string?> outputFileTemplateOption = new("--outputFileTemplate")
         {
-            Description = 
+            Description =
                 """
                 The output file template, default is '{appName}.json'.
 
@@ -43,7 +43,7 @@ public partial class CliApp
                     {processName}        - The process name
                     {version}            - The version of the tool
                 """,
-            
+
         };
 
         // See: https://learn.microsoft.com/dotnet/api/system.diagnostics.process.mainwindowhandle
@@ -100,6 +100,13 @@ public partial class CliApp
             // 1. Add all dumpable processes (filtering for processes with a GUI window if requested)
             foreach (var process in processes)
             {
+                await Task.Yield();
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    PrintWarning("Dump processes canceled.");
+                    return (int)ExitCode.DumpFailed;
+                }
+
                 var isAccessible = process.IsAccessible();
                 var hasGUI = process.HasGUI();
 
@@ -118,34 +125,40 @@ public partial class CliApp
                 // Ignore remaining processes
             }
 
+            if (processesToDump.Count == 0)
+            {
+                PrintError("No processes to dump.");
+                return (int)ExitCode.DumpFailed;
+            }
+
             // 2. Run against all the processes (one-by-one for now)
-            ExitCode result = ExitCode.Success;
-            int count = 0;
-            int fails = 0;
+            int current = 0;
+            int successes = 0;
             foreach (var process in processesToDump.OrderBy(p => p.ProcessName))
             {
+                await Task.Yield();
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    PrintWarning("Dump processes canceled.");
+                    break;
+                }
+
                 string? outputFilename = string.IsNullOrEmpty(outputFolderName) ? null : Path.Combine(outputFolderName, FormatFileName(process, outputFileTemplate));
-                PrintInfo("Dumping app {0} [{1}]({2}) {3:00.0}%", process.MainWindowTitle, process.ProcessName, process.Id, 100.0 * count++ / processesToDump.Count);
-                if (!await DumpProcessAsync(process, outputFilename, cancellationToken))
+                PrintInfo("Dumping process {0} [{1}]({2}) {3:00.0}%", process.MainWindowTitle, process.ProcessName, process.Id, 100.0 * current++ / processesToDump.Count);
+                if (await DumpProcessAsync(process, outputFilename, cancellationToken))
+                {
+                    successes++;
+                }
+                else
                 {
                     PrintError("Failed to dump process {0}({1}).", process.ProcessName, process.Id);
-                    // Set error, but continue
-                    result = ExitCode.DumpFailed;
-                    fails++;
                 }
             }
 
             // 3. Summary
-            if (fails == 0)
-            {
-                PrintInfo("Successfully dumped all {0} processes.", processesToDump.Count);
-            }
-            else
-            {
-                PrintError("Failed to dump {0}/{1} processes.", fails, processesToDump.Count);
-            }
+            PrintInfo("Successfully dumped {0}/{1} ({2:00.0}%) processes.", successes, processesToDump.Count, 100.0 * successes / processesToDump.Count);
 
-            return (int)result;
+            return (int)(successes == current ? ExitCode.Success : ExitCode.DumpFailed);
         });
 
         return command;

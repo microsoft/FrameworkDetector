@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace FrameworkDetector.Inputs;
 
 /// <summary>
-/// Interface definining a common static helper factory method for creating and initializing an <see cref="IInputType"/> implementation from a raw type T.
+/// Interface defining a common static helper factory method for creating and initializing an <see cref="IInputType"/> implementation from a raw type T.
 /// </summary>
 /// <typeparam name="T">Raw type wrapped at providing data to data source interfaces implemented by the implementation.</typeparam>
 /// <remarks>

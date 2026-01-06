@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using static FrameworkDetector.Checks.ContainsImportedFunctionCheck;
+using FrameworkDetector.DataSources;
 using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
 
@@ -17,6 +19,8 @@ namespace FrameworkDetector.Test.Checks;
 [TestClass]
 public class ContainsImportedFunctionCheckTest() : CheckTestBase<ContainsImportedFunctionArgs, ContainsImportedFunctionData>(GetCheckRegistrationInfo)
 {
+    public override TestContext TestContext { get; set; }
+
     [TestMethod]
     [DataRow("TestModule.dll", "")]
     [DataRow("TestModule.dll", "TestFunctionName")]
@@ -44,19 +48,16 @@ public class ContainsImportedFunctionCheckTest() : CheckTestBase<ContainsImporte
 
         ContainsImportedFunctionData? expectedOutput = expectedModuleName is not null && expectedFunctionName is not null ? new ContainsImportedFunctionData(new ImportedFunctionsMetadata(expectedModuleName, [new FunctionMetadata(expectedFunctionName)])) : null;
 
-        var cts = new CancellationTokenSource();
+        var input = new ImportedFunctionsTestInput([actualImportedFunctions]);
 
-        await RunTest([actualImportedFunctions], args, expectedCheckStatus, expectedOutput, cts.Token);
+        await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput);
     }
 
-    private async Task RunTest(ImportedFunctionsMetadata[]? actualImportedFunctions, ContainsImportedFunctionArgs args, DetectorCheckStatus expectedCheckStatus, ContainsImportedFunctionData? expectedOutput, CancellationToken cancellationToken)
+    private record ImportedFunctionsTestInput(ImportedFunctionsMetadata[] ImportedFunctions) : IInputType, IImportedFunctionsDataSource
     {
-        ExecutableInput input = new(new(nameof(ContainsImportedFunctionCheckTest)),
-                                    ImportedFunctions: actualImportedFunctions ?? Array.Empty<ImportedFunctionsMetadata>(),
-                                    ExportedFunctions: [],
-                                    Modules: []);
+        public string InputGroup => nameof(ImportedFunctionsTestInput);
 
-        await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput, cancellationToken);
+        public IEnumerable<ImportedFunctionsMetadata> GetImportedFunctions() => ImportedFunctions;
     }
 
     protected override void ValidateOutputData(ContainsImportedFunctionData? expected, ContainsImportedFunctionData? actual)

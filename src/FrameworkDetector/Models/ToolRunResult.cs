@@ -27,11 +27,12 @@ public record ToolRunResult
 
     public string Timestamp { get; }
 
-    public IReadOnlyDictionary<string, List<object?>> Inputs { get; private set; } 
+    public IReadOnlyDictionary<string, IReadOnlyList<object?>> Inputs => _inputs;
+    private readonly Dictionary<string, IReadOnlyList<object?>> _inputs = new Dictionary<string, IReadOnlyList<object?>>();
 
-    public List<DetectorResult> DetectorResults { get; set; } = [];
+    public List<DetectorResult> DetectorResults { get; private set; } = [];
 
-    public ToolRunResult(string toolName, string toolVersion, string? toolArguments, IReadOnlyList<IInputType> inputs)
+    public ToolRunResult(string toolName, string toolVersion, string? toolArguments, IEnumerable<IInputType> inputs)
     {
         ToolName = toolName;
         ToolVersion = toolVersion;
@@ -40,8 +41,10 @@ public record ToolRunResult
 
         // Transform each input into a dictionary of lists based on the input type name.
         // i.e. all processes would be together in a "processes" bucket
-        Inputs = inputs.GroupBy(i => i.Name)
-                       .ToDictionary(g => g.Key, g => g.Cast<object?>().ToList()).AsReadOnly();
+        foreach (var group in inputs.GroupBy(i => i.InputGroup))
+        {
+            _inputs.Add(group.Key, group.Cast<object?>().ToList());
+        }
     }
 
     public override string ToString()

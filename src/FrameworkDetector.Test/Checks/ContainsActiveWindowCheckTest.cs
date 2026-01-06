@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using static FrameworkDetector.Checks.ContainsActiveWindowCheck;
+using FrameworkDetector.DataSources;
 using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
 
@@ -17,6 +19,8 @@ namespace FrameworkDetector.Test.Checks;
 [TestClass]
 public class ContainsActiveWindowCheckTest() : CheckTestBase<ContainsActiveWindowArgs, ContainsActiveWindowData>(GetCheckRegistrationInfo)
 {
+    public override TestContext TestContext { get; set; }
+
     [TestMethod]
     [DataRow("")]
     [DataRow("TestWindowClassName")]
@@ -44,17 +48,15 @@ public class ContainsActiveWindowCheckTest() : CheckTestBase<ContainsActiveWindo
 
         ContainsActiveWindowData? expectedOutput = expectedWindowClassName is not null ? new ContainsActiveWindowData(new ActiveWindowMetadata(expectedWindowClassName)) : null;
 
-        var cts = new CancellationTokenSource();
+        var input = new ActiveWindowsTestInput(actualWindows);
 
-        await RunTest(actualWindows, args, expectedCheckStatus, expectedOutput, cts.Token);
+        await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput);
     }
 
-    private async Task RunTest(ActiveWindowMetadata[]? actualWindows, ContainsActiveWindowArgs args, DetectorCheckStatus expectedCheckStatus, ContainsActiveWindowData? expectedOutput, CancellationToken cancellationToken)
+    private record ActiveWindowsTestInput(ActiveWindowMetadata[] ActiveWindows) : IInputType, IActiveWindowsDataSource
     {
-        ProcessInput input = new(new(nameof(ContainsActiveWindowCheckTest)),
-                                 ActiveWindows: actualWindows ?? Array.Empty<ActiveWindowMetadata>(),
-                                 []);
+        public string InputGroup => nameof(ActiveWindowsTestInput);
 
-        await RunCheck_ValidArgsAsync([input], args, expectedCheckStatus, expectedOutput, cancellationToken);
+        public IEnumerable<ActiveWindowMetadata> GetActiveWindows() => ActiveWindows;
     }
 }

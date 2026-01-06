@@ -7,12 +7,12 @@ using System.IO;
 
 namespace FrameworkDetector.Models;
 
-public record WindowsModuleMetadata(string Filename, 
-                                    string? OriginalFilename = null, 
+public record WindowsModuleMetadata(string FileName,
+                                    string? OriginalFileName = null, 
                                     string? FileVersion = null, 
                                     string? ProductName = null, 
                                     string? ProductVersion = null,
-                                    bool IsLoaded = false) : FileMetadata(Filename, IsLoaded)
+                                    bool IsLoaded = false) : FileMetadata(FileName, IsLoaded)
 {
     public static WindowsModuleMetadata GetMetadata(string filename, bool isLoaded)
     {
@@ -34,13 +34,13 @@ public record WindowsModuleMetadata(string Filename,
             else
             {
                 // Give up, just return the filename since we can't find the actual file on disk
-                return new WindowsModuleMetadata(Path.GetFileName(filename));
+                return new WindowsModuleMetadata(filename, IsLoaded: isLoaded);
             }
         }
 
         var fileVersionInfo = FileVersionInfo.GetVersionInfo(filename);
 
-        return new WindowsModuleMetadata(Path.GetFileName(fileVersionInfo.FileName), 
+        return new WindowsModuleMetadata(fileVersionInfo.FileName, 
             fileVersionInfo.OriginalFilename, 
             fileVersionInfo.FileVersion, 
             fileVersionInfo.ProductName, 

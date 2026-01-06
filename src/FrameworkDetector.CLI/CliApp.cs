@@ -82,7 +82,7 @@ public partial class CliApp
 
         foreach (var detectorResult in results.OrderByDescending(dr => dr.FrameworkFound).ThenByDescending(dr => dr.HasAnyPassedChecks).ThenBy(dr => dr.DetectorName))
         {
-            var detectorResultString = "  🟨";
+            var detectorResultString = " 🟨";
 
             if (detectorResult.DetectorStatus == DetectorStatus.Completed)
             {
@@ -128,6 +128,8 @@ public partial class CliApp
         if (!string.IsNullOrWhiteSpace(outputFilename))
         {
             PrintInfo("Saving output to: \"{0}\".", outputFilename);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputFilename)) ?? ".\\");
 
             using var outputWriter = new StreamWriter(outputFilename);
             outputWriter.WriteLine(result.ToString());

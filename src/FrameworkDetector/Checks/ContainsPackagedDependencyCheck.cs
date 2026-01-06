@@ -16,7 +16,7 @@ using FrameworkDetector.Models;
 namespace FrameworkDetector.Checks;
 
 /// <summary>
-/// CheckDefinition extension for looking for a specific dependent package used within a process.
+/// CheckDefinition extension for looking for a specific dependent package used by an input.
 /// </summary>
 public static class ContainsPackagedDependencyCheck
 {
@@ -28,7 +28,7 @@ public static class ContainsPackagedDependencyCheck
         return new(
             Name: nameof(ContainsPackagedDependencyCheck),
             Description: args.GetDescription(),
-            DataSourceInterfaces: [typeof(IPackageMetadataDataSource)],
+            DataSourceInterfaces: [typeof(IPackageDataSource)],
             PerformCheckAsync
             );
     }
@@ -176,47 +176,44 @@ public static class ContainsPackagedDependencyCheck
 
     //// Actual check code run by engine
 
-    public static async Task PerformCheckAsync(CheckDefinition<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> definition, IReadOnlyList<IInputType> inputs, DetectorCheckResult<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> result, CancellationToken cancellationToken)
+    public static async Task PerformCheckAsync(CheckDefinition<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> definition, IEnumerable<IInputType> inputs, DetectorCheckResult<ContainsPackagedDependencyArgs, ContainsPackagedDependencyData> result, CancellationToken cancellationToken)
     {
         result.CheckStatus = DetectorCheckStatus.InProgress;
 
         foreach (var input in inputs)
         {
-            if (input is IPackageMetadataDataSource dataSource
-                && dataSource.PackageMetadata is not null)
+            // Stop evaluating inputs if we've gotten a cancellation or a result
+            if (cancellationToken.IsCancellationRequested || result.CheckStatus != DetectorCheckStatus.InProgress) break;
+
+            if (input is IPackageDataSource dataSource)
             {
-                var dependentPackages = dataSource.PackageMetadata.Dependencies;
-                foreach (var package in dependentPackages)
+                await foreach (var package in dataSource.GetPackagesAsync(cancellationToken))
                 {
-                    await Task.Yield();
+                    // Stop evaluating packages if we've gotten a cancellation or a result
+                    if (cancellationToken.IsCancellationRequested || result.CheckStatus != DetectorCheckStatus.InProgress) break;
 
-                    if (cancellationToken.IsCancellationRequested)
+                    foreach (var dependentPackage in package.Dependencies)
                     {
-                        result.CheckStatus = DetectorCheckStatus.Canceled;
-                        break;
-                    }
+                        await Task.Yield();
 
-                    var packageNameMatch = definition.CheckArguments.PackageFullName is null || package.PackageDisplayName is null || package.Id.FullName.Contains(definition.CheckArguments.PackageFullName, StringComparison.InvariantCultureIgnoreCase);
+                        if (cancellationToken.IsCancellationRequested) break;
 
-                    if (packageNameMatch)
-                    {
-                        result.OutputData = new ContainsPackagedDependencyData(package);
-                        result.CheckStatus = DetectorCheckStatus.CompletedPassed;
-                        break;
+                        var packageNameMatch = definition.CheckArguments.PackageFullName is null || dependentPackage.PackageDisplayName is null || dependentPackage.Id.FullName.Contains(definition.CheckArguments.PackageFullName, StringComparison.InvariantCultureIgnoreCase);
+
+                        if (packageNameMatch)
+                        {
+                            result.OutputData = new ContainsPackagedDependencyData(dependentPackage);
+                            result.CheckStatus = DetectorCheckStatus.CompletedPassed;
+                            break;
+                        }
                     }
                 }
-            }
-
-            // Stop evaluating other process data sources if we've gotten a pass or cancel
-            if (result.CheckStatus != DetectorCheckStatus.InProgress)
-            {
-                break;
             }
         }
 
         if (result.CheckStatus == DetectorCheckStatus.InProgress)
         {
-            result.CheckStatus = DetectorCheckStatus.CompletedFailed;
+            result.CheckStatus = cancellationToken.IsCancellationRequested ? DetectorCheckStatus.Canceled : DetectorCheckStatus.CompletedFailed;
         }
     }
 }
