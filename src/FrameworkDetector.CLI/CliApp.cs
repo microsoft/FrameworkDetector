@@ -129,7 +129,7 @@ public partial class CliApp
         {
             PrintInfo("Saving output to: \"{0}\".", outputFilename);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(outputFilename) ?? ".\\");
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputFilename)) ?? ".\\");
 
             using var outputWriter = new StreamWriter(outputFilename);
             outputWriter.WriteLine(result.ToString());

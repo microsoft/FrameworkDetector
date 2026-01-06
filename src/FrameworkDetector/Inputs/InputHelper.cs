@@ -92,7 +92,7 @@ public static class InputHelper
         }
 
         // Get Installed Packaged App Info
-        if (await process.GetPackageFromProcess() is Package package)
+        if (process.TryGetPackageFromProcess(out var package) && package is not null)
         {
             var packageInputs = await GetInputsFromPackageAsync(package, true, cancellationToken);
             foreach (var packageInput in packageInputs)

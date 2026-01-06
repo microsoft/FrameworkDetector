@@ -265,7 +265,7 @@ public static class ProcessExtensions
                 }
             }
 
-            if (appListEntry is not null && await appListEntry.LaunchAsync())
+            if (appListEntry is not null)
             {
                 return await appListEntry.LaunchAndGetProcessAsync(cancellationToken);
             }
@@ -412,51 +412,27 @@ public static class ProcessExtensions
     }
 
     /// <summary>
-    /// Gets a <see cref="Package"/> from a <see cref="Process"/>, used to help create a <see cref="InstalledPackageInput"/> from a <see cref="Process"/>.
+    /// Tries to get a <see cref="Package"/> from a <see cref="Process"/>, used to help create a <see cref="InstalledPackageInput"/> from a <see cref="Process"/>.
     /// </summary>
-    /// <param name="process"><see cref="Process"/> object to inspect.</param>
-    /// <returns><see cref="Package"/> corresponding to that process, if available. Otherwise null.</returns>
-    public static async Task<Package?> GetPackageFromProcess(this Process process)
+    /// <param name="process">The target process.</param>
+    /// <param name="package">The <see cref="Package"/> of the process, if available.</param>
+    /// <returns>Whether or not a <see cref="Package"/> was found.</returns>
+    public static bool TryGetPackageFromProcess(this Process process, out Package? package)
     {
-        var processInfo = ProcessDiagnosticInfo.TryGetForProcessId((uint)process.Id);
-        if (processInfo is null || !processInfo.IsPackaged)
+        try
         {
-            return null;
+            var processInfo = ProcessDiagnosticInfo.TryGetForProcessId((uint)process.Id);
+            if (processInfo is not null && processInfo.IsPackaged && process.TryGetPackageFullName(out var packageFullName))
+            {
+                PackageManager packageManager = new();
+
+                package = WindowsIdentity.IsRunningAsAdmin ? packageManager.FindPackage(packageFullName) : packageManager.FindPackageForUser(string.Empty, packageFullName);
+                return package is not null;
+            }
         }
+        catch { }
 
-        if (process.TryGetPackageFamilyName(out var packageFamilyName)
-            && !string.IsNullOrWhiteSpace(packageFamilyName))
-        {
-            // Fallback for older windows versions
-            TryGetPackageFullName(process, out var packageFullName);
-
-            PackageManager packageManager = new();
-
-            var package = WindowsIdentity.IsRunningAsAdmin ? packageManager.FindPackage(packageFullName) : packageManager.FindPackageForUser(string.Empty, packageFullName);
-
-            return package;
-        }
-
-        return null;
-    }
-
-    public static async Task<PackagedAppMetadata?> ProcessPackageMetadataAsync(this Process process)
-    {
-        var processInfo = ProcessDiagnosticInfo.TryGetForProcessId((uint)process.Id);
-        if (processInfo is null || !processInfo.IsPackaged)
-        {
-            return null;
-        }
-
-        if (process.TryGetPackageFamilyName(out var packageFamilyName)
-            && !string.IsNullOrWhiteSpace(packageFamilyName))
-        {
-            // Fallback for older windows versions
-            TryGetPackageFullName(process, out var packageFullName);
-            
-            return await PackageExtensions.GetPackagedAppMetadataAsync(packageFamilyName, packageFullName);
-        }
-
-        return null;
+        package = default;
+        return false;
     }
 }
