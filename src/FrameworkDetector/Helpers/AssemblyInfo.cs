@@ -3,7 +3,7 @@
 
 using System.Reflection;
 
-namespace FrameworkDetector.Models;
+namespace FrameworkDetector;
 
 public static class AssemblyInfo
 {

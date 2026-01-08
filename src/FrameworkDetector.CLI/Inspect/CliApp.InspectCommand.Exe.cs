@@ -8,6 +8,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.DependencyInjection;
+
 using FrameworkDetector.Inputs;
 
 namespace FrameworkDetector.CLI;
@@ -97,7 +99,7 @@ public partial class CliApp
         {
             PrintInfo("Preparing to inspect {0}...", target);
 
-            var inputs = await InputHelper.GetInputsFromExecutableAsync(fileInfo, isLoaded: false, cancellationToken);
+            var inputs = await Services.GetRequiredService<InputFactory>().GetInputsFromExecutableAsync(fileInfo, isLoaded: false, cancellationToken);
 
             PrintInfo("Inspecting {0}:", target);
 

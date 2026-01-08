@@ -15,7 +15,6 @@ using System.CommandLine.Parsing;
 using YamlDotNet.Serialization;
 
 using FrameworkDetector.Engine;
-using FrameworkDetector.Models;
 
 namespace FrameworkDetector.CLI;
 

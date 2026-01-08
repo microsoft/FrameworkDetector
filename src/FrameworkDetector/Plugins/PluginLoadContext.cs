@@ -7,9 +7,7 @@ using System;
 using System.Reflection;
 using System.Runtime.Loader;
 
-using FrameworkDetector.Models;
-
-namespace FrameworkDetector.CLI;
+namespace FrameworkDetector.Plugins;
 
 public class PluginLoadContext(string pluginPath) : AssemblyLoadContext
 {

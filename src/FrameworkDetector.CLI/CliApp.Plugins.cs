@@ -5,12 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using Microsoft.Extensions.DependencyInjection;
-
 using System.CommandLine;
 
-using FrameworkDetector.Detectors;
-using FrameworkDetector.Engine;
+using FrameworkDetector.Plugins;
 
 namespace FrameworkDetector.CLI;
 

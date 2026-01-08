@@ -29,19 +29,21 @@ public record ProcessInput(int ProcessId,
                            FileMetadata MainModule,
                            ActiveWindowMetadata[] ActiveWindows,
                            WindowsModuleMetadata[] LoadedModules,
+                           IReadOnlyDictionary<string, IReadOnlyList<object>> CustomData,
                            long? MainWindowHandle = default, // IntPtr is long on 64-bit, int on 32-bit (so use long here)
                            string? PackageFullName = null,
                            string? ApplicationUserModelId = null)
     : IEquatable<ProcessInput>,
       IActiveWindowsDataSource,
       IModulesDataSource,
+      ICustomDataSource,
       IInputTypeFactory<Process>,
       IInputType
 {
     [JsonIgnore]
     public string InputGroup => "processes";
 
-    public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(Process process, bool? isLoaded, CancellationToken cancellationToken)
+    public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(Process process, bool? isLoaded, CustomDataFactoryCollection<Process>? customDataFactories, CancellationToken cancellationToken)
     {
         await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();
@@ -79,10 +81,14 @@ public record ProcessInput(int ProcessId,
         await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();
 
+        // Load CustomData
+        var customData = customDataFactories is not null ? await customDataFactories.CreateCustomDataAsync(process, isLoaded, cancellationToken) : new Dictionary<string, IReadOnlyList<object>>(0);
+
         return new ProcessInput(process.Id,
                                 new FileMetadata(filename, IsLoaded: true),
                                 activeWindows.OrderBy(aw => aw.ClassName).ToArray(),
                                 loadedModules.OrderBy(pm => pm.FileName).ToArray(),
+                                customData,
                                 process.MainWindowHandle,
                                 packageFullName,
                                 applicationUserModelId);
@@ -103,4 +109,6 @@ public record ProcessInput(int ProcessId,
     public IEnumerable<ActiveWindowMetadata> GetActiveWindows() => ActiveWindows;
 
     public IEnumerable<WindowsModuleMetadata> GetModules() => LoadedModules;
+
+    public IEnumerable<object> GetCustomData(string key) => CustomData.TryGetValue(key, out var values) ? values : Enumerable.Empty<object>();
 }

@@ -8,6 +8,7 @@ using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 
@@ -123,7 +124,7 @@ public partial class CliApp
                 }
             }
 
-            var inputs = await InputHelper.GetInputsFromProcessAsync(process, IncludeChildren, cancellationToken);
+            var inputs = await Services.GetRequiredService<InputFactory>().GetInputsFromProcessAsync(process, IncludeChildren, cancellationToken);
 
             PrintInfo("Inspecting {0}:", target);
 

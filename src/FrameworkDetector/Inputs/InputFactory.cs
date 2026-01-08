@@ -13,18 +13,20 @@ using Windows.ApplicationModel;
 namespace FrameworkDetector.Inputs;
 
 /// <summary>
-/// Helper methods for taking an input type (Process, Packaged App, etc...) and generating a list of inputs available from that input.
+/// Factory with methods for taking an input type (Process, Packaged App, etc...) and building a list of inputs available from that input.
 /// </summary>
-public static class InputHelper
+public class InputFactory(CustomDataFactoryCollection<FileInfo> fileInfoCustomDataFactories,
+                          CustomDataFactoryCollection<Package> packageCustomDataFactories,
+                          CustomDataFactoryCollection<Process> processCustomDataFactories)
 {
-    public static async Task<IReadOnlyList<IInputType>> GetInputsFromExecutableAsync(FileInfo fileInfo, bool isLoaded, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<IInputType>> GetInputsFromExecutableAsync(FileInfo fileInfo, bool isLoaded, CancellationToken cancellationToken)
     {
         await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();
 
         List<IInputType> inputs = [];
 
-        var exeInput = await ExecutableInput.CreateAndInitializeDataSourcesAsync(fileInfo, isLoaded, cancellationToken);
+        var exeInput = await ExecutableInput.CreateAndInitializeDataSourcesAsync(fileInfo, isLoaded, fileInfoCustomDataFactories, cancellationToken);
         if (exeInput is not null)
         {
             inputs.Add(exeInput);
@@ -36,14 +38,14 @@ public static class InputHelper
         return inputs;
     }
 
-    public static async Task<IReadOnlyList<IInputType>> GetInputsFromPackageAsync(Package package, bool isLoaded, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<IInputType>> GetInputsFromPackageAsync(Package package, bool isLoaded, CancellationToken cancellationToken)
     {
         await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();
 
         List<IInputType> inputs = [];
 
-        var pkgInput = await InstalledPackageInput.CreateAndInitializeDataSourcesAsync(package, isLoaded, cancellationToken);
+        var pkgInput = await InstalledPackageInput.CreateAndInitializeDataSourcesAsync(package, isLoaded, packageCustomDataFactories, cancellationToken);
         if (pkgInput is not null)
         {
             inputs.Add(pkgInput);
@@ -66,7 +68,7 @@ public static class InputHelper
         return inputs;
     }
 
-    public static async Task<IReadOnlyList<IInputType>> GetInputsFromProcessAsync(Process process, bool includeChildProcesses, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<IInputType>> GetInputsFromProcessAsync(Process process, bool includeChildProcesses, CancellationToken cancellationToken)
     {
         await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();
@@ -74,7 +76,7 @@ public static class InputHelper
         List<IInputType> inputs = [];
 
         // Get Main Process Info
-        var processInput = await ProcessInput.CreateAndInitializeDataSourcesAsync(process, true, cancellationToken);
+        var processInput = await ProcessInput.CreateAndInitializeDataSourcesAsync(process, true, processCustomDataFactories, cancellationToken);
         if (processInput is not null)
         {
             inputs.Add(processInput);

@@ -21,7 +21,8 @@ namespace FrameworkDetector.Inputs;
 public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
                               ImportedFunctionsMetadata[] ImportedFunctions,
                               ExportedFunctionsMetadata[] ExportedFunctions,
-                              WindowsModuleMetadata[] ImportedModules) 
+                              WindowsModuleMetadata[] ImportedModules,
+                              IReadOnlyDictionary<string, IReadOnlyList<object>> CustomData) 
     : IEquatable<ExecutableInput>,
       IImportedFunctionsDataSource, 
       IExportedFunctionsDataSource,
@@ -32,7 +33,7 @@ public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
     [JsonIgnore]
     public string InputGroup => "executables";
 
-    public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(FileInfo executable, bool? isLoaded, CancellationToken cancellationToken)
+    public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(FileInfo executable, bool? isLoaded, CustomDataFactoryCollection<FileInfo>? customDataFactories, CancellationToken cancellationToken)
     {
         await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();
@@ -78,11 +79,15 @@ public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
         await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();
 
+        // Load CustomData
+        var customData = customDataFactories is not null ? await customDataFactories.CreateCustomDataAsync(executable, isLoaded, cancellationToken) : new Dictionary<string, IReadOnlyList<object>>(0);
+
         // No async initialization needed here yet, so just construct
         return new ExecutableInput(metadata,
                                    importedFunctions.OrderBy(f => f.ModuleName).ToArray(),
                                    exportedFunctions.OrderBy(f => f.Name).ToArray(),
-                                   importedModules.ToArray());
+                                   importedModules.ToArray(),
+                                   customData);
     }
 
     public override int GetHashCode() => ExecutableMetadata.GetHashCode();
