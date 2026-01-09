@@ -27,9 +27,7 @@ public static class ServiceInfo
     /// <returns>The default <see cref="ServiceCollection"/>.</returns>
     public static ServiceCollection GetDefaultServiceCollection(IEnumerable<Plugin>? plugins = null)
     {
-        ServiceCollection services = new();
-
-        // TODO: Add a Logger here that we can use to report issues or record debug info, etc...
+        ServiceCollection services = GetMinimalServiceCollection(plugins);
 
         // TODO: Would be nice if the SG could do this for us, there's a request open: https://github.com/CommunityToolkit/Labs-Windows/discussions/463#discussioncomment-11720493
 
@@ -56,6 +54,20 @@ public static class ServiceInfo
         services.AddSingleton<IDetector, WinUI2Detector>();
         services.AddSingleton<IDetector, WinUI3Detector>();
         services.AddSingleton<IDetector, WPFDetector>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Gets the minimal <see cref="ServiceCollection"/> with all types except <see cref="IDetector"/>s registered.
+    /// </summary>
+    /// <param name="plugins">Optional plugins to be registered in the collection.</param>
+    /// <returns>The default <see cref="ServiceCollection"/>.</returns>
+    public static ServiceCollection GetMinimalServiceCollection(IEnumerable<Plugin>? plugins = null)
+    {
+        // TODO: Add a Logger here that we can use to report issues or record debug info, etc...
+
+        ServiceCollection services = new();
 
         if (plugins is not null)
         {

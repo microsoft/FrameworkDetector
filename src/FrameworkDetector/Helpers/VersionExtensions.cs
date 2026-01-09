@@ -9,7 +9,7 @@ namespace FrameworkDetector;
 internal static class VersionExtensions
 {
     /// <summary>
-    /// The Regex used by <see cref="TryParseCleaned"/> to clean a s string before parsing.
+    /// The Regex used by <see cref="TryParseCleaned"/> to clean a version string before parsing.
     /// </summary>
     static readonly Regex CleanVersionRegex = new Regex(@"^v?((\d+)(\.|, |,)(\d+)?(\.|, |,)?(\d+)?(\.|, |,)?(\d+)?)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 

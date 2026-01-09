@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-
 using Windows.ApplicationModel;
 
 using FrameworkDetector.Engine;
@@ -16,6 +15,9 @@ using FrameworkDetector.Inputs;
 
 namespace FrameworkDetector.Plugins;
 
+/// <summary>
+/// Plugin enables runtime extensibility by library consumers by enabling them to specify <see cref="IDetector" />s and/or <see cref="ICustomDataFactory{T}" /> classes in their own <see cref="Assembly"/>.
+/// </summary>
 public class Plugin
 {
     internal Assembly Assembly { get; init; }

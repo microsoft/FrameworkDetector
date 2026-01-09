@@ -17,9 +17,8 @@ public static class FileInfoExtensions
     extension(FileInfo @this)
     {
         /// <summary>
-        /// Gets the metadata for the functions imported by the main module of the given process.
+        /// Gets the metadata for the functions imported by the given <see cref="FileInfo">, presuming it's a PE binary.
         /// </summary>
-        /// <param name="process">The target process.</param>
         /// <returns>The metadata from each imported function.</returns>
         public IReadOnlySet<ImportedFunctionsMetadata> GetImportedFunctionsMetadata()
         {
@@ -78,9 +77,8 @@ public static class FileInfoExtensions
         }
 
         /// <summary>
-        /// Gets the metadata for the functions exported by the main module of the given process.
+        /// Gets the metadata for the functions exported by the given <see cref="FileInfo">, presuming it's a PE binary.
         /// </summary>
-        /// <param name="process">The target process.</param>
         /// <returns>The metadata from each exported function.</returns>
         public IReadOnlySet<ExportedFunctionsMetadata> GetExportedFunctionsMetadata()
         {

@@ -26,7 +26,7 @@ public class CustomDataFactoryCollection<T>(IEnumerable<ICustomDataFactory<T>> c
             if (!customData.TryGetValue(kvp.Key, out var list) || list is null)
             {
                 list = new List<object>();
-                customData.Add(kvp.Key, list);
+                customData[kvp.Key] = list;
             }
             list.AddRange(kvp.Value);
         }

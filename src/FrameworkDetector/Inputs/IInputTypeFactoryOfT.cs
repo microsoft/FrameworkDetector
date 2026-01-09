@@ -21,6 +21,7 @@ public interface IInputTypeFactory<T>
     /// </summary>
     /// <param name="input">Type of data used to initialize data sources within this input</param>
     /// <param name="isLoaded">Specifies, if known (not null), whether or not the input was loaded in memory when processed.</param>
+    /// <param name="customDataFactories">The collection of factories which should be called to create custom data for this input.</param>
     /// <param name="cancellationToken">A cancellation token to disrupt initialization.</param>
     /// <returns>An <see cref="IInputType"/> of the provided input with all data sources initialized.</returns>
     /// <exception cref="NotImplementedException">By default this exception is thrown if the implementor did not implement this method as required.</exception>

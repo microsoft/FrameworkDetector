@@ -13,31 +13,31 @@ namespace FrameworkDetector;
 public static class PackageExtensions
 {
     /// <summary>
-    /// Helper to be able to get all package metadata recursively for process package and dependencies
+    /// Helper to get all package metadata recursively for a given installed Package and its dependencies.
     /// </summary>
-    /// <param name="pkg">Package to retrieve metadata on.</param>
+    /// <param name="package">The target package.</param>
     /// <param name="includeTopLevelDependencyInfo">When true, includes information about the metadata of direct dependencies. Defaults to true to include the details of the top-most dependencies of the root/parent package when called without arguments.</param>
     /// <returns><see cref="PackageMetadata"/> block with available information about a <see cref="Package"/>.</returns>
-    public static PackageMetadata GetMetadata(this Package pkg, bool includeTopLevelDependencyInfo = true)
+    public static PackageMetadata GetMetadata(this Package package, bool includeTopLevelDependencyInfo = true)
     {
         // Note: There's a lot of paths, these seem most relevant?
         // Most Path locations only available 19041+, see Version History: https://learn.microsoft.com/uwp/api/windows.applicationmodel.package
-        string installedPath = pkg.InstalledLocation.Path ?? "Unknown";
+        string installedPath = package.InstalledLocation.Path ?? "Unknown";
         string externalPath = "Unknown, Run on Windows 19041 or later.";
         string path = externalPath;
         bool? isStub = null;
 
         if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
         {
-            installedPath = pkg.InstalledPath ?? "Unknown";
-            externalPath = pkg.EffectiveExternalPath ?? "Unknown";
-            path = pkg.EffectivePath ?? "Unknown";
-            isStub = pkg.IsStub;
+            installedPath = package.InstalledPath ?? "Unknown";
+            externalPath = package.EffectiveExternalPath ?? "Unknown";
+            path = package.EffectivePath ?? "Unknown";
+            isStub = package.IsStub;
         }
         else if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18362))
         {
-            externalPath = pkg.EffectiveLocation?.Path ?? "Unknown";
-            path = pkg.EffectiveLocation is null ? installedPath : externalPath;
+            externalPath = package.EffectiveLocation?.Path ?? "Unknown";
+            path = package.EffectiveLocation is null ? installedPath : externalPath;
         }
 
         // Get Dependency Info only for the top-level package, not for dependencies of dependencies
@@ -45,7 +45,7 @@ public static class PackageExtensions
         PackageMetadata[] dependencies = [];
         if (includeTopLevelDependencyInfo)
         {
-            dependencies = pkg.Dependencies
+            dependencies = package.Dependencies
                               .Select(p => p.GetMetadata(false)) // false to not include the information of dependencies of dependencies (can get recursive, so this is just a first-level flag)
                               .ToArray();
         }
@@ -56,9 +56,9 @@ public static class PackageExtensions
         string description = "Unavailable";
         try
         {
-            publisherDisplayName = pkg.PublisherDisplayName;
-            displayName = pkg.DisplayName;
-            description = pkg.Description;
+            publisherDisplayName = package.PublisherDisplayName;
+            displayName = package.DisplayName;
+            description = package.Description;
         }
         catch
         {
@@ -72,14 +72,14 @@ public static class PackageExtensions
                         // Note: Author and ProductId are excluded, Windows Phone Only, as per docs
                         // https://learn.microsoft.com/uwp/api/windows.applicationmodel.packageid.author
                         new PackageIdentity(
-                            pkg.Id.Architecture.ToString(),
-                            pkg.Id.Name,
-                            pkg.Id.FamilyName,
-                            pkg.Id.FullName,
-                            pkg.Id.Publisher,
-                            pkg.Id.PublisherId,
-                            pkg.Id.ResourceId,
-                            $"{pkg.Id.Version.Major}.{pkg.Id.Version.Minor}.{pkg.Id.Version.Build}.{pkg.Id.Version.Revision}"
+                            package.Id.Architecture.ToString(),
+                            package.Id.Name,
+                            package.Id.FamilyName,
+                            package.Id.FullName,
+                            package.Id.Publisher,
+                            package.Id.PublisherId,
+                            package.Id.ResourceId,
+                            $"{package.Id.Version.Major}.{package.Id.Version.Minor}.{package.Id.Version.Build}.{package.Id.Version.Revision}"
                         ),
                         publisherDisplayName,
                         displayName,
@@ -87,13 +87,13 @@ public static class PackageExtensions
                         installedPath,
                         externalPath,
                         path,
-                        pkg.InstalledDate,
+                        package.InstalledDate,
                         new PackageFlags(
-                            pkg.IsBundle,
-                            pkg.IsDevelopmentMode,
-                            pkg.IsFramework,
-                            pkg.IsOptional,
-                            pkg.IsResourcePackage,
+                            package.IsBundle,
+                            package.IsDevelopmentMode,
+                            package.IsFramework,
+                            package.IsOptional,
+                            package.IsResourcePackage,
                             isStub
                         ),
                         dependencies);

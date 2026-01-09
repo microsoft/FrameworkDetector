@@ -9,6 +9,10 @@ using System.Runtime.Loader;
 
 namespace FrameworkDetector.Plugins;
 
+/// <summary>
+/// PluginLoadContext enables <see cref="Plugin"/> assemblies to load their own versions dependencies independent of what other Plugins load.
+/// </summary>
+/// <param name="pluginPath">Path to the plugin assembly.</param>
 public class PluginLoadContext(string pluginPath) : AssemblyLoadContext
 {
     private AssemblyDependencyResolver _resolver = new AssemblyDependencyResolver(pluginPath);

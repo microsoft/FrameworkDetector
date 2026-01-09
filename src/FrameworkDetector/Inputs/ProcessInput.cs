@@ -18,13 +18,14 @@ namespace FrameworkDetector.Inputs;
 /// <summary>
 /// An <see cref="IInputType"/> that represents a running process on the system, including its active windows and loaded modules.
 /// </summary>
+/// <param name="ProcessId">The process's ID (PID).</param>
 /// <param name="MainModule">Metadata of the process' executable.</param>
 /// <param name="ActiveWindows"><see cref="ActiveWindowMetadata"/> about Active Windows of the application.</param>
 /// <param name="LoadedModules"><see cref="WindowsModuleMetadata"/> about the processes modules loaded in memory (more accurate than <see cref="ExecutableInput"/>'s LoadedModules, TODO: Link directly to that property when we add it</param>
-/// <param name="ProcessId"></param>
-/// <param name="MainWindowHandle"></param>
-/// <param name="PackageFullName"></param>
-/// <param name="ApplicationUserModelId"></param>
+/// <param name="CustomData"></param>
+/// <param name="MainWindowHandle">Handle ID to the MainWindow, if available.</param>
+/// <param name="PackageFullName">The PackageFullName (PFN) of the process, if available.</param>
+/// <param name="ApplicationUserModelId">The ApplicationUserModelId (AUMID) of the process, if available.</param>
 public record ProcessInput(int ProcessId,
                            FileMetadata MainModule,
                            ActiveWindowMetadata[] ActiveWindows,

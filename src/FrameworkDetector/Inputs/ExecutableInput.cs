@@ -9,7 +9,6 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
-
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Models;
 

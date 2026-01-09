@@ -7,7 +7,7 @@ namespace FrameworkDetector;
 
 public static class WindowsIdentityExtensions
 {
-    extension(WindowsIdentity win)
+    extension(WindowsIdentity @this)
     {
         public static bool IsRunningAsAdmin => CheckIfRunningAsAdmin();
     }
