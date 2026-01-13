@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.IO;
 using System.Linq;
 
 using Windows.ApplicationModel;
@@ -50,9 +51,9 @@ public static class PackageExtensions
                         package.TryGetDescription(out var description) && description is not null ? description : "",
                         // Note: There's a lot of paths, these seem most relevant?
                         // Most Path locations only available 19041+, see Version History: https://learn.microsoft.com/uwp/api/windows.applicationmodel.package
-                        package.TryGetInstalledPath(out var installedPath) && installedPath is not null ? installedPath : "",
-                        package.TryGetEffectivePath(out var effectivePath) && effectivePath is not null ? effectivePath : "",
-                        package.TryGetEffectiveExternalPath(out var effectiveExternalPath) && effectiveExternalPath is not null ? effectiveExternalPath : "",
+                        package.TryGetInstalledPath(out var installedPath) && installedPath is not null ? Path.ReplaceRootWithVariable(installedPath) : "",
+                        package.TryGetEffectivePath(out var effectivePath) && effectivePath is not null ? Path.ReplaceRootWithVariable(effectivePath) : "",
+                        package.TryGetEffectiveExternalPath(out var effectiveExternalPath) && effectiveExternalPath is not null ? Path.ReplaceRootWithVariable(effectiveExternalPath) : "",
                         package.TryGetInstalledDate(out var installedDate) && installedDate.HasValue ? installedDate.Value : DateTimeOffset.MinValue,
                         new PackageFlags(
                             package.IsBundle,
