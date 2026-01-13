@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 
 using Windows.ApplicationModel;
+using Windows.Storage;
 
 using FrameworkDetector.Models;
 
@@ -20,26 +21,6 @@ public static class PackageExtensions
     /// <returns><see cref="PackageMetadata"/> block with available information about a <see cref="Package"/>.</returns>
     public static PackageMetadata GetMetadata(this Package package, bool includeTopLevelDependencyInfo = true)
     {
-        // Note: There's a lot of paths, these seem most relevant?
-        // Most Path locations only available 19041+, see Version History: https://learn.microsoft.com/uwp/api/windows.applicationmodel.package
-        string installedPath = package.InstalledLocation.Path ?? "Unknown";
-        string externalPath = "Unknown, Run on Windows 19041 or later.";
-        string path = externalPath;
-        bool? isStub = null;
-
-        if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
-        {
-            installedPath = package.InstalledPath ?? "Unknown";
-            externalPath = package.EffectiveExternalPath ?? "Unknown";
-            path = package.EffectivePath ?? "Unknown";
-            isStub = package.IsStub;
-        }
-        else if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18362))
-        {
-            externalPath = package.EffectiveLocation?.Path ?? "Unknown";
-            path = package.EffectiveLocation is null ? installedPath : externalPath;
-        }
-
         // Get Dependency Info only for the top-level package, not for dependencies of dependencies
         // Note: I don't think we should need to worry about dependencies of dependencies, as we should know what a top-level framework dependency is comprised of.
         PackageMetadata[] dependencies = [];
@@ -48,23 +29,6 @@ public static class PackageExtensions
             dependencies = package.Dependencies
                               .Select(p => p.GetMetadata(false)) // false to not include the information of dependencies of dependencies (can get recursive, so this is just a first-level flag)
                               .ToArray();
-        }
-
-        // TODO: Check if this is maybe a run as admin thing?
-        string publisherDisplayName = "Unavailable";
-        string displayName = "Unavailable";
-        string description = "Unavailable";
-        try
-        {
-            publisherDisplayName = package.PublisherDisplayName;
-            displayName = package.DisplayName;
-            description = package.Description;
-        }
-        catch
-        {
-            // Sometimes this throws for some reason (0x80070490 not found?), so just ignore it
-            // Doesn't seem documented that exception can be thrown, only maybe empty pre-19041.
-            // https://learn.microsoft.com/uwp/api/windows.applicationmodel.package.publisherdisplayname#remarks
         }
 
         // Return all data
@@ -81,21 +45,214 @@ public static class PackageExtensions
                             package.Id.ResourceId,
                             $"{package.Id.Version.Major}.{package.Id.Version.Minor}.{package.Id.Version.Build}.{package.Id.Version.Revision}"
                         ),
-                        publisherDisplayName,
-                        displayName,
-                        description,
-                        installedPath,
-                        externalPath,
-                        path,
-                        package.InstalledDate,
+                        package.TryGetPublisherDisplayName(out var publisherDisplayName) && !string.IsNullOrEmpty(publisherDisplayName) ? publisherDisplayName : "Unknown",
+                        package.TryGetDisplayName(out var displayName) && !string.IsNullOrEmpty(displayName) ? displayName : "Unknown",
+                        package.TryGetDescription(out var description) && !string.IsNullOrEmpty(description) ? description : "Unknown",
+                        // Note: There's a lot of paths, these seem most relevant?
+                        // Most Path locations only available 19041+, see Version History: https://learn.microsoft.com/uwp/api/windows.applicationmodel.package
+                        package.TryGetInstalledPath(out var installedPath) && !string.IsNullOrEmpty(installedPath) ? installedPath : "Unknown",
+                        package.TryGetEffectivePath(out var effectivePath) && !string.IsNullOrEmpty(effectivePath) ? effectivePath : "Unknown",
+                        package.TryGetEffectiveExternalPath(out var effectiveExternalPath) && !string.IsNullOrEmpty(effectiveExternalPath) ? effectiveExternalPath : "Unknown",
+                        package.TryGetInstalledDate(out var installedDate) && installedDate.HasValue ? installedDate.Value : DateTimeOffset.MinValue,
                         new PackageFlags(
                             package.IsBundle,
                             package.IsDevelopmentMode,
                             package.IsFramework,
                             package.IsOptional,
                             package.IsResourcePackage,
-                            isStub
+                            package.TryGetIsStub(out var isStub) ? isStub : null
                         ),
                         dependencies);
+    }
+
+    public static bool TryGetPublisherDisplayName(this Package package, out string? result)
+    {
+        try
+        {
+            result = package.PublisherDisplayName;
+            return true;
+        }
+        catch
+        {
+            // Sometimes this throws for some reason (0x80070490 not found?), so just ignore it
+            // Doesn't seem documented that exception can be thrown, only maybe empty pre-19041.
+            // https://learn.microsoft.com/uwp/api/windows.applicationmodel.package.publisherdisplayname#remarks
+        }
+
+        result = default;
+        return false;
+    }
+
+    public static bool TryGetDisplayName(this Package package, out string? result)
+    {
+        try
+        {
+            result = package.DisplayName;
+            return true;
+        }
+        catch
+        {
+            // Sometimes this throws for some reason (0x80070490 not found?), so just ignore it
+            // Doesn't seem documented that exception can be thrown, only maybe empty pre-19041.
+            // https://learn.microsoft.com/uwp/api/windows.applicationmodel.package.displayname#remarks
+        }
+
+        result = default;
+        return false;
+    }
+
+    public static bool TryGetDescription(this Package package, out string? result)
+    {
+        try
+        {
+            result = package.Description;
+            return true;
+        }
+        catch
+        {
+            // Sometimes this throws for some reason (0x80070490 not found?), so just ignore it
+            // Doesn't seem documented that exception can be thrown, only maybe empty pre-19041.
+            // https://learn.microsoft.com/uwp/api/windows.applicationmodel.package.description#remarks
+        }
+
+        result = default;
+        return false;
+    }
+
+    public static bool TryGetIsStub(this Package package, out bool? result)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
+            {
+                result = package.IsStub;
+                return true;
+            }
+        }
+        catch { }
+
+        result = default;
+        return false;
+    }
+
+    public static bool TryGetInstalledDate(this Package package, out DateTimeOffset? result)
+    {
+        try
+        {
+            result = package.InstalledDate;
+            return true;
+        }
+        catch { }
+
+        result = default;
+        return false;
+    }
+
+    public static bool TryGetInstalledLocation(this Package package, out StorageFolder? result)
+    {
+        try
+        {
+            result = package.InstalledLocation;
+            return true;
+        }
+        catch { }
+
+        result = default;
+        return false;
+    }
+
+    public static bool TryGetInstalledPath(this Package package, out string? result)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
+            {
+                result = package.InstalledPath;
+                return true;
+            }
+            else if (package.TryGetInstalledLocation(out var installedLocation) && installedLocation is not null)
+            {
+                result = installedLocation.Path;
+                return true;
+            }
+        }
+        catch { }
+
+        result = default;
+        return false;
+    }
+
+    public static bool TryGetEffectiveLocation(this Package package, out StorageFolder? result)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 18362))
+            {
+                result = package.EffectiveLocation;
+                return true;
+            }
+        }
+        catch { }
+
+        result = default;
+        return false;
+    }
+
+    public static bool TryGetEffectivePath(this Package package, out string? result)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
+            {
+                result = package.EffectivePath;
+                return true;
+            }
+            else if (package.TryGetEffectiveLocation(out var effectiveLocation) && effectiveLocation is not null)
+            {
+                result = effectiveLocation.Path;
+                return true;
+            }
+        }
+        catch { }
+
+        result = default;
+        return false;
+    }
+
+    public static bool TryGetEffectiveExternalLocation(this Package package, out StorageFolder? result)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
+            {
+                result = package.EffectiveExternalLocation;
+                return true;
+            }
+        }
+        catch { }
+
+        result = default;
+        return false;
+    }
+
+    public static bool TryGetEffectiveExternalPath(this Package package, out string? result)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
+            {
+                result = package.EffectiveExternalPath;
+                return true;
+            }
+            else if (package.TryGetEffectiveExternalLocation(out var effectiveExternalLocation) && effectiveExternalLocation is not null)
+            {
+                result = effectiveExternalLocation.Path;
+                return true;
+            }
+        }
+        catch { }
+
+        result = default;
+        return false;
     }
 }

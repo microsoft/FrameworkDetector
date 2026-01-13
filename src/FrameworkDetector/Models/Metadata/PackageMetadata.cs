@@ -22,13 +22,13 @@ namespace FrameworkDetector.Models;
 /// <param name="PackageDisplayName">The display name of the package as presented to users.</param>
 /// <param name="PackageDescription">A description of the package, typically used for display in user interfaces.</param>
 /// <param name="InstalledPath">The file system path where the package is installed.</param>
+/// <param name="PackageEffectivePath">The effective path for the package within the installation context.</param>
 /// <param name="PackageEffectiveExternalPath">The effective external path for the package, which may be used for accessing package resources outside the
 /// installation directory.</param>
-/// <param name="PackageEffectivePath">The effective path for the package within the installation context.</param>
 /// <param name="InstalledDate">The date and time when the package was installed.</param>
 /// <param name="Flags">Flags that provide additional information about the package, such as its state or characteristics.</param>
 /// <param name="Dependencies">An array of metadata for packages that this package depends on. The array is empty if there are no dependencies.</param>
-public record PackageMetadata(PackageIdentity Id, string PackagePublisherDisplayName, string PackageDisplayName, string PackageDescription, string InstalledPath, string PackageEffectiveExternalPath, string PackageEffectivePath, DateTimeOffset InstalledDate, PackageFlags Flags, PackageMetadata[] Dependencies) { }
+public record PackageMetadata(PackageIdentity Id, string PackagePublisherDisplayName, string PackageDisplayName, string PackageDescription, string InstalledPath, string PackageEffectivePath, string PackageEffectiveExternalPath, DateTimeOffset InstalledDate, PackageFlags Flags, PackageMetadata[] Dependencies) { }
 
 /// <summary>
 /// Wrapper around <see cref="PackageId"/>.
