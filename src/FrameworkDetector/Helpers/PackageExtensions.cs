@@ -45,14 +45,14 @@ public static class PackageExtensions
                             package.Id.ResourceId,
                             $"{package.Id.Version.Major}.{package.Id.Version.Minor}.{package.Id.Version.Build}.{package.Id.Version.Revision}"
                         ),
-                        package.TryGetPublisherDisplayName(out var publisherDisplayName) && !string.IsNullOrEmpty(publisherDisplayName) ? publisherDisplayName : "Unknown",
-                        package.TryGetDisplayName(out var displayName) && !string.IsNullOrEmpty(displayName) ? displayName : "Unknown",
-                        package.TryGetDescription(out var description) && !string.IsNullOrEmpty(description) ? description : "Unknown",
+                        package.TryGetPublisherDisplayName(out var publisherDisplayName) && publisherDisplayName is not null ? publisherDisplayName : "",
+                        package.TryGetDisplayName(out var displayName) && displayName is not null ? displayName : "",
+                        package.TryGetDescription(out var description) && description is not null ? description : "",
                         // Note: There's a lot of paths, these seem most relevant?
                         // Most Path locations only available 19041+, see Version History: https://learn.microsoft.com/uwp/api/windows.applicationmodel.package
-                        package.TryGetInstalledPath(out var installedPath) && !string.IsNullOrEmpty(installedPath) ? installedPath : "Unknown",
-                        package.TryGetEffectivePath(out var effectivePath) && !string.IsNullOrEmpty(effectivePath) ? effectivePath : "Unknown",
-                        package.TryGetEffectiveExternalPath(out var effectiveExternalPath) && !string.IsNullOrEmpty(effectiveExternalPath) ? effectiveExternalPath : "Unknown",
+                        package.TryGetInstalledPath(out var installedPath) && installedPath is not null ? installedPath : "",
+                        package.TryGetEffectivePath(out var effectivePath) && effectivePath is not null ? effectivePath : "",
+                        package.TryGetEffectiveExternalPath(out var effectiveExternalPath) && effectiveExternalPath is not null ? effectiveExternalPath : "",
                         package.TryGetInstalledDate(out var installedDate) && installedDate.HasValue ? installedDate.Value : DateTimeOffset.MinValue,
                         new PackageFlags(
                             package.IsBundle,
