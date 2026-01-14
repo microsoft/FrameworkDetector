@@ -230,51 +230,68 @@ The output JSON contains version of the CLI tool used, and with a timestamp for 
 ```json
 {
   "toolName": "FrameworkDetector.CLI",
-  "toolVersion": "0.9.0.25302",
-  "timestamp": "2025-10-30T00:39:10.1711276Z",
+  "toolVersion": "0.10.26013.1530",
+  "toolArguments": "run -o .\\output\\WinUI2Gallery.json -aumid Microsoft.XAMLControlsGallery_8wekyb3d8bbwe!App --includeChildren -wait 5000",
+  "timestamp": "2026-01-14T22:07:01.1237763Z",
   ...
 }
 ```
 
 From this we can easily compare the inspection results from different versions of the tool.
 
-### 2. Data Sources Used
+### 2. Inputs Used
 
-The output JSON contains all of the data about the app that was captured for use by the various detector checks:
+The output JSON contains all of the data about the target app, presented as a set of various "inputs", which will then be available for the various detector checks:
 
 ```json
 {
   ...
-  "dataSources": {
+  "inputs": {
     "processes": [
       {
-        "processId": 20096,
-        "mainWindowHandle": 529282,
-        "mainWindowTitle": "WinUI 2 Gallery",
-        "packageFullName": "Microsoft.XAMLControlsGallery_1.2.26.0_x64__8wekyb3d8bbwe",
-        "applicationUserModelId": "Microsoft.XAMLControlsGallery_8wekyb3d8bbwe!App",
-        "loadedModules": [
-          ...
-          {
-            "originalFilename": "Microsoft.UI.Xaml.dll",
-            "fileVersion": "2.8.2501.31001",
-            "productName": "Microsoft.UI.Xaml",
-            "productVersion": "2.8.2501.31001",
-            "filename": "Microsoft.UI.Xaml.dll"
-          },
-          ...
-        ],
+        "processId": 34276,
+        "mainModule": {
+          "fileName": "AppUIBasics.exe",
+          "isLoaded": true
+        },
         "activeWindows": [
           ...
           {
             "className": "Windows.UI.Core.CoreWindow",
-            "text": "WinUI 2 Gallery",
             "isVisible": true
           }
           ...
         ],
+        "loadedModules": [
+          ...
+          {
+            "fileName": "Microsoft.UI.Xaml.dll",
+            "originalFileName": "Microsoft.UI.Xaml.dll",
+            "fileVersion": "2.8.2501.31001",
+            "productName": "Microsoft.UI.Xaml",
+            "productVersion": "2.8.2501.31001",
+            "isLoaded": true
+          },
+          ...
+        ],
+        "customData": {},
+        "mainWindowHandle": 0,
+        "packageFullName": "Microsoft.XAMLControlsGallery_1.2.26.0_x64__8wekyb3d8bbwe",
+        "applicationUserModelId": "Microsoft.XAMLControlsGallery_8wekyb3d8bbwe!App"
+      }
+    ],
+    "executables": [
+      {
+        "executableMetadata": {
+          "fileName": "AppUIBasics.exe",
+          "originalFileName": "AppUIBasics.exe",
+          "fileVersion": "1.0.0.0",
+          "productName": "AppUIBasics",
+          "productVersion": "1.0.0.0",
+          "isLoaded": true
+        },
         "importedFunctions": [
-            {
+          {
             "moduleName": "AppUIBasics.dll",
             "functions": [
               {
@@ -285,74 +302,84 @@ The output JSON contains all of the data about the app that was captured for use
           }
         ],
         "exportedFunctions": [],
-        "appPackageMetadata": {
-          "appDisplayName": "WinUI 2 Gallery",
-          "appDescription": "WinUI 2 Gallery",
-          "appPackageFamilyName": "Microsoft.XAMLControlsGallery_8wekyb3d8bbwe",
-          "packageMetadata": {
-            "id": {
-              "architecture": "X64",
-              "name": "Microsoft.XAMLControlsGallery",
-              "familyName": "Microsoft.XAMLControlsGallery_8wekyb3d8bbwe",
-              "fullName": "Microsoft.XAMLControlsGallery_1.2.26.0_x64__8wekyb3d8bbwe",
-              "publisher": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
-              "publisherId": "8wekyb3d8bbwe",
-              "resourceId": "",
-              "version": "1.2.26.0"
-            },
-            "packagePublisherDisplayName": "Microsoft Corporation",
-            "packageDisplayName": "WinUI 2 Gallery",
-            "packageDescription": "",
-            "installedPath": "C:\\Program Files\\WindowsApps\\Microsoft.XAMLControlsGallery_1.2.26.0_x64__8wekyb3d8bbwe",
-            "packageEffectiveExternalPath": "",
-            "packageEffectivePath": "C:\\Program Files\\WindowsApps\\Microsoft.XAMLControlsGallery_1.2.26.0_x64__8wekyb3d8bbwe",
-            "installedDate": "2025-10-29T17:39:01.0756403-07:00",
-            "flags": {
-              "isBundle": false,
-              "isDevelopmentMode": false,
-              "isFramework": false,
-              "isOptional": false,
-              "isResourcePackage": false,
-              "isStub": false
-            },
-            "dependencies": [
-              ...
-              {
-                "id": {
-                  "architecture": "X64",
-                  "name": "Microsoft.UI.Xaml.2.8",
-                  "familyName": "Microsoft.UI.Xaml.2.8_8wekyb3d8bbwe",
-                  "fullName": "Microsoft.UI.Xaml.2.8_8.2501.31001.0_x64__8wekyb3d8bbwe",
-                  "publisher": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
-                  "publisherId": "8wekyb3d8bbwe",
-                  "resourceId": "",
-                  "version": "8.2501.31001.0"
-                },
-                "packagePublisherDisplayName": "Microsoft Platform Extensions",
-                "packageDisplayName": "Microsoft.UI.Xaml.2.8",
-                "packageDescription": "Microsoft.UI.Xaml",
-                "installedPath": "C:\\Program Files\\WindowsApps\\Microsoft.UI.Xaml.2.8_8.2501.31001.0_x64__8wekyb3d8bbwe",
-                "packageEffectiveExternalPath": "",
-                "packageEffectivePath": "C:\\Program Files\\WindowsApps\\Microsoft.UI.Xaml.2.8_8.2501.31001.0_x64__8wekyb3d8bbwe",
-                "installedDate": "2025-02-11T12:56:26.5967232-08:00",
-                "flags": {
-                  "isBundle": false,
-                  "isDevelopmentMode": false,
-                  "isFramework": true,
-                  "isOptional": false,
-                  "isResourcePackage": false,
-                  "isStub": false
-                },
-                "dependencies": []
+        "importedModules": [
+          {
+            "fileName": "AppUIBasics.dll",
+            "originalFileName": "AppUIBasics.exe",
+            "fileVersion": "1.0.0.0",
+            "productName": "AppUIBasics",
+            "productVersion": "1.0.0.0",
+            "isLoaded": false
+          }
+        ],
+        "customData": {}
+      }
+    ],
+    "installedPackages": [
+      {
+        "displayName": "WinUI 2 Gallery",
+        "description": "",
+        "familyName": "Microsoft.XAMLControlsGallery_8wekyb3d8bbwe",
+        "packageMetadata": {
+          "id": {
+            "architecture": "X64",
+            "name": "Microsoft.XAMLControlsGallery",
+            "familyName": "Microsoft.XAMLControlsGallery_8wekyb3d8bbwe",
+            "fullName": "Microsoft.XAMLControlsGallery_1.2.26.0_x64__8wekyb3d8bbwe",
+            "publisher": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+            "publisherId": "8wekyb3d8bbwe",
+            "resourceId": "",
+            "version": "1.2.26.0"
+          },
+          "packagePublisherDisplayName": "Microsoft Corporation",
+          "packageDisplayName": "WinUI 2 Gallery",
+          "packageDescription": "",
+          "installedPath": "%ProgramW6432%\\WindowsApps\\Microsoft.XAMLControlsGallery_1.2.26.0_x64__8wekyb3d8bbwe",
+          "packageEffectivePath": "%ProgramW6432%\\WindowsApps\\Microsoft.XAMLControlsGallery_1.2.26.0_x64__8wekyb3d8bbwe",
+          "packageEffectiveExternalPath": "",
+          "installedDate": "2025-07-22T17:22:17.2533422-07:00",
+          "flags": {
+            "isBundle": false,
+            "isDevelopmentMode": false,
+            "isFramework": false,
+            "isOptional": false,
+            "isResourcePackage": false,
+            "isStub": false
+          },
+          "dependencies": [
+            ...
+            {
+              "id": {
+                "architecture": "X64",
+                "name": "Microsoft.UI.Xaml.2.8",
+                "familyName": "Microsoft.UI.Xaml.2.8_8wekyb3d8bbwe",
+                "fullName": "Microsoft.UI.Xaml.2.8_8.2501.31001.0_x64__8wekyb3d8bbwe",
+                "publisher": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                "publisherId": "8wekyb3d8bbwe",
+                "resourceId": "",
+                "version": "8.2501.31001.0"
               },
-              ...
-            ]
+              "packagePublisherDisplayName": "Microsoft Platform Extensions",
+              "packageDisplayName": "Microsoft.UI.Xaml.2.8",
+              "packageDescription": "Microsoft.UI.Xaml",
+              "installedPath": "%ProgramW6432%\\WindowsApps\\Microsoft.UI.Xaml.2.8_8.2501.31001.0_x64__8wekyb3d8bbwe",
+              "packageEffectivePath": "%ProgramW6432%\\WindowsApps\\Microsoft.UI.Xaml.2.8_8.2501.31001.0_x64__8wekyb3d8bbwe",
+              "packageEffectiveExternalPath": "",
+              "installedDate": "2025-03-21T14:48:13.4458722-07:00",
+              "flags": {
+                "isBundle": false,
+                "isDevelopmentMode": false,
+                "isFramework": true,
+                "isOptional": false,
+                "isResourcePackage": false,
+                "isStub": false
+              },
+              "dependencies": []
+            },
+            ...
+          ]
         },
-        "originalFilename": "AppUIBasics.exe",
-        "fileVersion": "1.0.0.0",
-        "productName": "AppUIBasics",
-        "productVersion": "1.0.0.0",
-        "filename": "AppUIBasics.exe"
+        "customData": {}
       }
     ]
   },
@@ -360,7 +387,7 @@ The output JSON contains all of the data about the app that was captured for use
 }
 ```
 
-The primary data source is the inspected process itself, including basic file info of the process, the modules that were loaded by the process at runtime, functions imported from those modules, the active windows, the functions exported by the process, and any APPX metadata.
+The primary inputs include metadata about the app's executable (basic metadata, functions imported, etc.), metadata about the running process (loaded modules, active windows, etc.), and metadata about the app's package (package identity, dependencies, etc.).
 
 ### 3. Detector Results
 
@@ -374,7 +401,8 @@ The output JSON contains the results from every detector, including the results 
     {
       "detectorName": "WinUI2Detector",
       "detectorDescription": "WinUI 2 for UWP",
-      "detectorVersion": "0.9.0.25302",
+      "detectorAssemblyName": "FrameworkDetector",
+      "detectorAssemblyVersion": "0.10.26013.1530",
       "frameworkId": "WinUI2",
       "frameworkFound": true,
       "frameworkVersion": "2.8.2501.31001",
@@ -383,11 +411,11 @@ The output JSON contains the results from every detector, including the results 
       "checkResults": [
         {
           "checkDefinition": {
-            "dataSourceIds": [
-              "processes"
+            "dataSources": [
+              "IPackageDataSource"
             ],
             "description": "Find package dependency  has \"Microsoft.UI.Xaml\"",
-            "name": "ContainsDependentPackageCheck",
+            "name": "ContainsPackagedDependencyCheck",
             "isRequired": true,
             "groupName": "Dependent Package"
           },
@@ -410,10 +438,10 @@ The output JSON contains the results from every detector, including the results 
               "packagePublisherDisplayName": "Microsoft Platform Extensions",
               "packageDisplayName": "Microsoft.UI.Xaml.2.8",
               "packageDescription": "Microsoft.UI.Xaml",
-              "installedPath": "C:\\Program Files\\WindowsApps\\Microsoft.UI.Xaml.2.8_8.2501.31001.0_x64__8wekyb3d8bbwe",
+              "installedPath": "%ProgramW6432%\\WindowsApps\\Microsoft.UI.Xaml.2.8_8.2501.31001.0_x64__8wekyb3d8bbwe",
+              "packageEffectivePath": "%ProgramW6432%\\WindowsApps\\Microsoft.UI.Xaml.2.8_8.2501.31001.0_x64__8wekyb3d8bbwe",
               "packageEffectiveExternalPath": "",
-              "packageEffectivePath": "C:\\Program Files\\WindowsApps\\Microsoft.UI.Xaml.2.8_8.2501.31001.0_x64__8wekyb3d8bbwe",
-              "installedDate": "2025-02-11T12:56:26.5967232-08:00",
+              "installedDate": "2025-03-21T14:48:13.4458722-07:00",
               "flags": {
                 "isBundle": false,
                 "isDevelopmentMode": false,
@@ -428,11 +456,11 @@ The output JSON contains the results from every detector, including the results 
         },
         {
           "checkDefinition": {
-            "dataSourceIds": [
-              "processes"
+            "dataSources": [
+              "IModulesDataSource"
             ],
             "description": "Find module \"Microsoft.UI.Xaml.dll\" with version \">=2.0 <3.0\"",
-            "name": "ContainsLoadedModuleCheck",
+            "name": "ContainsModuleCheck",
             "isRequired": true,
             "groupName": "Main Module"
           },
@@ -443,11 +471,12 @@ The output JSON contains the results from every detector, including the results 
           },
           "checkOutput": {
             "moduleFound": {
-              "originalFilename": "Microsoft.UI.Xaml.dll",
+              "fileName": "Microsoft.UI.Xaml.dll",
+              "originalFileName": "Microsoft.UI.Xaml.dll",
               "fileVersion": "2.8.2501.31001",
               "productName": "Microsoft.UI.Xaml",
               "productVersion": "2.8.2501.31001",
-              "filename": "Microsoft.UI.Xaml.dll"
+              "isLoaded": true
             }
           }
         }
@@ -458,6 +487,10 @@ The output JSON contains the results from every detector, including the results 
   ...
 }
 ```
+
+## Plugin Support
+
+*TODO*
 
 ## License
 
