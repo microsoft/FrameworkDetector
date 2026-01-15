@@ -490,7 +490,91 @@ The output JSON contains the results from every detector, including the results 
 
 ## Plugin Support
 
-*TODO*
+FrameworkDetector (and therefore) FrameworkDetector.CLI is extendable via a simple plugin system. Developers need only build their own .NET library which implement their own `IDetector`s and/or `ICustomDataFactory`s.
+
+### Plugin Project
+
+A FrameworkDetector plugin project is just a .NET library which:
+
+1. Targets `net10.0-windows10.0.19041`
+2. Depends on the `FrameworkDetector` NuGet (private and excluding runtime assets)
+3. Has `EnableDynamicLoading` enabled
+
+**Example:**
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>MyPlugin</AssemblyName>
+    <RootNamespace>MyPlugin</RootNamespace>
+    <TargetFramework>net10.0-windows10.0.19041</TargetFramework>
+    <IsPublishable>false</IsPublishable>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="FrameworkDetector" Version="0.10.26013.1530">
+      <Private>false</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>
+```
+
+#### Custom IDetectors
+
+If you want to extend FrameworkDetector to detect a new framework that it doesn't already support, you'll want to create a new `IDetector`, i.e.:
+
+```cs
+public class MyFrameworkDetector : IDetector 
+{
+  public string Name => nameof(MyFrameworkDetector);
+  public string Description => "MyFramework";
+  public string FrameworkId => "MyFramework";
+  public DetectorCategory Category => DetectorCategory.Framework;
+
+  public DUIDetector() { }
+  
+  public DetectorDefinition CreateDefinition()
+  {
+    return this.Create()
+        .Required("", checks => checks
+            .ContainsModule("MyFramework.dll"))
+        .BuildDefinition();
+  }
+}
+```
+
+Any `IDetector`s you implement in a plugin library will be automatically added to the list of detectors run by FrameworkDetector. 
+
+#### Custom ICustomDataFactory
+
+If you want to extend Framework Detectors's existing input types with new custom data (to be included in the output JSON, or to be used by a custom check) you'll want to create a new `ICustomDataFactory` for the .NET type the input is based on.
+
+For example, if you wanted to extend `ExecutableInput`, which is built from a `FileInfo`, you'd want to create a `ICustomDataFactory<FileInfo>`, i.e.:
+
+```cs
+public class MyCustomDataFactory : ICustomDataFactory<FileInfo>
+{
+  public async Task<KeyValuePair<string, IReadOnlyList<object>>> CreateCustomDataAsync(FileInfo input, bool? isLoaded, CancellationToken cancellationToken)
+  {
+    var data = new Dictionary<string, string?>();
+    data["creationTimeUtc"] = input.CreationTimeUtc.ToString();
+
+    return new KeyValuePair<string, IReadOnlyList<object>>("myCustomData", [data]);
+  }
+}
+```
+
+Any `ICustomDataFactory`s you implement in a plugin library will be automatically be run when FrameworkDetector builds the inputs for a target app.
+
+### Loading your plugin in FrameworkDetector.CLI
+
+To load your plugin in FrameworkDetector.CLI, simply provide the path to the plugin's dll with `--pluginFile`, i.e.:
+
+`FrameworkDetector.CLI.exe inspect process --pluginFile path\to\plugin.dll -pid 100`
 
 ## License
 
