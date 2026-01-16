@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +12,6 @@ using Windows.ApplicationModel;
 
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Models;
-using System.Collections.Generic;
 
 namespace FrameworkDetector.Inputs;
 
@@ -24,6 +25,7 @@ public record InstalledPackageInput(string DisplayName,
                                     IReadOnlyDictionary<string, IReadOnlyList<object>> CustomData) 
     : IEquatable<InstalledPackageInput>,
       IPackageDataSource,
+      ICustomDataSource,
       IInputTypeFactory<Package>,
       IInputType
 {
@@ -59,4 +61,6 @@ public record InstalledPackageInput(string DisplayName,
     }
 
     public IEnumerable<PackageMetadata> GetPackages() => [PackageMetadata];
+
+    public IEnumerable<object> GetCustomData(string key) => CustomData.TryGetValue(key, out var values) ? values : Enumerable.Empty<object>();
 }

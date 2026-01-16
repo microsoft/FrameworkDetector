@@ -26,6 +26,7 @@ public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
       IImportedFunctionsDataSource, 
       IExportedFunctionsDataSource,
       IModulesDataSource,
+      ICustomDataSource,
       IInputTypeFactory<FileInfo>,
       IInputType
 {
@@ -106,4 +107,6 @@ public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
     public IEnumerable<ExportedFunctionsMetadata> GetExportedFunctions() => ExportedFunctions;
 
     public IEnumerable<WindowsModuleMetadata> GetModules() => ImportedModules;
+
+    public IEnumerable<object> GetCustomData(string key) => CustomData.TryGetValue(key, out var values) ? values : Enumerable.Empty<object>();
 }
