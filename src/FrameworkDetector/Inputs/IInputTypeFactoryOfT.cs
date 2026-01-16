@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 namespace FrameworkDetector.Inputs;
 
 /// <summary>
-/// Interface defining a common static helper factory method for creating and initializing an <see cref="IInputType"/> implementation from a raw type T.
+/// Interface defining a common static helper factory method for creating and initializing an <see cref="IInputType{T}"/> implementation from a raw type <see cref="T"/>.
 /// </summary>
 /// <typeparam name="T">Raw type wrapped at providing data to data source interfaces implemented by the implementation.</typeparam>
 /// <remarks>
-/// Any class implementing <see cref="IInputType"/> should also implement this interface to provide a common factory method for creating and initializing the input type from the raw type T.
+/// Any class implementing <see cref="IInputType{T}"/> should also implement this interface to provide a common factory method for creating and initializing the input type from the raw type T.
 /// </remarks>
 public interface IInputTypeFactory<T>
 {
@@ -23,7 +23,7 @@ public interface IInputTypeFactory<T>
     /// <param name="isLoaded">Specifies, if known (not null), whether or not the input was loaded in memory when processed.</param>
     /// <param name="customDataFactories">The collection of factories which should be called to create custom data for this input.</param>
     /// <param name="cancellationToken">A cancellation token to disrupt initialization.</param>
-    /// <returns>An <see cref="IInputType"/> of the provided input with all data sources initialized.</returns>
+    /// <returns>An <see cref="IInputType{T}"/> of the provided input with all data sources initialized.</returns>
     /// <exception cref="NotImplementedException">By default this exception is thrown if the implementor did not implement this method as required.</exception>
-    public virtual static Task<IInputType> CreateAndInitializeDataSourcesAsync(T input, bool? isLoaded, CustomDataFactoryCollection<T>? customDataFactories, CancellationToken cancellationToken) => throw new NotImplementedException("Input Type did not implement CreateAsync method.");
+    public virtual static Task<IInputType<T>> CreateAndInitializeDataSourcesAsync(T input, bool? isLoaded, CustomDataFactoryCollection<T>? customDataFactories, CancellationToken cancellationToken) => throw new NotImplementedException("Input Type did not implement CreateAsync method.");
 }

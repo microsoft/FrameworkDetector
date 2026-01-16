@@ -1,15 +1,19 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FrameworkDetector.DataSources;
+
 namespace FrameworkDetector.Inputs;
 
 /// <summary>
-/// Interface defining a helper method for creating custom data for a given raw input type T.
-/// This type is primarily of use by Plugin authors who want to extend <see cref="IInputTypeFactory{T}"/> types that also implement <see cref="ICustomDataSource"/>.
+/// Interface defining a helper method for creating custom data for a given raw input type <see cref="T"/>.
+/// This type is primarily of use by Plugin authors who want to extend <see cref="IInputType{T}"/> types because they also implement <see cref="ICustomDataSource"/>.
 /// </summary>
 /// <typeparam name="T">The raw input type.</typeparam>
 public interface ICustomDataFactory<T>

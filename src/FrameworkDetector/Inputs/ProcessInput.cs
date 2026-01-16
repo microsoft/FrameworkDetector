@@ -37,9 +37,8 @@ public record ProcessInput(int ProcessId,
     : IEquatable<ProcessInput>,
       IActiveWindowsDataSource,
       IModulesDataSource,
-      ICustomDataSource,
       IInputTypeFactory<Process>,
-      IInputType
+      IInputType<Process>
 {
     [JsonIgnore]
     public string InputGroup => "processes";

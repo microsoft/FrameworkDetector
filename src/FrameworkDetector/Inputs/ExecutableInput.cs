@@ -26,9 +26,8 @@ public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
       IImportedFunctionsDataSource, 
       IExportedFunctionsDataSource,
       IModulesDataSource,
-      ICustomDataSource,
       IInputTypeFactory<FileInfo>,
-      IInputType
+      IInputType<FileInfo>
 {
     [JsonIgnore]
     public string InputGroup => "executables";
