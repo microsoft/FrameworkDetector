@@ -7,24 +7,41 @@ using System.IO;
 using Windows.ApplicationModel;
 
 using Microsoft.Extensions.DependencyInjection;
+using System.CommandLine;
 
 using FrameworkDetector.Detectors;
 using FrameworkDetector.Engine;
 using FrameworkDetector.Inputs;
+using FrameworkDetector.Plugins;
 
 namespace FrameworkDetector.CLI;
 
 public partial class CliApp
 {
-    private IServiceProvider Services => _services ??= ConfigureServices();
+    private IServiceProvider Services => _services ?? throw new Exception($"{nameof(Services)} not initalized. Did you forget to call {nameof(TryInitializeFrameworkDetectorServices)}?");
     private static IServiceProvider? _services = null;
 
-    internal IServiceProvider ConfigureServices()
+    internal bool TryInitializeFrameworkDetectorServices(ParseResult parseResult)
     {
-        ServiceCollection services = ServiceInfo.GetDefaultServiceCollection(Plugins);
 
-        // Add CLI-specific dependencyt injection here
+        try
+        {
+            if (!TryParsePluginFiles(parseResult, out var plugins))
+            {
+                PrintError("Invalid plugin file specified.");
+            }
 
-        return services.BuildServiceProvider();
+            var services = ServiceInfo.GetDefaultServiceCollection(plugins);
+
+            // Add CLI-specific dependency injection here
+
+            _services = services.BuildServiceProvider();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            PrintException(ex);
+        }
+        return false;
     }
 }

@@ -17,6 +17,7 @@ using System.CommandLine.Parsing;
 using FrameworkDetector.Engine;
 using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
+using FrameworkDetector.Plugins;
 
 namespace FrameworkDetector.CLI;
 
@@ -172,7 +173,7 @@ public partial class CliApp
         Description = "Include the given plugin file."
     };
 
-    protected bool TryParsePluginFiles(ParseResult parseResult)
+    protected bool TryParsePluginFiles(ParseResult parseResult, out IEnumerable<Plugin>? plugins)
     {
         try
         {
@@ -180,21 +181,48 @@ public partial class CliApp
 
             if (pluginFiles is not null)
             {
+                var loadedPlugins = new List<Plugin>();
+
                 foreach (var pluginFile in pluginFiles)
                 {
                     if (pluginFile is null || !Path.Exists(pluginFile))
                     {
+                        PrintError($"Unable to find plugin \"{pluginFile}\".");
+                        plugins = default;
                         return false;
                     }
 
-                    _pluginFiles.Add(Path.GetFullPath(pluginFile));
+                    var pluginPath = Path.GetFullPath(pluginFile);
+                    if (_pluginFiles.Add(pluginPath) && TryLoadPlugin(pluginPath, out var plugin) && plugin is not null)
+                    {
+                        loadedPlugins.Add(plugin);
+                    }
                 }
-            }
 
-            return true;
+                plugins = loadedPlugins;
+                return true;
+            }
         }
         catch { }
 
+        plugins = default;
+        return false;
+    }
+
+    protected bool TryLoadPlugin(string pluginFile, out Plugin? plugin)
+    {
+        try
+        {
+            PrintInfo("Loading plugin \"{0}\"...", Path.GetFileNameWithoutExtension(pluginFile));
+            plugin = Plugin.LoadPluginFromPath(pluginFile);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            PrintException(ex);
+        }
+
+        plugin = default;
         return false;
     }
 }

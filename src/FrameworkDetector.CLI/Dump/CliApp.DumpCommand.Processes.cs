@@ -82,9 +82,9 @@ public partial class CliApp
             TryParseIncludeChildren(parseResult);
             TryParseWaitForInputIdle(parseResult);
 
-            if (!TryInitializePlugins(parseResult))
+            if (!TryInitializeFrameworkDetectorServices(parseResult))
             {
-                PrintError("Unable to initialize plugins");
+                PrintError("Unable to initialize FrameworkDetector services.");
                 return (int)ExitCode.ArgumentParsingError;
             }
 

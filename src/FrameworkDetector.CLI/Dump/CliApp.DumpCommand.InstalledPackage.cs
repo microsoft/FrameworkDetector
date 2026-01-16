@@ -62,9 +62,9 @@ public partial class CliApp
                 return (int)ExitCode.ArgumentParsingError;
             }
 
-            if (!TryInitializePlugins(parseResult))
+            if (!TryInitializeFrameworkDetectorServices(parseResult))
             {
-                PrintError("Unable to initialize plugins");
+                PrintError("Unable to initialize FrameworkDetector services.");
                 return (int)ExitCode.ArgumentParsingError;
             }
 
