@@ -22,9 +22,9 @@ public interface ICustomDataFactory<T>
     /// Create custom data from the given <paramref name="input"/>. Needs to return a key and list of data objects.
     /// Multiple <see cref="ICustomDataFactory{T}"/> can share the same key, which will be used to group the data objects in the final custom data object.
     /// </summary>
-    /// <param name="input"></param>
-    /// <param name="isLoaded"></param>
-    /// <param name="cancellationToken"></param>
+    /// <param name="input">The input <see cref="T"/> instance.</param>
+    /// <param name="isLoaded">Specifies, if known (not null), whether or not the input was loaded in memory when processed.</param>
+    /// <param name="cancellationToken">A cancellation token to disrupt initialization.</param>
     /// <returns>The custom data.</returns>
     Task<KeyValuePair<string, IReadOnlyList<object>>> CreateCustomDataAsync(T input, bool? isLoaded, CancellationToken cancellationToken);
 }

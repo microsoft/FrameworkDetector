@@ -25,6 +25,7 @@ public record InstalledPackageInput(string DisplayName,
                                     IReadOnlyDictionary<string, IReadOnlyList<object>> CustomData) 
     : IEquatable<InstalledPackageInput>,
       IPackageDataSource,
+      ICustomDataSource,
       IInputTypeFactory<Package>,
       IInputType<Package>
 {

@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -21,8 +20,8 @@ namespace FrameworkDetector.Inputs;
 /// <param name="ProcessId">The process's ID (PID).</param>
 /// <param name="MainModule">Metadata of the process' executable.</param>
 /// <param name="ActiveWindows"><see cref="ActiveWindowMetadata"/> about Active Windows of the application.</param>
-/// <param name="LoadedModules"><see cref="WindowsModuleMetadata"/> about the processes modules loaded in memory (more accurate than <see cref="ExecutableInput"/>'s LoadedModules, TODO: Link directly to that property when we add it</param>
-/// <param name="CustomData"></param>
+/// <param name="LoadedModules"><see cref="WindowsModuleMetadata"/> about the processes modules loaded in memory (more accurate/useful than <see cref="ExecutableInput"/>'s <see cref="ExecutableInput.ImportedModules">.</param>
+/// <param name="CustomData">Custom data.</param>
 /// <param name="MainWindowHandle">Handle ID to the MainWindow, if available.</param>
 /// <param name="PackageFullName">The PackageFullName (PFN) of the process, if available.</param>
 /// <param name="ApplicationUserModelId">The ApplicationUserModelId (AUMID) of the process, if available.</param>
@@ -37,6 +36,7 @@ public record ProcessInput(int ProcessId,
     : IEquatable<ProcessInput>,
       IActiveWindowsDataSource,
       IModulesDataSource,
+      ICustomDataSource,
       IInputTypeFactory<Process>,
       IInputType<Process>
 {

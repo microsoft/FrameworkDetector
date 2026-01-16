@@ -26,6 +26,7 @@ public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
       IImportedFunctionsDataSource, 
       IExportedFunctionsDataSource,
       IModulesDataSource,
+      ICustomDataSource,
       IInputTypeFactory<FileInfo>,
       IInputType<FileInfo>
 {
