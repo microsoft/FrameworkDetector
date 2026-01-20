@@ -3,7 +3,7 @@
 
 using System.Reflection;
 
-namespace FrameworkDetector.Models;
+namespace FrameworkDetector;
 
 public static class AssemblyInfo
 {
@@ -13,13 +13,13 @@ public static class AssemblyInfo
     public static Assembly ToolAssembly => _toolAssembly ??= Assembly.GetEntryAssembly() ?? LibraryAssembly;
     private static Assembly? _toolAssembly = null;
 
-    public static string LibraryName => _libraryName ?? GetName(ToolAssembly);
+    public static string LibraryName => _libraryName ?? GetName(LibraryAssembly);
     private static string? _libraryName = null;
 
     public static string ToolName => _toolName ?? GetName(ToolAssembly);
     private static string? _toolName = null;
 
-    public static string LibraryVersion => _libraryVersion ?? GetVersionString(ToolAssembly);
+    public static string LibraryVersion => _libraryVersion ?? GetVersionString(LibraryAssembly);
     private static string? _libraryVersion = null;
 
     public static string ToolVersion => _toolVersion ?? GetVersionString(ToolAssembly);

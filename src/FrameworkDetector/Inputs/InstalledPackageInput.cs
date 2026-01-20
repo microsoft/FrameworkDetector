@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +12,6 @@ using Windows.ApplicationModel;
 
 using FrameworkDetector.DataSources;
 using FrameworkDetector.Models;
-using System.Collections.Generic;
 
 namespace FrameworkDetector.Inputs;
 
@@ -20,25 +21,31 @@ namespace FrameworkDetector.Inputs;
 public record InstalledPackageInput(string DisplayName,
                                     string Description,
                                     string FamilyName,
-                                    PackageMetadata PackageMetadata) 
+                                    PackageMetadata PackageMetadata,
+                                    IReadOnlyDictionary<string, IReadOnlyList<object>> CustomData) 
     : IEquatable<InstalledPackageInput>,
       IPackageDataSource,
+      ICustomDataSource,
       IInputTypeFactory<Package>,
-      IInputType
+      IInputType<Package>
 {
     [JsonIgnore]
     public string InputGroup => "installedPackages";
 
-    public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(Package package, bool? isLoaded, CancellationToken cancellationToken)
+    public static async Task<IInputType> CreateAndInitializeDataSourcesAsync(Package package, bool? isLoaded, CustomDataFactoryCollection<Package>? customDataFactories, CancellationToken cancellationToken)
     {
         await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();
+
+        // Load CustomData
+        var customData = customDataFactories is not null ? await customDataFactories.CreateCustomDataAsync(package, isLoaded, cancellationToken) : new Dictionary<string, IReadOnlyList<object>>(0);
 
         // No async initialization needed here yet, so just construct
         return new InstalledPackageInput(package.DisplayName,
                                          package.Description,
                                          package.Id.FamilyName,
-                                         package.GetMetadata());
+                                         package.GetMetadata(),
+                                         customData);
     }
 
     public override int GetHashCode() => PackageMetadata.GetHashCode();
@@ -54,4 +61,6 @@ public record InstalledPackageInput(string DisplayName,
     }
 
     public IEnumerable<PackageMetadata> GetPackages() => [PackageMetadata];
+
+    public IEnumerable<object> GetCustomData(string key) => CustomData.TryGetValue(key, out var values) ? values : Enumerable.Empty<object>();
 }

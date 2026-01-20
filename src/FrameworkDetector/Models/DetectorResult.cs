@@ -26,7 +26,9 @@ public class DetectorResult
 
     public required string DetectorDescription { get; set; }
 
-    public required string DetectorVersion { get; set; }
+    public required string DetectorAssemblyName { get; set; }
+
+    public required string DetectorAssemblyVersion { get; set; }
 
     public required string FrameworkId { get; set; }
 

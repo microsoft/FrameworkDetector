@@ -8,12 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
+
 using System.CommandLine;
 using System.CommandLine.Parsing;
 
 using FrameworkDetector.Engine;
 using FrameworkDetector.Inputs;
-using FrameworkDetector.Models;
 
 namespace FrameworkDetector.CLI;
 
@@ -42,6 +42,7 @@ public partial class CliApp
             OutputFileOption,
             IncludeChildrenOption,
             WaitForInputIdleOption,
+            PluginFilesOption,
         };
         command.TreatUnmatchedTokensAsErrors = true;
 
@@ -66,6 +67,12 @@ public partial class CliApp
             if (!TryParseOutputFile(parseResult))
             {
                 PrintError("Invalid output file specified");
+                return (int)ExitCode.ArgumentParsingError;
+            }
+
+            if (!TryInitializeFrameworkDetectorServices(parseResult))
+            {
+                PrintError("Unable to initialize FrameworkDetector services.");
                 return (int)ExitCode.ArgumentParsingError;
             }
 
@@ -118,7 +125,7 @@ public partial class CliApp
                 }
             }
 
-            var inputs = await InputHelper.GetInputsFromProcessAsync(process, IncludeChildren, cancellationToken);
+            var inputs = await Services.GetRequiredService<InputFactory>().GetInputsFromProcessAsync(process, IncludeChildren, cancellationToken);
 
             PrintInfo("Dumping {0}:", target);
 

@@ -3,18 +3,21 @@
 
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
+using System.IO;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
+
 using System.CommandLine;
 using System.CommandLine.Parsing;
 
 using FrameworkDetector.Engine;
 using FrameworkDetector.Inputs;
 using FrameworkDetector.Models;
-using System.IO;
+using FrameworkDetector.Plugins;
 
 namespace FrameworkDetector.CLI;
 
@@ -159,6 +162,67 @@ public partial class CliApp
         }
         catch { }
 
+        return false;
+    }
+
+    protected IReadOnlySet<string> PluginFiles => _pluginFiles;
+    private HashSet<string> _pluginFiles = new HashSet<string>();
+
+    protected Option<string?[]?> PluginFilesOption = new("--pluginFile", "-pf")
+    {
+        Description = "Include the given plugin file."
+    };
+
+    protected bool TryParsePluginFiles(ParseResult parseResult, out IEnumerable<Plugin>? plugins)
+    {
+        try
+        {
+            var pluginFiles = parseResult.GetValue(PluginFilesOption);
+
+            if (pluginFiles is not null)
+            {
+                var loadedPlugins = new List<Plugin>();
+
+                foreach (var pluginFile in pluginFiles)
+                {
+                    if (pluginFile is null || !Path.Exists(pluginFile))
+                    {
+                        PrintError($"Unable to find plugin \"{pluginFile}\".");
+                        plugins = default;
+                        return false;
+                    }
+
+                    var pluginPath = Path.GetFullPath(pluginFile);
+                    if (_pluginFiles.Add(pluginPath) && TryLoadPlugin(pluginPath, out var plugin) && plugin is not null)
+                    {
+                        loadedPlugins.Add(plugin);
+                    }
+                }
+
+                plugins = loadedPlugins;
+                return true;
+            }
+        }
+        catch { }
+
+        plugins = default;
+        return false;
+    }
+
+    protected bool TryLoadPlugin(string pluginFile, out Plugin? plugin)
+    {
+        try
+        {
+            PrintInfo("Loading plugin \"{0}\"...", Path.GetFileNameWithoutExtension(pluginFile));
+            plugin = Plugin.LoadPluginFromPath(pluginFile);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            PrintException(ex);
+        }
+
+        plugin = default;
         return false;
     }
 }

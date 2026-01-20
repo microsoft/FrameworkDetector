@@ -12,7 +12,7 @@ namespace FrameworkDetector;
 internal static class SemVersionExtensions
 {
     /// <summary>
-    /// The Regex used by <see cref="TryParseCleaned"/> to clean a s string before parsing.
+    /// The Regex used by <see cref="TryParseCleaned"/> to clean a SemVersion string before parsing.
     /// </summary>
     static readonly Regex CleanSemVersionRegex = new Regex(@"^v?((\d+)(\.|, |,)(\d+)?(\.|, |,)?(\d+)?)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 

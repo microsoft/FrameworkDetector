@@ -36,7 +36,7 @@ public static class ContainsPackagedDependencyCheck
     /// <summary>
     /// Input arguments for <see cref="ContainsPackagedDependencyCheck"/>.
     /// </summary>
-    /// <param name="packageFullName">The Package Full Name to look for as an immediate dependency (or in part).</param>
+    /// <param name="packageFullName">An immediate dependency's Package Full Name (PFN) must contain this text, if specified.</param>
     public readonly struct ContainsPackagedDependencyArgs(string? packageFullName = null) : ICheckArgs
     {
         public string? PackageFullName { get; } = packageFullName;
@@ -198,7 +198,7 @@ public static class ContainsPackagedDependencyCheck
 
                         if (cancellationToken.IsCancellationRequested) break;
 
-                        var packageNameMatch = definition.CheckArguments.PackageFullName is null || dependentPackage.PackageDisplayName is null || dependentPackage.Id.FullName.Contains(definition.CheckArguments.PackageFullName, StringComparison.InvariantCultureIgnoreCase);
+                        var packageNameMatch = definition.CheckArguments.PackageFullName is null || dependentPackage.Id.FullName is null || dependentPackage.Id.FullName.Contains(definition.CheckArguments.PackageFullName, StringComparison.InvariantCultureIgnoreCase);
 
                         if (packageNameMatch)
                         {

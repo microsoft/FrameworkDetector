@@ -5,8 +5,6 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 
-using FrameworkDetector.Models;
-
 namespace FrameworkDetector.CLI;
 
 public partial class CliApp

@@ -15,7 +15,6 @@ using System.CommandLine.Parsing;
 using YamlDotNet.Serialization;
 
 using FrameworkDetector.Engine;
-using FrameworkDetector.Models;
 
 namespace FrameworkDetector.CLI;
 
@@ -41,6 +40,7 @@ public partial class CliApp
         var command = new Command("docs", "Get documentation for how a particular framework is detected. If no frameworkId specified, lists the available frameworks.")
         {
             frameworkIdArgument,
+            PluginFilesOption,
         };
         command.TreatUnmatchedTokensAsErrors = true;
 
@@ -54,6 +54,12 @@ public partial class CliApp
                     PrintError(parseError.Message);
                 }
 
+                return (int)ExitCode.ArgumentParsingError;
+            }
+
+            if (!TryInitializeFrameworkDetectorServices(parseResult))
+            {
+                PrintError("Unable to initialize FrameworkDetector services.");
                 return (int)ExitCode.ArgumentParsingError;
             }
 

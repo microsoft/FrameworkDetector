@@ -7,9 +7,10 @@ using System.CommandLine.Parsing;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Windows.ApplicationModel;
 using Windows.Management.Deployment;
+
+using Microsoft.Extensions.DependencyInjection;
 
 using FrameworkDetector.Inputs;
 
@@ -35,6 +36,7 @@ public partial class CliApp
             OutputFileOption,
             IncludeChildrenOption,
             WaitForInputIdleOption,
+            PluginFilesOption,
         };
 
         appCommand.SetAction(async (ParseResult parseResult, CancellationToken cancellationToken) =>
@@ -57,6 +59,12 @@ public partial class CliApp
             if (!TryParseOutputFile(parseResult))
             {
                 PrintError("Invalid output file specified");
+                return (int)ExitCode.ArgumentParsingError;
+            }
+
+            if (!TryInitializeFrameworkDetectorServices(parseResult))
+            {
+                PrintError("Unable to initialize FrameworkDetector services.");
                 return (int)ExitCode.ArgumentParsingError;
             }
 
@@ -95,7 +103,7 @@ public partial class CliApp
         {
             PrintInfo("Preparing to inspect {0}...", target);
 
-            var inputs = await InputHelper.GetInputsFromPackageAsync(package, isLoaded: false, cancellationToken);
+            var inputs = await Services.GetRequiredService<InputFactory>().GetInputsFromPackageAsync(package, isLoaded: false, cancellationToken);
 
             PrintInfo("Inspecting {0}:", target);
 

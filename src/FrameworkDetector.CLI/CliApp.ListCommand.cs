@@ -61,42 +61,32 @@ public partial class CliApp
             {
                 PackageManager packageManager = new();
 
-                IEnumerable<Package> packages = [];
+                IEnumerable<Package> packages = (WindowsIdentity.IsRunningAsAdmin ? packageManager.FindPackages() : packageManager.FindPackagesForUser(string.Empty))
+                                                .OrderByDescending(p => p.TryGetInstalledDate(out var installedDate) && installedDate.HasValue ? installedDate.Value : DateTimeOffset.MinValue)
+                                                .ThenBy(p => p.Id.FullName);
 
                 if (number.Value > 0)
                 {
                     Console.WriteLine($"Listing {number.Value} most recent packages installed:");
-                    packages = (WindowsIdentity.IsRunningAsAdmin ? packageManager.FindPackages() : packageManager.FindPackagesForUser(string.Empty))
-                        .OrderByDescending(p => p.InstalledDate)
-                        .Take(number.Value);
+                    packages = packages.Take(number.Value);
                 }
                 else
                 {
                     Console.WriteLine("Listing all packages installed:");
-                    // Weird cast issue with trying to do this later, so just separate out for now.
-                    packages = (WindowsIdentity.IsRunningAsAdmin ? packageManager.FindPackages() : packageManager.FindPackagesForUser(string.Empty))
-                        .OrderByDescending(p => p.InstalledDate);
                 }
 
                 Console.WriteLine();
 
                 foreach (var package in packages)
                 {
-                    Console.WriteLine($"FullName:  {package.Id.FullName}");
-                    Console.WriteLine($"Installed: {package.InstalledDate}");
-
-                    var installPath = "Unknown";
-                    try
-                    {
-                        installPath = package.InstalledLocation.Path;
-                    }
-                    catch (System.IO.FileNotFoundException) { }
-                    Console.WriteLine($"Location:  {installPath}");
+                    Console.WriteLine($"FullName:      {package.Id.FullName}");
+                    Console.WriteLine($"InstalledDate: {(package.TryGetInstalledDate(out var installedDate) && installedDate.HasValue ? installedDate.Value : "Unknown")}");
+                    Console.WriteLine($"InstalledPath: {(package.TryGetInstalledPath(out var installedPath) && !string.IsNullOrEmpty(installedPath) ? installedPath : "Unknown")}");
 
                     var entries = await package.GetAppListEntriesAsync();
                     if (entries is not null && entries.Count > 0)
                     {
-                        Console.WriteLine("Applications [AUMID] DisplayName:");
+                        Console.WriteLine("Applications ([AUMID] DisplayName):");
                         foreach (var entry in entries)
                         {
                             Console.WriteLine($"\t[{entry.AppUserModelId}] {entry.DisplayInfo.DisplayName}");
