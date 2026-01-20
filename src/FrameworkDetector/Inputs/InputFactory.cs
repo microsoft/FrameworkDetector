@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,14 +10,14 @@ using System.Threading.Tasks;
 
 using Windows.ApplicationModel;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace FrameworkDetector.Inputs;
 
 /// <summary>
 /// Factory with methods for taking an input type (Process, Packaged App, etc...) and building a list of inputs available from that input.
 /// </summary>
-public class InputFactory(CustomDataFactoryCollection<FileInfo> fileInfoCustomDataFactories,
-                          CustomDataFactoryCollection<Package> packageCustomDataFactories,
-                          CustomDataFactoryCollection<Process> processCustomDataFactories)
+public class InputFactory(IServiceProvider services)
 {
     public async Task<IReadOnlyList<IInputType>> GetInputsFromExecutableAsync(FileInfo fileInfo, bool isLoaded, CancellationToken cancellationToken)
     {
@@ -25,7 +26,7 @@ public class InputFactory(CustomDataFactoryCollection<FileInfo> fileInfoCustomDa
 
         List<IInputType> inputs = [];
 
-        var exeInput = await ExecutableInput.CreateAndInitializeDataSourcesAsync(fileInfo, isLoaded, fileInfoCustomDataFactories, cancellationToken);
+        var exeInput = await ExecutableInput.CreateAndInitializeDataSourcesAsync(fileInfo, isLoaded, services.GetRequiredService<CustomDataFactoryCollection<FileInfo>>(), cancellationToken);
         if (exeInput is not null)
         {
             inputs.Add(exeInput);
@@ -44,7 +45,7 @@ public class InputFactory(CustomDataFactoryCollection<FileInfo> fileInfoCustomDa
 
         List<IInputType> inputs = [];
 
-        var pkgInput = await InstalledPackageInput.CreateAndInitializeDataSourcesAsync(package, isLoaded, packageCustomDataFactories, cancellationToken);
+        var pkgInput = await InstalledPackageInput.CreateAndInitializeDataSourcesAsync(package, isLoaded, services.GetRequiredService<CustomDataFactoryCollection<Package>>(), cancellationToken);
         if (pkgInput is not null)
         {
             inputs.Add(pkgInput);
@@ -75,7 +76,7 @@ public class InputFactory(CustomDataFactoryCollection<FileInfo> fileInfoCustomDa
         List<IInputType> inputs = [];
 
         // Get Main Process Info
-        var processInput = await ProcessInput.CreateAndInitializeDataSourcesAsync(process, true, processCustomDataFactories, cancellationToken);
+        var processInput = await ProcessInput.CreateAndInitializeDataSourcesAsync(process, true, services.GetRequiredService<CustomDataFactoryCollection<Process>>(), cancellationToken);
         if (processInput is not null)
         {
             inputs.Add(processInput);
