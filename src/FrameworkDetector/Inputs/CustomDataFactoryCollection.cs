@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,19 +16,25 @@ public class CustomDataFactoryCollection<T>(IEnumerable<ICustomDataFactory<T>> c
 {
     public async Task<IReadOnlyDictionary<string, IReadOnlyList<object>>> CreateCustomDataAsync(T input, bool? isLoaded, CancellationToken cancellationToken)
     {
-        var customData = new Dictionary<string, List<object>>();
+        var customData = new Dictionary<string, IReadOnlyList<object>>();
 
         foreach (var factory in customDataFactories)
         {
-            var kvp = await factory.CreateCustomDataAsync(input, isLoaded, cancellationToken);
-            if (!customData.TryGetValue(kvp.Key, out var list) || list is null)
+            await foreach (var result in factory.CreateCustomDataAsync(input, isLoaded, cancellationToken))
             {
-                list = new List<object>();
-                customData[kvp.Key] = list;
+                if (result is not null)
+                {
+                    if (!customData.TryGetValue(factory.Key, out var list) || list is null)
+                    {
+                        // Create aggregate list for Key if it doesn't exist
+                        list = new List<object>();
+                        customData[factory.Key] = list;
+                    }
+                    (list as List<object>)!.AddRange(result);
+                }
             }
-            list.AddRange(kvp.Value);
         }
 
-        return customData.Select(kvp => new KeyValuePair<string, IReadOnlyList<object>>(kvp.Key, kvp.Value)).ToDictionary();
+        return customData;
     }
 }
