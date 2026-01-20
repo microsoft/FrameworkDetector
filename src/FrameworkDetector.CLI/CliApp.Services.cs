@@ -18,7 +18,7 @@ namespace FrameworkDetector.CLI;
 
 public partial class CliApp
 {
-    private IServiceProvider Services => _services ?? throw new Exception($"{nameof(Services)} not initalized. Did you forget to call {nameof(TryInitializeFrameworkDetectorServices)}?");
+    private IServiceProvider Services => _services ?? throw new Exception($"{nameof(Services)} not initialized. Did you forget to call {nameof(TryInitializeFrameworkDetectorServices)}?");
     private static IServiceProvider? _services = null;
 
     internal bool TryInitializeFrameworkDetectorServices(ParseResult parseResult)

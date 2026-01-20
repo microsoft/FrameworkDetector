@@ -551,7 +551,7 @@ Any `IDetector`s you implement in a plugin library will be automatically added t
 
 #### Custom ICustomDataFactory
 
-If you want to extend Framework Detectors's existing input types with new custom data (to be included in the output JSON, or to be used by a custom check) you'll want to create a new `ICustomDataFactory` for the .NET type the input is based on.
+If you want to extend Framework Detectors's existing input types with new custom data (to be included in the output JSON, or to be used by a custom check) you'll want to create a new `ICustomDataFactory` for the .NET type the input is based on. Currently, `FileInfo`, `Package`, and `Process` are supported.
 
 For example, if you wanted to extend `ExecutableInput`, which is built from a `FileInfo`, you'd want to create a `ICustomDataFactory<FileInfo>`, i.e.:
 
