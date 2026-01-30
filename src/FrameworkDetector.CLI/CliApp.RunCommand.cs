@@ -175,7 +175,6 @@ public partial class CliApp
         {
             PrintInfo("Starting program at \"{0}\"...", exepath);
             process = Process.Start(exepath);
-            PrintInfo("Starting program at \"{0}\"...", exepath);
         }
         catch (OperationCanceledException) { throw; }
         catch { }

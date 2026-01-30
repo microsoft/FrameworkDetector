@@ -69,7 +69,7 @@ public partial class CliApp
     {
         try
         {
-            if (process is not null)
+            if (process is not null && !process.HasExited)
             {
                 PrintInfo("Trying to kill process {0}({1})...", process.ProcessName, process.Id);
                 process.Kill();
