@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\docs\**\*.md" />
+    <EmbeddedResource Include="..\..\docs\Frameworks\*.md" />
   </ItemGroup>
 
   <ItemGroup>
