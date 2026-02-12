@@ -42,7 +42,7 @@ public static class FileInfoExtensions
 
                             if (importedFunction.Name is not null)
                             {
-                                tempMap[importedFunction.DLL].Add(importedFunction.Name, new FunctionMetadata(importedFunction.Name, false));
+                                tempMap[importedFunction.DLL][importedFunction.Name] = new FunctionMetadata(importedFunction.Name, false);
                             }
                         }
                     }
@@ -59,7 +59,7 @@ public static class FileInfoExtensions
 
                             if (delayImportedFunction.Name is not null)
                             {
-                                tempMap[delayImportedFunction.DLL].Add(delayImportedFunction.Name, new FunctionMetadata(delayImportedFunction.Name, true));
+                                tempMap[delayImportedFunction.DLL][delayImportedFunction.Name] = new FunctionMetadata(delayImportedFunction.Name, true);
                             }
                         }
                     }
