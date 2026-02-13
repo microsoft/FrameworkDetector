@@ -26,12 +26,27 @@ public class QtDetector : IDetector
     
     public DetectorDefinition CreateDefinition()
     {
-        // TODO: Need to look at older versions and if this is the most common dll in all apps... (e.g. there's also 'Qt5Gui.dll')
         return this.Create()
+            .Required("Qt4", checks => checks
+                .ContainsModule("Qt4Core.dll").GetVersionFromModule())
+            // OR
             .Required("Qt5", checks => checks
                 .ContainsModule("Qt5Core.dll").GetVersionFromModule())
-            .Optional("Gui", checks => checks
-                .ContainsModule("Qt5Gui.dll").GetVersionFromModule())
+            // OR
+            .Required("Qt6", checks => checks
+                .ContainsModule("Qt6Core.dll").GetVersionFromModule())
+            // OR
+            .Required("Qt5*QWindow Window Class", checks => checks
+                .ContainsActiveWindow("Qt5")
+                .ContainsActiveWindow("QWindowIcon"))
+            // OR
+            .Required("Qt6*QWindow Window Class", checks => checks
+                .ContainsActiveWindow("Qt6")
+                .ContainsActiveWindow("QWindowIcon"))
+            .Optional("Gui Module", checks => checks
+                .ContainsModule("Qt4Gui.dll").GetVersionFromModule()
+                .ContainsModule("Qt5Gui.dll").GetVersionFromModule()
+                .ContainsModule("Qt6Gui.dll").GetVersionFromModule())
             .BuildDefinition();
     }
 }
