@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,8 +39,8 @@ public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
         await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Get executable's own metadata
-        var metadata = WindowsModuleMetadata.GetMetadata(executable.FullName, isLoaded == true);
+        // Get executable's own metadata (always not loaded)
+        var metadata = WindowsModuleMetadata.GetMetadata(executable.FullName, false);
 
         await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();
@@ -47,28 +48,14 @@ public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
         // Get functions imported by the executable
         var importedFunctions = executable.GetImportedFunctionsMetadata();
 
-        // Loop over Imported Functions to produce ModulesDataSource
-        HashSet<WindowsModuleMetadata> importedModules = new();
-        foreach (var function in importedFunctions)
-        {
-            await Task.Yield();
-            cancellationToken.ThrowIfCancellationRequested();
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
 
-            var moduleName = function.ModuleName;
+        // Loop over Imported Functions to get ImportedModules
+        var importedModules = GetModulesFromImportedFunctionsMetadata(executable, importedFunctions);
 
-            // Module names extracted from imported functions do not contain paths, check path of executable
-            if (!Path.IsPathFullyQualified(moduleName))
-            {
-                var moduleFullPath = Path.GetFullPath(moduleName, Path.GetDirectoryName(executable.FullName) ?? "");
-                if (Path.Exists(moduleFullPath))
-                {
-                    moduleName = moduleFullPath;
-                }
-            }
-
-            var moduleMetadata = WindowsModuleMetadata.GetMetadata(moduleName, false);
-            importedModules.Add(moduleMetadata);
-        }
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
 
         await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();
@@ -86,8 +73,33 @@ public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
         return new ExecutableInput(metadata,
                                    importedFunctions.OrderBy(f => f.ModuleName).ToArray(),
                                    exportedFunctions.OrderBy(f => f.Name).ToArray(),
-                                   importedModules.ToArray(),
+                                   importedModules.OrderBy(m => m.FileName).ToArray(),
                                    customData);
+    }
+
+    protected static IReadOnlySet<WindowsModuleMetadata> GetModulesFromImportedFunctionsMetadata(FileInfo executable, IReadOnlySet<ImportedFunctionsMetadata> importedFunctions)
+    {
+        var executablePath = Path.GetDirectoryName(executable.FullName) ?? ".\\";
+
+        HashSet<WindowsModuleMetadata> importedModules = new();
+        foreach (var function in importedFunctions)
+        {
+            var moduleName = function.ModuleName;
+
+            // Module names extracted from imported functions do not contain paths, check path of executable
+            if (!Path.IsPathFullyQualified(moduleName))
+            {
+                var moduleFullPath = Path.GetFullPath(moduleName, executablePath);
+                if (Path.Exists(moduleFullPath))
+                {
+                    moduleName = moduleFullPath;
+                }
+            }
+
+            var moduleMetadata = WindowsModuleMetadata.GetMetadata(moduleName, false);
+            importedModules.Add(moduleMetadata);
+        }
+        return importedModules;
     }
 
     public override int GetHashCode() => ExecutableMetadata.GetHashCode();

@@ -396,6 +396,26 @@ public static class ProcessExtensions
     }
 
     /// <summary>
+    /// Gets the module metadata for every module loaded by the given process.
+    /// </summary>
+    /// <param name="process">The target process.</param>
+    /// <returns>The metadata for each loaded module.</returns>
+    public static IReadOnlySet<WindowsModuleMetadata> GetLoadedModuleMetadata(this Process process)
+    {
+        // Get modules loaded in memory by the process.
+        var loadedModules = new HashSet<WindowsModuleMetadata>();
+        foreach (var module in process.Modules.Cast<ProcessModule>())
+        {
+            var moduleMetadata = WindowsModuleMetadata.GetMetadata(module.FileName, isLoaded: true);
+            if (moduleMetadata is not null)
+            {
+                loadedModules.Add(moduleMetadata);
+            }
+        }
+        return loadedModules;
+    }
+
+    /// <summary>
     /// Gets a <see cref="FileInfo"/> object representing the <see cref="Process.MainModule"/> location of the process.
     /// </summary>
     /// <param name="process">The target process.</param>

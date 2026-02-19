@@ -32,6 +32,16 @@ public class InputFactory(IServiceProvider services)
             inputs.Add(exeInput);
         }
 
+        var dotnetManifestFile = new FileInfo(Path.ChangeExtension(fileInfo.FullName, ".deps.json"));
+        if (dotnetManifestFile.Exists)
+        {
+            var dotnetManifestInput = await DotnetManifestInput.CreateAndInitializeDataSourcesAsync(dotnetManifestFile, isLoaded, services.GetRequiredService<CustomDataFactoryCollection<FileInfo>>(), cancellationToken);
+            if (dotnetManifestInput is not null)
+            {
+                inputs.Add(dotnetManifestInput);
+            }
+        }
+
         // TODO: Any other inputs this can provide? Can we get package from exe?
         // Need to be careful about loops though, maybe these should all be independent?
 
