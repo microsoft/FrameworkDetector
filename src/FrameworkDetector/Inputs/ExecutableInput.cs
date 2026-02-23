@@ -57,9 +57,6 @@ public record ExecutableInput(WindowsModuleMetadata ExecutableMetadata,
         await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();
 
-        await Task.Yield();
-        cancellationToken.ThrowIfCancellationRequested();
-
         // Get functions exposed by executable
         var exportedFunctions = executable.GetExportedFunctionsMetadata();
 
