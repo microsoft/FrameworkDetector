@@ -178,7 +178,7 @@ public static class ContainsModuleCheck
             // The metadata along with the live data sources (as indicated by the registration)
             // will be passed into the PerformCheckAsync method below to do the actual check.
 
-            var args = new ContainsModuleArgs(filename, originalFilename, fileVersionRange, productName, productVersionRange, checkForNgenModule, isLoaded);
+            var args = new ContainsModuleArgs(filename, originalFilename, fileVersionRange, productName, productVersionRange, isLoaded, checkForNgenModule);
             args.Validate();
 
             dcg.AddCheck(new CheckDefinition<ContainsModuleArgs, ContainsModuleData>(GetCheckRegistrationInfo(args), args));
