@@ -36,6 +36,15 @@ public class QtDetector : IDetector
             .Required("Qt6", checks => checks
                 .ContainsModule("Qt6Core.dll").GetVersionFromModule())
             // OR
+            .Required("Kso Qt4", checks => checks
+                .ContainsModule("Qt4CoreKso.dll").GetVersionFromModule())
+            // OR
+            .Required("Kso Qt5", checks => checks
+                .ContainsModule("Qt5CoreKso.dll").GetVersionFromModule())
+            // OR
+            .Required("Kso Qt6", checks => checks
+                .ContainsModule("Qt6CoreKso.dll").GetVersionFromModule())
+            // OR
             .Required("Qt5*QWindow Window Class", checks => checks
                 .ContainsActiveWindow("Qt5")
                 .ContainsActiveWindow("QWindowIcon"))
