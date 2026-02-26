@@ -47,7 +47,8 @@ Windows 7, 8, 10, and 11
 
 - [Krita](https://krita.org) - [Source Code](https://invent.kde.org/graphics/krita)
 - [OpenShot Video Editor](https://openshot.org) - [Source Code](https://github.com/OpenShot/openshot-qt) 
-- [VLC](https://www.videolan.org/)
+- [VLC](https://www.videolan.org/) (using their own fork)
+- [WPS Office](https://www.wps.com/office/windows/) (using the Kso fork)
 
 #### Qt6
 
@@ -64,7 +65,7 @@ Other well-known applications using Qt:
 
 ### Runtime Detection
 
-A module following the pattern `Qt*Core.dll` should be loaded by the app's running process, where `*` is Qt's major verion, i.e.:
+A module following the naming pattern `Qt*Core.dll` should be loaded by the app's running process, where `*` is Qt's major version, i.e.:
 
 1. `Qt4Core.dll`
 2. `Qt5Core.dll`
@@ -72,7 +73,15 @@ A module following the pattern `Qt*Core.dll` should be loaded by the app's runni
 
 The specific version of Qt can be gotten by checking the FileVersion of the loaded module.
 
-In some rare instances, apps may have built their own versions of Qt and therefore load a different module name. For example, VLC builds their own `libqt_plugin.dll`. In that case, it may also be possible to detect the presence of Qt by checking an app's active windows for the window class `Qt*QWindowIcon`, where `*` is the Qt version, i.e:
+Kingsoft Corporation maintains a public fork of Qt which is popular with Chinese developers. Their modules follow the naming pattern `Qt*CoreKso.dll`, where `*` is Qt's major version, i.e.:
+
+1. `Qt4CoreKso.dll`
+2. `Qt5CoreKso.dll`
+3. `Qt6CoreKso.dll`
+
+The specific version of the "Kso" Qt can be gotten by checking the FileVersion of the loaded module.
+
+Furthermore, in some instances, apps may have built their own versions of Qt and therefore load a different module name. For example, the popular VLC desktop app builds Qt into their own `libqt_plugin.dll`. In that case, it may also be possible to detect the presence of Qt by checking an app's active windows for the window class `Qt*QWindowIcon`, where `*` is the Qt version, i.e:
 
 1. `Qt5QWindowIcon`
 2. `Qt5152QWindowIcon`
@@ -80,7 +89,7 @@ In some rare instances, apps may have built their own versions of Qt and therefo
 
 ### Static Detection
 
-While not a definitive method to prove usage, the app's executable's PE headers should include one of the modules listed under [Runtime Detection](#runtime-detection) in its import access table.
+It is not possible to definitively determine the use of Qt by an app by detecting the presence or absence of the aforementioned module file(s) within the app's binaries. In the simplest case, any of the aforementioned module(s) could have been included mistakenly.
 
 ## Resources
 
