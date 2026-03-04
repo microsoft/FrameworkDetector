@@ -58,10 +58,12 @@ For more information on the differences, see [NET implementations](https://learn
 
 ### Runtime Detection
 
-Either of the following modules should be loaded by the running process:
+Any of the following modules should be loaded by the running process:
 
 1. `PresentationCore.dll` (or the Ngened[^1] `PresentationCore.ni.dll`)
 2. `PresentationFramework.dll` (or the Ngened[^1] `PresentationFramework.ni.dll`)
+3. `PresentationNative_cor3.dll` (.NET only)
+4. `PresentationNative_v0400.dll` (.NET Framework only)
 
 The specific version of WPF can be gotten by checking the FileVersion of any of these modules.
 
