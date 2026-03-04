@@ -28,7 +28,8 @@ public class DotNetDetector : IDetector
     {
         return this.Create()
             .Required("", checks => checks
-                .ContainsModule("CoreClr.dll", productName: "Microsoft® .NET").GetVersionFromModule())
+                .ContainsModule("CoreClr.dll", productName: "Microsoft® .NET")
+                .ContainsModule("System.Runtime.dll", productName: "Microsoft® .NET").GetVersionFromModule(ModuleVersionType.ProductVersion))
             .Optional("Extra Modules", checks => checks
                 .ContainsModule("clrjit.dll", productName: "Microsoft® .NET"))
             .BuildDefinition();

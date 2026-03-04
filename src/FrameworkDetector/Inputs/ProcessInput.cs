@@ -65,18 +65,7 @@ public record ProcessInput(int ProcessId,
         cancellationToken.ThrowIfCancellationRequested();
 
         // Get modules loaded in memory by the process.
-        var loadedModules = new HashSet<WindowsModuleMetadata>();
-        foreach (var module in process.Modules.Cast<ProcessModule>())
-        {
-            await Task.Yield();
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var moduleMetadata = WindowsModuleMetadata.GetMetadata(module.FileName, isLoaded: true);
-            if (moduleMetadata is not null)
-            {
-                loadedModules.Add(moduleMetadata);
-            }
-        }
+        var loadedModules = process.GetLoadedModuleMetadata();
 
         await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();

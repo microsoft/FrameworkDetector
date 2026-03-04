@@ -41,6 +41,7 @@ public static class ServiceInfo
         services.AddSingleton<IDetector, DotNetFrameworkDetector>();
         services.AddSingleton<IDetector, DotNetNativeDetector>();
         services.AddSingleton<IDetector, ElectronDetector>();
+        services.AddSingleton<IDetector, EdgePWADetector>();
         services.AddSingleton<IDetector, MVVMToolkitDetector>();
         services.AddSingleton<IDetector, QtDetector>();
         services.AddSingleton<IDetector, RNWDetector>();

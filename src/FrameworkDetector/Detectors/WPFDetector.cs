@@ -32,6 +32,12 @@ public class WPFDetector : IDetector
             // OR
             .Required("Core Module", checks => checks
                 .ContainsModule("PresentationCore.dll", checkForNgenModule: true).GetVersionFromModule())
+            // OR
+            .Required("PresentationNative (.NET)", checks => checks
+                .ContainsModule("PresentationNative_cor3.dll").GetVersionFromModule())
+            // OR
+            .Required("PresentationNative (.NET Framework)", checks => checks
+                .ContainsModule("PresentationNative_v0400.dll").GetVersionFromModule())
             .BuildDefinition();
     }
 }
