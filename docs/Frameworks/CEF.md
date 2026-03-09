@@ -43,7 +43,7 @@ CEF depends on [Google Chromium](https://chromium.org/Home).
 
 ## How to Detect
 
-**Implementation:** [CEFDetector](/src/FrameworkDetector/Detectors/Component/WebView/CEFDetector.cs)
+**Implementation:** [CEFDetector](/src/FrameworkDetector/Detectors/CEFDetector.cs)
 
 ### Runtime Detection
 

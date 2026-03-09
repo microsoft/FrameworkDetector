@@ -52,7 +52,7 @@ For more information on the differences, see [NET implementations](https://learn
 
 ## How to Detect
 
-**Implementation:** [MVVMToolkitDetector](/src/FrameworkDetector/Detectors/Library/dotnet/MVVMToolkitDetector.cs)
+**Implementation:** [MVVMToolkitDetector](/src/FrameworkDetector/Detectors/MVVMToolkitDetector.cs)
 
 ### Runtime Detection
 

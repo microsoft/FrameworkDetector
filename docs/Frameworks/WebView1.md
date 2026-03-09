@@ -42,7 +42,7 @@ WebView1 depends on [Legacy Microsoft Edge](https://learn.microsoft.com/archive/
 
 ## How to Detect
 
-**Implementation:** [WebView1Detector](/src/FrameworkDetector/Detectors/Component/WebView/WebView1Detector.cs)
+**Implementation:** [WebView1Detector](/src/FrameworkDetector/Detectors/WebView1Detector.cs)
 
 ### Runtime Detection
 
