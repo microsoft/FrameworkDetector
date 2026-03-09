@@ -58,7 +58,7 @@ A Fluent API surface is used to construct detectors. For instance, a basic `IDet
 
 A Detector requires _at least_ one Required check group, but can have many, representing different equivalent detection methods. Any Required check group that passes will indicate detection. **All** checks _within_ a required check group must pass for that group to pass.
 
-Optional check groups can also be defined, but they will have no impact on detection. Any check within an Optional group may pass to indicate the group has been detected. However, this does not trigger the detector like Required groups, nor are they aggregated. Optional check groups can be used to help identify gaps in detections, edge cases, or learn more about alternative scenarios/usage of frameworks.
+Optional check groups can also be defined, but they will have no impact on detection. _Any_ check within an Optional group may pass to indicate the group has been detected. However, this does not trigger the detector like Required groups, nor are they aggregated. Optional check groups can be used to help identify gaps in detections, edge cases, or learn more about alternative scenarios/usage of frameworks.
 
 ### FrameworkDetector.CLI
 
