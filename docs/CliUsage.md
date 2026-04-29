@@ -76,6 +76,18 @@ You can use the `list` command (see below) to find the PFNs recently installed p
 
 **Note:** Results from inspecting an app without running it will be less accurate than inspecting it as a running process.
 
+If you captured a json output from a prior command (see output options below), you can also re-display those results from a prior `inspect` command with:
+
+```ps
+FrameworkDetector.CLI.exe inspect json path\to\myresults.json
+```
+
+This will re-print the results to the console, but will not re-run any checks or update the results in any way. This is useful if you want to view the results of a prior inspection without having to run the target app again. If you have a prior `dump` (see below) of information or want to re-run updated detectors against prior captured data, use the `-r` parameter to re-run detection (optionally outputing to a file again):
+
+```ps
+FrameworkDetector.CLI.exe inspect json path\to\myresults.json -r -o newresults.json
+```
+
 ### Dump Command
 
 The `dump` command essentially performs the "first half" of the `inspect` command - it does all the work to gather the useful information of a target app but does not run any of the detectors. If you're looking to write a new detector (or improve one) and need to understand what inputs get created, you can use the `dump` command to get a comprehensive view of all data available the target.

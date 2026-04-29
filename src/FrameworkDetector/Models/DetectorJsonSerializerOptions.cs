@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace FrameworkDetector.Models;
 
-internal class DetectorJsonSerializerOptions
+public class DetectorJsonSerializerOptions
 {
     public static readonly JsonSerializerOptions Options = new()
     {

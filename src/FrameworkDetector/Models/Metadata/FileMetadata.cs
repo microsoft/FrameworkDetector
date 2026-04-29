@@ -20,5 +20,5 @@ public record FileMetadata([property: JsonIgnore()] string FullPath, // We don't
     /// Name of the file on disk.
     /// </summary>
     [JsonPropertyOrder(int.MinValue)] // Derived class or not, always put the filename first
-    public string FileName => Path.GetFileName(FullPath);
+    public string FileName { get => Path.GetFileName(FullPath); init => FullPath = value; } // Init used to re-hydrate from JSON where we only have the filename, not the full path.
 }

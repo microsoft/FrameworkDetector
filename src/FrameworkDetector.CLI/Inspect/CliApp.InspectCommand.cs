@@ -30,7 +30,7 @@ public partial class CliApp
         command.TreatUnmatchedTokensAsErrors = true;
 
         // Add all subcommands for processing different input types
-        // TODO: Not sure if better way to handle global options for now, at least we have one currently...
+        command.Subcommands.Add(GetInspectJsonSubCommand());
         command.Subcommands.Add(GetInspectExeSubCommand());
         command.Subcommands.Add(GetInspectInstalledPackageSubCommand());
         command.Subcommands.Add(GetInspectProcessSubCommand());
