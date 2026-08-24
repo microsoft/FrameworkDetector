@@ -44,7 +44,7 @@ WebView2 depends on [Microsoft Edge](https://microsoft.com/edge) which in turn d
 
 ## How to Detect
 
-**Implementation:** [WebView2Detector](/src/FrameworkDetector/Detectors/Component/WebView/WebView2Detector.cs)
+**Implementation:** [WebView2Detector](/src/FrameworkDetector/Detectors/WebView2Detector.cs)
 
 ### Runtime Detection
 
